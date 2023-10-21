@@ -1,10 +1,9 @@
 name: AnimeMoeUs
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  black-check:
+  Python-Black-Check:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,7 +21,7 @@ jobs:
     - name: Black check
       run: |
         black --check .
-  docker-compose:
+  Docker-Compose:
     needs: black-check
     runs-on: ubuntu-latest
     steps:
