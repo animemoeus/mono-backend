@@ -20,5 +20,5 @@ jobs:
         pip install black
     - name: Black check
       run: |
-        black --check . --exclude --exclude=manage.py app/wsgi.py app/asgi.py
+        black --check .
 
