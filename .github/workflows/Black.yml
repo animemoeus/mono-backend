@@ -1,4 +1,5 @@
 name: AnimeMoeUs
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 
 on: [push]
 
@@ -27,5 +28,5 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Docker Compose Build
-      run: docker compose -f docker-compose.prod.yaml build
+      # run: docker compose -f docker-compose.prod.yaml build
 
