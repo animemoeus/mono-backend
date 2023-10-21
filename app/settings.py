@@ -31,7 +31,7 @@ SECRET_KEY = "django-insecure-+y@i843qqtebvp52!s0h8y6q27rvxg_pag@v=_z+3fm2xnkg1i
 DEBUG = bool(os.environ.get("DEBUG", default=0))
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",")
-CSRF_TRUSTED_ORIGINS = ["http://test.animemoe.us", "https://test.animemoe.us"]
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS").split(",")
 
 # Application definition
 INSTALLED_APPS = [
