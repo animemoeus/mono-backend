@@ -3,7 +3,7 @@ name: AnimeMoeUs
 on: [push, pull_request]
 
 jobs:
-  Python-Black-Check:
+  black-check:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -21,11 +21,15 @@ jobs:
     - name: Black check
       run: |
         black --check .
-  Docker-Compose:
-    needs: Python-Black-Check
+  docker-compose:
+    needs: black-check
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Docker Compose Build
-      run: docker compose up -d
+      run: docker compose -f docker-compose.prod.yaml build
+    - name: Running Migrations
+      run: docker compose exec django python manage.py migrate
+    - name: Running Test
+      run: docker compose exec django python manage.py test
 
