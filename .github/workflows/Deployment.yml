@@ -19,7 +19,5 @@ jobs:
           script: |
             cd ${{ secrets.PATH }}
             git pull origin master --force
-            echo "${{ secrets.ENVIRONMENT }}" > .env
-            cat .env
-            docker compose -f docker-compose.prod.yaml up --build -d
             docker compose exec django python manage.py migrate
+            docker compose -f docker-compose.prod.yaml up --build -d
