@@ -28,5 +28,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Docker Compose Build
+      run: pwd
       # run: docker compose -f docker-compose.prod.yaml build
 
