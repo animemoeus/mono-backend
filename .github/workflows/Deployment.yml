@@ -18,4 +18,5 @@ jobs:
           script_stop: true
           script: |
             cd ${{ secrets.PATH }}
+            git pull origin master --force
             docker compose -f docker-compose.prod.yaml up --build -d
