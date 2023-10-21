@@ -3,44 +3,39 @@ name: AnimeMoeUs
 on: [push, pull_request]
 
 jobs:
-  black-check:
+  check:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.10"]
     steps:
     - uses: actions/checkout@v3
+    
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install black
+
     - name: Black check
       run: |
         black --check .
 
-  docker-compose:
+  test:
     needs: black-check
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Docker Compose Build
       run: docker compose -f docker-compose.prod.yaml up -d
+    
     - name: Running Migrations
       run: docker compose exec django python manage.py migrate
-    - name: Running Test
-      run: docker compose exec django python manage.py test
-
-  tests:
-    needs: docker-compose
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
+    
     - name: Running Test
       run: docker compose exec django python manage.py test
 
