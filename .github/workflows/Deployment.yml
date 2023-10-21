@@ -1,0 +1,21 @@
+name: Deployment
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  Deploying:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executing Remote SSH Commands Using Password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME}}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            cd ${{ secrets.PATH }}
+            docker compose -f docker-docker-compose.prod.yaml up --build -d
