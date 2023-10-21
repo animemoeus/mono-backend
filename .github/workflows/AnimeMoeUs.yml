@@ -21,6 +21,7 @@ jobs:
     - name: Black check
       run: |
         black --check .
+
   docker-compose:
     needs: black-check
     runs-on: ubuntu-latest
@@ -30,6 +31,16 @@ jobs:
       run: docker compose -f docker-compose.prod.yaml up -d
     - name: Running Migrations
       run: docker compose exec django python manage.py migrate
+    - name: Running Test
+      run: docker compose exec django python manage.py test
+
+  tests:
+    needs: migrations
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
     - name: Running Test
       run: docker compose exec django python manage.py test
 
