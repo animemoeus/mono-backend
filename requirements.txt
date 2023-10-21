@@ -1,4 +1,5 @@
 Django==4.2.6
+black==23.10.0
 celery==5.3.4
 django-celery-beat==2.5.0
 gunicorn==21.2.0
