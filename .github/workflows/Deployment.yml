@@ -18,4 +18,4 @@ jobs:
           script_stop: true
           script: |
             cd ${{ secrets.PATH }}
-            docker compose -f docker-docker-compose.prod.yaml up --build -d
+            docker compose -f docker-compose.prod.yaml up --build -d
