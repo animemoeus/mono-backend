@@ -19,4 +19,5 @@ jobs:
           script: |
             cd ${{ secrets.PATH }}
             git pull origin master --force
+            echo ${{ secrets.ENVIRONMENT }} > '.env'
             docker compose -f docker-compose.prod.yaml up --build -d
