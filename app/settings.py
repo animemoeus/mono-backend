@@ -43,9 +43,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # additional apps
     "django_celery_beat",
+    "django_hosts",
+    # applications
+    "discord_storage",
 ]
 
 MIDDLEWARE = [
+    "django_hosts.middleware.HostsRequestMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -54,9 +58,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_hosts.middleware.HostsResponseMiddleware",
 ]
 
 ROOT_URLCONF = "app.urls"
+ROOT_HOSTCONF = "app.hosts"
+DEFAULT_HOST = "www"
 
 TEMPLATES = [
     {
