@@ -5,3 +5,4 @@ __pycache__
 
 # files
 *.pyc
+.env
