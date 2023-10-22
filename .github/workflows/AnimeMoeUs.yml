@@ -42,7 +42,7 @@ jobs:
         echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> .env
 
     - name: Docker Compose Build
-      run: docker compose -f docker-compose.prod.yaml up -d
+      run: docker compose up -d
     
     - name: Running Migrations
       run: docker compose exec django python manage.py migrate
