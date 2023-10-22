@@ -9,7 +9,7 @@ services:
 
   django:
     build: .
-    command: gunicorn app.wsgi:application --bind 0.0.0.0:8000
+    entrypoint: ["sh", "./deployment.sh"]
     volumes:
       - .:/app
     depends_on:
@@ -22,16 +22,14 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - database
-      - redis
+      - django
   celery_beat:
     build: .
     command: celery --app app beat -l info
     volumes:
       - .:/app
     depends_on:
-      - database
-      - redis
+      - django
 
   redis:
     image: redis:7.2.2-alpine3.18
