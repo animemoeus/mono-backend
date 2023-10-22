@@ -2,6 +2,7 @@ Django==4.2.6
 black==23.10.0
 celery==5.3.4
 django-celery-beat==2.5.0
+django-hosts==5.2
 gunicorn==21.2.0
 psycopg2-binary==2.9.9
 python-dotenv==1.0.0
