@@ -30,6 +30,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+
+    - name: Creating environment file
+      run: |
+        echo "ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}" > .env
+        echo "CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }}" >> .env
+        echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+        echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
+        echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
+        echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" >> .env
+        echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> .env
+
     - name: Docker Compose Build
       run: docker compose -f docker-compose.prod.yaml up -d
     
