@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     # additional apps
     "django_celery_beat",
     "django_hosts",
+    "import_export",
+    "rest_framework",
     # applications
     "discord_storage",
 ]
@@ -68,7 +70,7 @@ DEFAULT_HOST = "www"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": ["templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -143,9 +145,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# DISCORD STORAGE
+UPLOAD_FROM_URL_WEBHOOK = os.environ.get("UPLOAD_FROM_URL_WEBHOOK", default="")
+UPLOAD_FROM_FILE_WEBHOOK = os.environ.get("UPLOAD_FROM_FILE_WEBHOOK", default="")
+DISCORD_FILE_SIZE_LIMIT = 25  # MB

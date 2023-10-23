@@ -1,0 +1,62 @@
+//
+// article.scss
+// Theme component
+//
+
+.article{
+  figure {
+    margin: $spacer*2 0;
+  }
+
+  ul, ol {
+    padding-left: $spacer*2;
+  }
+}
+
+@include media-breakpoint-up(md){
+  .article {
+    figure {
+      margin: $spacer*4 0;
+    }
+
+    ul, ol {
+      > li:not(:last-child){
+        margin-bottom: $spacer/2;
+      }
+    }
+  }
+}
+
+.article-comments {
+  list-style: none;
+  padding-left: 0;
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  > li {
+    &:not(:last-child){
+      margin-bottom: $spacer;
+    }
+
+    li {
+      margin-top: $spacer;
+      padding-top: $spacer;
+      padding-bottom: $spacer;
+      padding-left: $spacer;
+      border-left: 2px solid $border-color;
+    }
+  }
+}
+
+@include media-breakpoint-up(md){
+  .article-comments {
+    > li {
+      &:not(:last-child){
+        margin-bottom: $spacer*1.5;
+      }
+    }
+  }
+}
