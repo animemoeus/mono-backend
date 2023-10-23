@@ -1,0 +1,54 @@
+//
+// shadows.scss
+// Extended from Bootstrap
+//
+
+.shadow-light { box-shadow: $box-shadow-light !important; }
+.shadow-light-lg { box-shadow: $box-shadow-light-lg !important; }
+.shadow-dark { box-shadow: $box-shadow-dark !important; }
+.shadow-dark-lg { box-shadow: $box-shadow-dark-lg !important; }
+
+.shadow-lift { transition: $transition-base; }
+.shadow-lift:hover { transform: translate3d(0,-.125rem,0); }
+
+.shadow-light.shadow-lift:hover { box-shadow: $box-shadow-lift-light !important; }
+.shadow-light-lg.shadow-lift:hover { box-shadow: $box-shadow-lift-light-lg !important; }
+.shadow-dark.shadow-lift:hover { box-shadow: $box-shadow-lift-dark !important; }
+.shadow-dark-lg.shadow-lift:hover { box-shadow: $box-shadow-lift-dark-lg !important; }
+
+.shadow-neumorphic-primary { box-shadow: 20px 20px 60px #040abc, -20px -20px 60px #060efe; }
+.shadow-neumorphic-secondary { box-shadow: 20px 20px 60px #646f7e, -20px -20px 60px #8897aa; }
+.shadow-neumorphic-light { box-shadow: 20px 20px 60px #cfd0d2, -20px -20px 60px #ffffff; }
+.shadow-neumorphic-dark { box-shadow: 20px 20px 60px #0f0f15, -20px -20px 60px #2c2d3e; }
+.shadow-neumorphic-white { box-shadow: 20px 20px 60px #d9d9d9, -20px -20px 60px $white; }
+
+.text-shadow-light { text-shadow: $box-shadow-light !important; }
+.text-shadow-light-lg { text-shadow: $box-shadow-light-lg !important; }
+.text-shadow-dark { text-shadow: $box-shadow-dark !important; }
+.text-shadow-dark-lg { text-shadow: $box-shadow-dark-lg !important; }
+
+.text-neumorphic-primary {
+  color: $primary;
+  text-shadow: 20px 20px 60px #040abc, -20px -20px 60px #060efe;
+}
+
+.text-neumorphic-secondary {
+  color: $secondary;
+  text-shadow: 20px 20px 60px #646f7e, -20px -20px 60px #8897aa;
+}
+
+.text-neumorphic-light {
+  color: $light;
+  text-shadow: 20px 20px 60px #cfd0d2, -20px -20px 60px #ffffff;
+}
+
+.text-neumorphic-dark {
+  color: $dark;
+  text-shadow: 20px 20px 60px #0f0f15, -20px -20px 60px #2c2d3e;
+}
+
+.text-neumorphic-white {
+  color: $white;
+  text-shadow: 20px 20px 60px #d9d9d9, -20px -20px 60px $white;
+}
+

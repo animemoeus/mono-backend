@@ -1,0 +1,19 @@
+// Bootstrap setup
+@import "../../vendor/bootstrap/scss/functions";
+@import "../../vendor/bootstrap/scss/mixins";
+@import "../../vendor/bootstrap/scss/variables";
+
+// Theme functions
+@import "personite/functions";
+
+// Theme setup
+@import "personite/variables";
+
+// Custom setup
+@import "user-variables";
+
+// Theme core
+@import "personite/core";
+
+// User
+@import "user";

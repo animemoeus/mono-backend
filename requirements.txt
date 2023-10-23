@@ -1,10 +1,13 @@
 Django==4.2.6
 black==23.10.0
 celery==5.3.4
+djangorestframework==3.14.0
 django-celery-beat==2.5.0
 django-hosts==5.2
+django-import-export==3.3.1
 gunicorn==21.2.0
 psycopg2-binary==2.9.9
 python-dotenv==1.0.0
 redis==5.0.1
+requests==2.31.0
 whitenoise==6.6.0

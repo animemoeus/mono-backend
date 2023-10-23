@@ -1,0 +1,80 @@
+//
+// icon.scss
+// Theme component
+//
+
+// Icon
+.icon {
+  flex-shrink: 0;
+
+  &.icon-boxed {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  > svg {
+    height: auto;
+  }
+}
+
+@each $icon-size, $sizeValue in $icon-sizes {
+  .icon-#{$icon-size}x > i {
+    font-size: $sizeValue;
+  }
+}
+
+@each $icon-size, $sizeValue in $icon-sizes {
+  .icon-#{$icon-size}x > svg {
+    width: $sizeValue;
+  }
+}
+
+.icon-boxed {
+  @each $icon-size, $sizeValue in $icon-sizes {
+    &.icon-#{$icon-size}x {
+      width: $sizeValue * $icon-boxed-ratio;
+      height: $sizeValue * $icon-boxed-ratio;
+    }
+  }
+}
+
+/* Mouse icon */
+.mouse-icon {
+  position: absolute;
+  border: 2px solid currentColor;
+  border-radius: 30px;
+  height: 50px;
+  width: 30px;
+  bottom: 70px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  z-index: 10;
+}
+
+.mouse-icon:before {
+  content: '';
+  display: block;
+  position: relative;
+  border-radius: 4px;
+  background-color: currentColor;
+  width: 4px;
+  height: 10px;
+  top: 4px;
+  margin-left: auto;
+  margin-right: auto;
+  
+  animation-name: drop;
+  animation-duration: 1s;
+  animation-timing-function: linear;
+  animation-delay: 0s;
+  animation-iteration-count: infinite;
+  animation-play-state: running;
+}
+
+@keyframes drop {
+  0% { top:5px;  opacity: 0;}
+  30% { top:10px; opacity: 1;}
+  100% { top:25px; opacity: 0;}
+}
