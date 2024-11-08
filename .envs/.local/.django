@@ -1,34 +1,61 @@
 # General
 # ------------------------------------------------------------------------------
-USE_DOCKER=yes
-IPYTHONDIR=/app/.ipython
+
 
 # Redis
 # ------------------------------------------------------------------------------
 REDIS_URL=redis://redis:6379/0
+
 # Celery
 # ------------------------------------------------------------------------------
 
+
 # Flower
-CELERY_FLOWER_USER=debug
-CELERY_FLOWER_PASSWORD=debug
+# ------------------------------------------------------------------------------
+CELERY_FLOWER_USER=arter
+CELERY_FLOWER_PASSWORD=tendean
+
 
 # Tiktok
 # ------------------------------------------------------------------------------
-TIKTOK_MONITOR_TELEGRAM_BOT_SECRET="1421107253:AAEKZzGV5izwIINbURy5r-eH-Vk2e_eoOeY"
-TIKTOK_MONITOR_TELEGRAM_PRIVATE_CHANNEL_ID=-1002024746398
+TIKTOK_MONITOR_TELEGRAM_BOT_SECRET=arter
+TIKTOK_MONITOR_TELEGRAM_PRIVATE_CHANNEL_ID=tendean
 
 # Waifu
 # ------------------------------------------------------------------------------
-PIXIVPY_3_REFRESH_TOKEN=pDe_QoJXV4jyodMLil1sgRB63Z-IVCk5jTG3HW1nCt4
-WAIFU_TELEGRAM_BOT_TOKEN="1421107253:AAEKZzGV5izwIINbURy5r-eH-Vk2e_eoOeY"
+PIXIVPY_3_REFRESH_TOKEN=arter
+WAIFU_TELEGRAM_BOT_TOKEN=tendean
+WAIFU_DISCORD_REFRESH_URL_BOT_TOKEN=arter
+
 
 # twitter_downloader
-TWITTER_DOWNLOADER_API_URL=asd
-TWITTER_DOWNLOADER_KEY=asd
-TWITTER_DOWNLOADER_HOST=asd
-TWITTER_DOWNLOADER_COOKIE=asd
+TWITTER_DOWNLOADER_API_URL=arter
+TWITTER_DOWNLOADER_KEY=tendean
+TWITTER_DOWNLOADER_HOST=arter
+TWITTER_DOWNLOADER_COOKIE=tendean
+TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN=arter
 
 # discord
-DISCORD_REFRESH_URL=asd
-DISCORD_REFRESH_URL_BOT_TOKEN=asd
+DISCORD_REFRESH_URL=tendean
+DISCORD_REFRESH_URL_BOT_TOKEN=arter
+
+# instagram
+INSTAGRAM_API_URL=tendean
+INSTAGRAM_API_KEY=arter
+
+# Cloudflare R2
+AWS_STORAGE_BUCKET_NAME=tendean
+AWS_S3_ENDPOINT_URL=arter
+AWS_S3_ACCESS_KEY_ID=tendean
+AWS_S3_SECRET_ACCESS_KEY=arter
+INSTALOADER_SESSION_DISCORD_CHANNEL_WEBHOOK_URL=tendean
+
+# OpenAI
+OPENAI_API_KEY=arter
+
+# Google Captcha
+GOOGLE_CAPTCHA_SECRET_KEY=tendean
+
+# tiktok
+TIKHUB_API_URL=arter
+TIKHUB_API_KEY=tendean
