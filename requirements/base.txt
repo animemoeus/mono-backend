@@ -44,4 +44,4 @@ pixivpy3==3.7.5  # https://github.com/upbit/pixivpy
 pyscord-storage==2.0.3 # https://github.com/animemoeus/pyscord-storage
 django-health-check==3.18.3 # https://github.com/revsys/django-health-check
 saiyaku==2023.12.11 #  https://github.com/animemoeus/saiyaku
-openai==1.53.1 #  https://pypi.org/project/openai/
+openai==1.54.3 #  https://pypi.org/project/openai/
