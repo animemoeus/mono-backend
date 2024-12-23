@@ -27,7 +27,7 @@ django-cors-headers==4.6.0  # https://github.com/adamchainz/django-cors-headers
 django-filter==24.3  # https://github.com/carltongibson/django-filter
 
 # DRF-spectacular for api documentation
-drf-spectacular==0.27.2  # https://github.com/tfranzel/drf-spectacular
+drf-spectacular==0.28.0  # https://github.com/tfranzel/drf-spectacular
 django-import-export==4.3.3  # https://github.com/django-import-export/django-import-export
 django-hosts==6.0  # https://github.com/jazzband/django-hosts
 
