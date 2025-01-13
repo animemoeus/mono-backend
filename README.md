@@ -14,7 +14,6 @@
 - [🧑‍⚕️ Health Check](https://api.animemoe.us/health-check/)
 - [👀 Admin Panel](https://api.animemoe.us/admin/)
 - [🌸 Django Flower](https://flower.animemoe.us/)
-- [🐉 Wireguard](https://wireguard.animemoe.us/)
 - [📊 Docker Logs](https://dozzle.unklab.id/)
 
 ---
