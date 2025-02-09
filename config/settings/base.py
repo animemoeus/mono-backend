@@ -53,7 +53,10 @@ DATABASES["default"]["ATOMIC_REQUESTS"] = True
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-DATABASE_ROUTERS = ["waifu.db_router.WaifuAppRouter"]
+DATABASE_ROUTERS = [
+    "waifu.db_router.WaifuAppRouter",
+    "twitter_downloader.db_router.TwitterDownloadAppRouter",
+]
 
 # URLS
 # ------------------------------------------------------------------------------
