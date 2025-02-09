@@ -34,7 +34,7 @@ def create_waifu_init_data():
 
 
 class TestWaifuListView(TestCase):
-    databases = {"default", "tidb"}
+    databases = {"tidb"}
 
     def setUp(self):
         create_waifu_init_data()
@@ -50,7 +50,7 @@ class TestWaifuListView(TestCase):
 
 
 class TestWaifuDetailView(TestCase):
-    databases = {"default", "tidb"}
+    databases = {"tidb"}
 
     def setUp(self):
         create_waifu_init_data()
@@ -66,7 +66,7 @@ class TestWaifuDetailView(TestCase):
 
 
 class TestRandomWaifuView(TestCase):
-    databases = {"default", "tidb"}
+    databases = {"tidb"}
 
     def setUp(self):
         create_waifu_init_data()
