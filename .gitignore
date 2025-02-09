@@ -279,3 +279,6 @@ backend/media/
 .env
 .envs/*
 !.envs/.local/
+
+#  TiDB Prod
+mono-backend-prod.pem

@@ -3,7 +3,6 @@ version: "3"
 volumes:
   backend_local_postgres_data: {}
   backend_local_postgres_data_backups: {}
-  etc_wireguard:
 
 services:
   django: &django
@@ -20,6 +19,7 @@ services:
     env_file:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
+      - ./.envs/.local/.tidb
     ports:
       - "8000:8000"
     command: /start

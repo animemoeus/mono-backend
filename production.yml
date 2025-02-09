@@ -2,7 +2,6 @@ volumes:
   production_postgres_data: {}
   production_postgres_data_backups: {}
   production_django_media: {}
-  etc_wireguard:
 
 services:
   django: &django
@@ -34,6 +33,8 @@ services:
       - production_postgres_data_backups:/backups
     env_file:
       - ./.envs/.production/.postgres
+    ports:
+      - "54322:5432"
 
   redis:
     restart: unless-stopped
