@@ -18,14 +18,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   build-essential \
   pkg-config
 
-
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
 
 # Create Python Dependency and Sub-Dependency Wheels.
 RUN pip wheel --wheel-dir /usr/src/app/wheels  \
   -r ${BUILD_ENVIRONMENT}.txt
-
 
 # Python 'run' stage
 FROM python AS python-run-stage
@@ -42,13 +40,14 @@ WORKDIR ${APP_HOME}
 RUN addgroup --system django \
   && adduser --system --ingroup django django
 
-
 # Install required system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # psycopg2 dependencies
   libpq-dev \
   # Translations dependencies
   gettext \
+  # Added MariaDB runtime dependencies
+  default-libmysqlclient-dev \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
