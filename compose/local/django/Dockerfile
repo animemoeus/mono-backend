@@ -1,5 +1,5 @@
 # define an alias for the specific python version used in this file.
-FROM python:3.11.11-slim-bullseye as python
+FROM python:3.11.11-slim-bullseye AS python
 
 # Python build stage
 FROM python AS python-build-stage
@@ -11,7 +11,11 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
   # psycopg2 dependencies
-  libpq-dev
+  libpq-dev \
+  # mysqlclient dependencies 
+  default-libmysqlclient-dev \
+  build-essential \
+  pkg-config
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
