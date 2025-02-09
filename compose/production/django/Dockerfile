@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   build-essential \
   # psycopg2 dependencies
   libpq-dev \
-  # mysqlclient dependencies 
+  # MySQL/MariaDB dependencies
   default-libmysqlclient-dev \
   build-essential \
   pkg-config
@@ -24,6 +24,7 @@ COPY ./requirements .
 # Create Python Dependency and Sub-Dependency Wheels.
 RUN pip wheel --wheel-dir /usr/src/app/wheels  \
   -r ${BUILD_ENVIRONMENT}.txt
+
 
 # Python 'run' stage
 FROM python AS python-run-stage
@@ -46,7 +47,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   libpq-dev \
   # Translations dependencies
   gettext \
-  # Added MariaDB runtime dependencies
+  # MySQL/MariaDB dependencies
   default-libmysqlclient-dev \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
