@@ -48,8 +48,30 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
+
+
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+DATABASE_ROUTERS = [
+    "waifu.db_router.WaifuAppRouter",
+    "twitter_downloader.db_router.TwitterDownloadAppRouter",
+]
+
+# TiDB (https://tidbcloud.com/)
+DATABASES["tidb"] = {
+    "ENGINE": "django_tidb",
+    "HOST": env.str("TIDB_HOST", default="gateway01.ap-southeast-1.prod.aws.tidbcloud.com"),
+    "PORT": env.str("TIDB_PORT", default="4000"),
+    "NAME": env.str("TIDB_DB", default=""),
+    "USER": env.str("TIDB_USER", default=""),
+    "PASSWORD": env.str("TIDB_PASSWORD", default=""),
+    "OPTIONS": {
+        "ssl_mode": "VERIFY_IDENTITY",
+        "ssl": {"ca": env.str("TIDB_SSL_CA", default="")},
+    },
+}
+
 
 # URLS
 # ------------------------------------------------------------------------------

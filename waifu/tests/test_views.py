@@ -1,3 +1,4 @@
+import pytest
 import requests
 from django.test import TestCase
 from django.urls import reverse
@@ -33,7 +34,10 @@ def create_waifu_init_data():
     )
 
 
+@pytest.mark.django_db(databases=["tidb"])
 class TestWaifuListView(TestCase):
+    databases = {"default", "tidb"}
+
     def setUp(self):
         create_waifu_init_data()
 
@@ -48,6 +52,8 @@ class TestWaifuListView(TestCase):
 
 
 class TestWaifuDetailView(TestCase):
+    databases = {"default", "tidb"}
+
     def setUp(self):
         create_waifu_init_data()
 
@@ -62,6 +68,8 @@ class TestWaifuDetailView(TestCase):
 
 
 class TestRandomWaifuView(TestCase):
+    databases = {"default", "tidb"}
+
     def setUp(self):
         create_waifu_init_data()
 

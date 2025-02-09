@@ -57,7 +57,7 @@ class DiscordWebhook(models.Model):
 
         files = {"NKS2D-waifu.jpg" if is_nsfw is False else "SPOILER_NKS2D-waifu.jpg": file}
         payload = {
-            "content": f"{'Artist: '+creator_name if creator_name != '' else ''}",
+            "content": f"{'Artist: ' + creator_name if creator_name != '' else ''}",
             "username": random.choice(
                 [
                     "Random Waifu",

@@ -84,6 +84,7 @@ COPY --chown=django:django ./compose/production/django/celery/flower/start /star
 RUN sed -i 's/\r$//g' /start-flower
 RUN chmod +x /start-flower
 
+COPY ./compose/production/tidb/mono-backend-prod.pem /mono-backend-prod.pem
 
 # copy application code to WORKDIR
 COPY --chown=django:django . ${APP_HOME}
