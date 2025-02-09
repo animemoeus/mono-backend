@@ -25,6 +25,20 @@ CSRF_TRUSTED_ORIGINS = [
 # ------------------------------------------------------------------------------
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # noqa: F405
 
+
+DATABASES["tidb"] = {  # noqa: F405
+    "ENGINE": "django_tidb",
+    "NAME": TIDB_DB,  # noqa: F405
+    "USER": TIDB_USER,  # noqa: F405
+    "PASSWORD": TIDB_PASSWORD,  # noqa: F405
+    "HOST": TIDB_HOST,  # noqa: F405
+    "PORT": TIDB_PORT,  # noqa: F405
+    "OPTIONS": {
+        "ssl_mode": "VERIFY_IDENTITY",
+        "ssl": {"ca": TIDB_SSL_CA},  # noqa: F405
+    },
+}
+
 # CACHES
 # ------------------------------------------------------------------------------
 CACHES = {
@@ -75,7 +89,14 @@ STORAGES = {
     "default": {
         "BACKEND": (
             "storages.backends.s3boto3.S3Boto3Storage"
-            if all((AWS_STORAGE_BUCKET_NAME, AWS_S3_ENDPOINT_URL, AWS_S3_ACCESS_KEY_ID, AWS_S3_SECRET_ACCESS_KEY))
+            if all(
+                (
+                    AWS_STORAGE_BUCKET_NAME,
+                    AWS_S3_ENDPOINT_URL,
+                    AWS_S3_ACCESS_KEY_ID,
+                    AWS_S3_SECRET_ACCESS_KEY,
+                )
+            )
             else "django.core.files.storage.FileSystemStorage"
         ),
     },

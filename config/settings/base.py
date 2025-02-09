@@ -48,8 +48,12 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
+
+
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+DATABASE_ROUTERS = ["waifu.db_router.WaifuAppRouter"]
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -404,3 +408,11 @@ OPENAI_API_KEY = env.str("OPENAI_API_KEY", default="")
 
 # Google Captcha
 GOOGLE_CAPTCHA_SECRET_KEY = env.str("GOOGLE_CAPTCHA_SECRET_KEY", default="")
+
+# TiDB (https://tidbcloud.com/)
+TIDB_HOST = env.str("TIDB_HOST", default="gateway01.ap-southeast-1.prod.aws.tidbcloud.com")
+TIDB_PORT = env.str("TIDB_PORT", default="4000")
+TIDB_DB = env.str("TIDB_DB", default="")
+TIDB_USER = env.str("TIDB_USER", default="")
+TIDB_PASSWORD = env.str("TIDB_PASSWORD", default="")
+TIDB_SSL_CA = env.str("TIDB_SSL_CA", default="")
