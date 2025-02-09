@@ -67,6 +67,9 @@ jobs:
           echo "TIKHUB_API_KEY=${{ secrets.TIKHUB_API_KEY }}" >> .envs/.local/.django
           cat .envs/.local/.django
 
+          echo "TIDB=${{ secrets.TIDB }}" >> .envs/.local/.tidb
+          cat .envs/.local/.tidb
+
       - name: Build the Stack
         run: docker compose -f local.yml build
 
