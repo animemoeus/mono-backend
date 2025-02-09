@@ -58,6 +58,21 @@ DATABASE_ROUTERS = [
     "twitter_downloader.db_router.TwitterDownloadAppRouter",
 ]
 
+# TiDB (https://tidbcloud.com/)
+DATABASES["tidb"] = {
+    "ENGINE": "django_tidb",
+    "HOST": env.str("TIDB_HOST", default="gateway01.ap-southeast-1.prod.aws.tidbcloud.com"),
+    "PORT": env.str("TIDB_PORT", default="4000"),
+    "NAME": env.str("TIDB_DB", default=""),
+    "USER": env.str("TIDB_USER", default=""),
+    "PASSWORD": env.str("TIDB_PASSWORD", default=""),
+    "OPTIONS": {
+        "ssl_mode": "VERIFY_IDENTITY",
+        "ssl": {"ca": env.str("TIDB_SSL_CA", default="")},
+    },
+}
+
+
 # URLS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#root-urlconf
@@ -411,25 +426,3 @@ OPENAI_API_KEY = env.str("OPENAI_API_KEY", default="")
 
 # Google Captcha
 GOOGLE_CAPTCHA_SECRET_KEY = env.str("GOOGLE_CAPTCHA_SECRET_KEY", default="")
-
-# TiDB (https://tidbcloud.com/)
-TIDB_HOST = env.str("TIDB_HOST", default="gateway01.ap-southeast-1.prod.aws.tidbcloud.com")
-TIDB_PORT = env.str("TIDB_PORT", default="4000")
-TIDB_DB = env.str("TIDB_DB", default="")
-TIDB_USER = env.str("TIDB_USER", default="")
-TIDB_PASSWORD = env.str("TIDB_PASSWORD", default="")
-TIDB_SSL_CA = env.str("TIDB_SSL_CA", default="")
-
-
-DATABASES["tidb"] = {  # noqa: F405
-    "ENGINE": "django_tidb",
-    "NAME": TIDB_DB,  # noqa: F405
-    "USER": TIDB_USER,  # noqa: F405
-    "PASSWORD": TIDB_PASSWORD,  # noqa: F405
-    "HOST": TIDB_HOST,  # noqa: F405
-    "PORT": TIDB_PORT,  # noqa: F405
-    "OPTIONS": {
-        "ssl_mode": "VERIFY_IDENTITY",
-        "ssl": {"ca": TIDB_SSL_CA},  # noqa: F405
-    },
-}

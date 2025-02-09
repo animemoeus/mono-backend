@@ -22,20 +22,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.cloudworkstations.dev",
 ]
 
-# DATABASES
-# ------------------------------------------------------------------------------
-DATABASES["tidb"] = {  # noqa: F405
-    "ENGINE": "django_tidb",
-    "NAME": TIDB_DB,  # noqa: F405
-    "USER": TIDB_USER,  # noqa: F405
-    "PASSWORD": TIDB_PASSWORD,  # noqa: F405
-    "HOST": TIDB_HOST,  # noqa: F405
-    "PORT": TIDB_PORT,  # noqa: F405
-    "OPTIONS": {
-        "ssl_mode": "VERIFY_IDENTITY",
-        "ssl": {"ca": TIDB_SSL_CA},  # noqa: F405
-    },
-}
 
 # CACHES
 # ------------------------------------------------------------------------------
