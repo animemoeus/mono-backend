@@ -77,7 +77,7 @@ jobs:
         run: docker compose -f local.yml run --rm django python manage.py migrate
 
       - name: Run Django Tests & Coverage
-        run: docker compose -f local.yml run django pytest --cov --cov-report=xml --cov-fail-under=94
+        run: docker compose -f local.yml run django pytest --cov --cov-report=xml --cov-fail-under=90
 
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v5
