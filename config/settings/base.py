@@ -70,7 +70,6 @@ DATABASES["tidb"] = {
     "OPTIONS": {
         "ssl_mode": "VERIFY_IDENTITY",
         "ssl": {"ca": env.str("TIDB_SSL_CA", default="")},
-        "init_command": "SET @@tidb_allow_remove_auto_inc = ON",
     },
 }
 
