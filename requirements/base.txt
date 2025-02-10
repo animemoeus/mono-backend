@@ -33,7 +33,7 @@ django-hosts==6.0  # https://github.com/jazzband/django-hosts
 
 # Storage
 django-storages==1.14.4 # https://github.com/jschneier/django-storages/
-boto3==1.36.13 # https://github.com/boto/boto3
+boto3==1.36.17 # https://github.com/boto/boto3
 
 # Database
 mysqlclient==2.2.7 # https://github.com/PyMySQL/mysqlclient
