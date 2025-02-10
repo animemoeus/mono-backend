@@ -6,6 +6,8 @@ from instagram.models import UserFollowing
 
 
 class InstagramTestCase(TestCase):
+    databases = {"default", "tidb"}
+
     def setUp(self):
         self.user_1 = InstagramUser.objects.create(username="arter_tendean")
         self.user_2 = InstagramUser.objects.create(username="retra_naednet")
@@ -18,13 +20,22 @@ class InstagramTestCase(TestCase):
 
         self.assertEqual(self.user_1.instagram_id, None, "Instagram user id should be empty")
         self.user_1.update_information_from_api()
-        self.assertEqual(self.user_1.instagram_id, user_1_info.get("pk"), "Instagram user id should be available")
+        self.assertEqual(
+            self.user_1.instagram_id,
+            user_1_info.get("pk"),
+            "Instagram user id should be available",
+        )
 
-        self.assertEqual(user_1_info.get("username"), "arter_tendean", 'Username should be "arter_tendean"')
+        self.assertEqual(
+            user_1_info.get("username"),
+            "arter_tendean",
+            'Username should be "arter_tendean"',
+        )
 
         self.user_1.update_information_from_api()
         self.assertIsNotNone(
-            self.user_1.profile_picture, "After update information from API, profile picture should not be None"
+            self.user_1.profile_picture,
+            "After update information from API, profile picture should not be None",
         )
 
         self.assertEqual(
@@ -75,6 +86,8 @@ class InstagramTestCase(TestCase):
 
 
 class TestInstagramUserStory(TestCase):
+    databases = {"default", "tidb"}
+
     def setUp(self):
         self.user_1 = InstagramUser.objects.create(username="arter_tendean")
 
