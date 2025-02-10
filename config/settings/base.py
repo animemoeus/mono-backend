@@ -54,8 +54,9 @@ DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 DATABASE_ROUTERS = [
-    "waifu.db_router.WaifuAppRouter",
+    "instagram.db_router.InstagramAppRouter",
     "twitter_downloader.db_router.TwitterDownloadAppRouter",
+    "waifu.db_router.WaifuAppRouter",
 ]
 
 # TiDB (https://tidbcloud.com/)

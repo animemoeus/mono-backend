@@ -6,4 +6,6 @@ set -o nounset
 
 
 python manage.py migrate
+python manage.py migrate instagram --database=tidb
+python manage.py migrate waifu --database=tidb
 exec python manage.py runserver 0.0.0.0:8000

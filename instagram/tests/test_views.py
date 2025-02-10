@@ -2,6 +2,8 @@ from django.test import TestCase, override_settings
 
 
 class TestRoastingProfileView(TestCase):
+    databases = {"default", "tidb"}
+
     def setUp(self):
         self.instagram_username = "angiehsl"
 
