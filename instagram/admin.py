@@ -75,7 +75,7 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(Story)
 class StoryAdmin(admin.ModelAdmin):
     list_display = ("user", "story_id", "created_at", "story_created_at")
-    readonly_fields = ["story_id", "created_at", "story_created_at"]
+    # readonly_fields = ["story_id", "created_at", "story_created_at"]
     search_fields = ("user", "story_id")
     ordering = ("-story_created_at",)
 

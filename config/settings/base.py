@@ -54,8 +54,9 @@ DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 DATABASE_ROUTERS = [
-    "waifu.db_router.WaifuAppRouter",
+    "instagram.db_router.InstagramAppRouter",
     "twitter_downloader.db_router.TwitterDownloadAppRouter",
+    "waifu.db_router.WaifuAppRouter",
 ]
 
 # TiDB (https://tidbcloud.com/)
@@ -69,6 +70,7 @@ DATABASES["tidb"] = {
     "OPTIONS": {
         "ssl_mode": "VERIFY_IDENTITY",
         "ssl": {"ca": env.str("TIDB_SSL_CA", default="")},
+        "init_command": "SET @@tidb_allow_remove_auto_inc = ON",
     },
 }
 
