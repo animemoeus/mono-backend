@@ -35,7 +35,7 @@ class TelegramUser(BaseTelegramUserModel):
                 "parse_mode": "HTML",
                 "reply_markup": {
                     "inline_keyboard": [
-                        [{"text": f'🔗 {video["size"]}', "url": video["url"]} for video in message.get("videos")],
+                        [{"text": f"🔗 {video['size']}", "url": video["url"]} for video in message.get("videos")],
                     ]
                 },
             }
@@ -68,7 +68,7 @@ class TelegramUser(BaseTelegramUserModel):
                 "reply_to_message_id": "",
                 "reply_markup": {
                     "inline_keyboard": [
-                        [{"text": f'🔗 {video["size"]}', "url": video["url"]} for video in tweet_data.get("videos")],
+                        [{"text": f"🔗 {video['size']}", "url": video["url"]} for video in tweet_data.get("videos")],
                     ]
                     + external_link
                 },
@@ -148,7 +148,7 @@ class TelegramUser(BaseTelegramUserModel):
 
 
 class DownloadedTweet(models.Model):
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
     telegram_user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE)
     tweet_url = models.URLField(max_length=500)
     tweet_data = models.JSONField(default=dict)
@@ -159,7 +159,7 @@ class DownloadedTweet(models.Model):
         return self.tweet_url
 
     def send_to_telegram_user(self) -> bool:
-        url = f'https://api.animemoe.us{reverse("twitter-downloader:safelink")}?key={str(self.uuid)}'
+        url = f"https://api.animemoe.us{reverse('twitter-downloader:safelink')}?key={str(self.uuid)}"
         result = self.telegram_user.send_download_button_with_safelink("🔰 DOWNLOAD 🔰", url)
 
         return result
@@ -187,7 +187,7 @@ class Settings(SingletonModel):
     webhook_url = models.URLField(blank=True)
 
     is_maintenance = models.BooleanField(default=False)
-    secret_token = models.CharField(blank=True)
+    secret_token = models.CharField(blank=True, max_length=255)
 
     def __str__(self):
         return "Twitter Downloader Settings"
