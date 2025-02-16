@@ -14,7 +14,7 @@ def tiktok_profile_picture_upload_location(instance, filename):
 class User(models.Model):
     """Tiktok user model"""
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
     username = models.CharField(max_length=255, unique=True)
     nickname = models.CharField(max_length=255)
     user_id = models.CharField(max_length=255, unique=True)
