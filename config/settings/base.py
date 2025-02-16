@@ -46,29 +46,27 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # DATABASES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
-DATABASES = {"default": env.db("DATABASE_URL")}
+DATABASES = {}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
 
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# https://github.com/pingcap/django-tidb
+DEFAULT_AUTO_FIELD = "django_tidb.fields.BigAutoRandomField"
 
-DATABASE_ROUTERS = [
-    "waifu.db_router.WaifuAppRouter",
-    "twitter_downloader.db_router.TwitterDownloadAppRouter",
-]
 
 # TiDB (https://tidbcloud.com/)
-DATABASES["tidb"] = {
+DATABASES["default"] = {
     "ENGINE": "django_tidb",
     "HOST": env.str("TIDB_HOST", default="gateway01.ap-southeast-1.prod.aws.tidbcloud.com"),
     "PORT": env.str("TIDB_PORT", default="4000"),
-    "NAME": env.str("TIDB_DB", default=""),
+    "NAME": env.str("TIDB_NAME", default=""),
     "USER": env.str("TIDB_USER", default=""),
     "PASSWORD": env.str("TIDB_PASSWORD", default=""),
     "OPTIONS": {
         "ssl_mode": "VERIFY_IDENTITY",
-        "ssl": {"ca": env.str("TIDB_SSL_CA", default="")},
+        # "ssl": {"ca": env.str("TIDB_SSL_CA", default="")},
+        "init_command": "SET @@tidb_allow_remove_auto_inc = 1",
     },
 }
 
