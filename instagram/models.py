@@ -21,7 +21,7 @@ from .utils import (
 
 
 class User(models.Model):
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = models.CharField(default=uuid.uuid4, editable=False, max_length=36)
 
     instagram_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
     username = models.CharField(max_length=150, unique=True)
@@ -258,7 +258,7 @@ class UserFollowing(models.Model, URLToFileFieldMixin):
 
 
 class RoastingLog(models.Model):
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = models.CharField(default=uuid.uuid4, editable=False, max_length=36)
     username = models.CharField(max_length=255)
     user_data = models.JSONField()
     roasting_text = models.TextField()
