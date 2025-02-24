@@ -3,13 +3,13 @@ import random
 import pyscord_storage
 from celery import shared_task
 
-from waifu.utils import refresh_expired_urls
-
 from .models import DiscordWebhook, Image
 
 
 @shared_task()
 def send_waifu():
+    from waifu.utils import refresh_expired_urls
+
     webhooks = DiscordWebhook.objects.filter(is_enabled=True)
 
     # get random waifu from database
