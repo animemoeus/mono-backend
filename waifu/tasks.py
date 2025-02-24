@@ -16,12 +16,15 @@ def send_waifu():
     total_records = Image.objects.count()
     random_index = random.randint(0, total_records - 1)
     waifu = Image.objects.order_by("id")[random_index]
-    new_urls = refresh_expired_urls([waifu.original_image])
-    new_url = new_urls.get(waifu.original_image)
+
+    new_url = waifu.original_image
+    if "tumblr.com" in waifu.original_image:
+        new_urls = refresh_expired_urls([waifu.original_image])
+        new_url = new_urls.get(waifu.original_image)
 
     for webhook in webhooks:
         webhook.send_image(
-            waifu.original_image if "tumblr.com" in waifu.original_image else new_url,
+            new_url,
             waifu.is_nsfw,
             waifu.creator_name,
         )
