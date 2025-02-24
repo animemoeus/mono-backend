@@ -19,9 +19,6 @@ def send_waifu():
     new_urls = refresh_expired_urls([waifu.original_image])
     new_url = new_urls.get(waifu.original_image)
 
-    if not new_url:
-        return
-
     for webhook in webhooks:
         webhook.send_image(
             waifu.original_image if "tumblr.com" in waifu.original_image else new_url,
