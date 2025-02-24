@@ -23,7 +23,11 @@ def send_waifu():
         return
 
     for webhook in webhooks:
-        webhook.send_image(waifu.original_image, waifu.is_nsfw, waifu.creator_name)
+        webhook.send_image(
+            waifu.original_image if "tumblr.com" in waifu.original_image else new_url,
+            waifu.is_nsfw,
+            waifu.creator_name,
+        )
 
 
 @shared_task()
