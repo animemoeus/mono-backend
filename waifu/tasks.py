@@ -8,6 +8,8 @@ from .models import DiscordWebhook, Image
 
 @shared_task()
 def send_waifu():
+    from waifu.utils import refresh_expired_urls
+
     webhooks = DiscordWebhook.objects.filter(is_enabled=True)
 
     # get random waifu from database
@@ -15,8 +17,17 @@ def send_waifu():
     random_index = random.randint(0, total_records - 1)
     waifu = Image.objects.order_by("id")[random_index]
 
+    new_url = waifu.original_image
+    if "tumblr.com" in waifu.original_image:
+        new_urls = refresh_expired_urls([waifu.original_image])
+        new_url = new_urls.get(waifu.original_image)
+
     for webhook in webhooks:
-        webhook.send_image(waifu.original_image, waifu.is_nsfw, waifu.creator_name)
+        webhook.send_image(
+            new_url,
+            waifu.is_nsfw,
+            waifu.creator_name,
+        )
 
 
 @shared_task()
