@@ -32,7 +32,7 @@ django-import-export==4.3.5  # https://github.com/django-import-export/django-im
 django-hosts==6.0  # https://github.com/jazzband/django-hosts
 
 # Storage
-django-storages==1.14.4 # https://github.com/jschneier/django-storages/
+django-storages==1.14.5 # https://github.com/jschneier/django-storages/
 boto3==1.36.20 # https://github.com/boto/boto3
 
 
