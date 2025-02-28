@@ -3,8 +3,6 @@ import random
 import pyscord_storage
 from celery import shared_task
 
-from waifu.utils import refresh_expired_urls
-
 from .models import DiscordWebhook, Image
 
 
