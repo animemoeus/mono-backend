@@ -35,9 +35,6 @@ django-hosts==6.0  # https://github.com/jazzband/django-hosts
 django-storages==1.14.4 # https://github.com/jschneier/django-storages/
 boto3==1.36.20 # https://github.com/boto/boto3
 
-# Database
-mysqlclient==2.2.7 # https://github.com/PyMySQL/mysqlclient
-django-tidb~=4.1.0 # https://github.com/pingcap/django-tidb
 
 # discord
 django-ninja==1.3.0 # https://github.com/vitalik/django-ninja
