@@ -11,11 +11,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
   # psycopg2 dependencies
-  libpq-dev \
-  # MySQL/MariaDB dependencies
-  default-libmysqlclient-dev \
-  build-essential \
-  pkg-config
+  libpq-dev
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
@@ -54,8 +50,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   libpq-dev \
   # Translations dependencies
   gettext \
-  # MySQL/MariaDB dependencies
-  default-libmysqlclient-dev \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
