@@ -36,6 +36,10 @@ django-storages==1.14.4 # https://github.com/jschneier/django-storages/
 boto3==1.36.20 # https://github.com/boto/boto3
 
 
+
+
+
+
 # discord
 django-ninja==1.3.0 # https://github.com/vitalik/django-ninja
 
