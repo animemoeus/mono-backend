@@ -35,7 +35,7 @@ class InstagramUserListView(ListAPIView):
 class InstagramUserDetailView(RetrieveAPIView):
     serializer_class = InstagramUserSerializer
     queryset = InstagramUser.objects.all()
-    lookup_field = "username"
+    lookup_field = "uuid"
 
 
 class InstagramUserFollowerListView(ListAPIView):
