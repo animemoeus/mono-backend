@@ -37,7 +37,6 @@ WORKDIR ${APP_HOME}
 RUN addgroup --system django \
   && adduser --system --ingroup django django
 
-
 # Install required system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # psycopg2 dependencies
@@ -78,7 +77,6 @@ RUN chmod +x /start-celerybeat
 COPY --chown=django:django ./compose/production/django/celery/flower/start /start-flower
 RUN sed -i 's/\r$//g' /start-flower
 RUN chmod +x /start-flower
-
 
 # copy application code to WORKDIR
 COPY --chown=django:django . ${APP_HOME}

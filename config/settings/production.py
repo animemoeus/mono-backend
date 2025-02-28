@@ -25,6 +25,7 @@ CSRF_TRUSTED_ORIGINS = [
 # ------------------------------------------------------------------------------
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # noqa: F405
 
+
 # CACHES
 # ------------------------------------------------------------------------------
 CACHES = {
@@ -75,7 +76,14 @@ STORAGES = {
     "default": {
         "BACKEND": (
             "storages.backends.s3boto3.S3Boto3Storage"
-            if all((AWS_STORAGE_BUCKET_NAME, AWS_S3_ENDPOINT_URL, AWS_S3_ACCESS_KEY_ID, AWS_S3_SECRET_ACCESS_KEY))
+            if all(
+                (
+                    AWS_STORAGE_BUCKET_NAME,
+                    AWS_S3_ENDPOINT_URL,
+                    AWS_S3_ACCESS_KEY_ID,
+                    AWS_S3_SECRET_ACCESS_KEY,
+                )
+            )
             else "django.core.files.storage.FileSystemStorage"
         ),
     },

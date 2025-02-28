@@ -22,6 +22,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.cloudworkstations.dev",
 ]
 
+
 # CACHES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#caches
