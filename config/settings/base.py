@@ -75,6 +75,7 @@ DJANGO_APPS = [
     "django.forms",
     "import_export",
     "django_hosts",
+    "simple_history",  # https://github.com/jazzband/django-simple-history
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
@@ -163,6 +164,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django_hosts.middleware.HostsResponseMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",  # https://github.com/jazzband/django-simple-history
 ]
 
 # django-hosts

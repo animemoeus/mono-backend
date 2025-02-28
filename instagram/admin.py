@@ -1,12 +1,13 @@
 from django.contrib import admin, messages
 from django.http import HttpResponseRedirect
+from simple_history.admin import SimpleHistoryAdmin
 
 from .models import RoastingLog, Story, User, UserFollower, UserFollowing
 from .tasks import update_user_follower, update_user_following
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(SimpleHistoryAdmin):
     change_form_template = "instagram/admin_edit_form.html"
 
     search_fields = ("username",)
@@ -23,6 +24,7 @@ class UserAdmin(admin.ModelAdmin):
         "instagram_id",
         "full_name",
         "biography",
+        "profile_picture",
         "profile_picture_url",
         "follower_count",
         "following_count",
@@ -31,6 +33,25 @@ class UserAdmin(admin.ModelAdmin):
         "updated_at",
     )
     ordering = ("username",)
+
+    fieldsets = (
+        (
+            "User Information",
+            {
+                "fields": (
+                    "username",
+                    "instagram_id",
+                    "full_name",
+                    "biography",
+                    "profile_picture",
+                    # "profile_picture_url",
+                )
+            },
+        ),
+        ("Statistics", {"fields": ("follower_count", "following_count")}),
+        ("Settings", {"fields": ("allow_auto_update_stories",)}),
+        ("Timestamps", {"fields": ("updated_from_api_datetime", "created_at", "updated_at")}),
+    )
 
     def response_change(self, request, obj: User):
         if "_update-information-from-api" in request.POST:
