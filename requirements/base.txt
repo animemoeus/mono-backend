@@ -20,6 +20,7 @@ django-crispy-forms==2.3  # https://github.com/django-crispy-forms/django-crispy
 crispy-bootstrap5==2024.10  # https://github.com/django-crispy-forms/crispy-bootstrap5
 django-redis==5.4.0  # https://github.com/jazzband/django-redis
 django-solo==2.4.0 # https://github.com/lazybird/django-solo
+django-simple-history==3.8.0  # https://github.com/jazzband/django-simple-history
 
 # Django REST Framework
 djangorestframework==3.15.2  # https://github.com/encode/django-rest-framework

@@ -8,6 +8,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from rest_framework import status
+from simple_history.models import HistoricalRecords
 
 from .mixins import URLToFileFieldMixin
 from .tasks import user_follower_update_profile_pictures, user_following_update_profile_pictures
@@ -40,6 +41,8 @@ class User(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.username}"

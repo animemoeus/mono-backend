@@ -1,12 +1,13 @@
 from django.contrib import admin, messages
 from django.http import HttpResponseRedirect
+from simple_history.admin import SimpleHistoryAdmin
 
 from .models import RoastingLog, Story, User, UserFollower, UserFollowing
 from .tasks import update_user_follower, update_user_following
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(SimpleHistoryAdmin):
     change_form_template = "instagram/admin_edit_form.html"
 
     search_fields = ("username",)
