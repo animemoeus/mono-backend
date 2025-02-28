@@ -16,6 +16,11 @@ def send_waifu():
     total_records = Image.objects.count()
     random_index = random.randint(0, total_records - 1)
     waifu = Image.objects.order_by("id")[random_index]
+    new_urls = refresh_expired_urls([waifu.original_image])
+    new_url = new_urls.get(waifu.original_image)
+
+    if not new_url:
+        return
 
     new_url = waifu.original_image
     if "tumblr.com" not in waifu.original_image:
