@@ -22,6 +22,10 @@ class DownloadedTweetAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.prefetch_related("telegram_user")
+
 
 @admin.register(ExternalLink)
 class ExternalLinkAdmin(admin.ModelAdmin):
