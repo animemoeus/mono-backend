@@ -49,6 +49,8 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
+DATABASES["default"]["ENGINE"] = "django_prometheus.db.backends.postgresql"
+
 
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -76,6 +78,7 @@ DJANGO_APPS = [
     "import_export",
     "django_hosts",
     "simple_history",  # https://github.com/jazzband/django-simple-history
+    "django_prometheus",
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
@@ -151,6 +154,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django_hosts.middleware.HostsRequestMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -165,6 +169,7 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
     "django_hosts.middleware.HostsResponseMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",  # https://github.com/jazzband/django-simple-history
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 # django-hosts
