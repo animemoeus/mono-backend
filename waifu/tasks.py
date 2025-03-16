@@ -7,6 +7,17 @@ from .models import DiscordWebhook, Image
 
 
 @shared_task()
+def waifu_generate_blur_data_url(image_id: str) -> None:
+    """
+    Generate a blurred data URL for the image with the given ID.
+    Args:
+        image_id (str): The ID of the image to generate the blurred data URL for.
+    """
+    image = Image.objects.get(image_id=image_id)
+    image.generate_blur_data_url()
+
+
+@shared_task()
 def send_waifu():
     from waifu.utils import refresh_expired_urls
 
@@ -37,7 +48,7 @@ def send_waifu():
 
 @shared_task()
 def save_pixiv_illust(illust_data: dict, pyscord_data: dict) -> None:
-    Image.objects.create(
+    image = Image.objects.create(
         image_id=pyscord_data.get("id"),
         original_image=pyscord_data.get("url"),
         thumbnail=pyscord_data.get("proxy_url"),
@@ -48,6 +59,7 @@ def save_pixiv_illust(illust_data: dict, pyscord_data: dict) -> None:
         caption=illust_data.get("title"),
         source=illust_data.get("source"),
     )
+    image.generate_blur_data_url_task()
 
 
 @shared_task(autoretry_for=(Exception,), max_retries=10, retry_backoff=True)
