@@ -123,7 +123,9 @@ class TwitterDownloaderAPIV2:
 
         # Handle rate-limiting error
         if response.status_code == 429:
-            raise TooManyRequestException("Woah, too many requests! Maybe take a little break? I'll keep trying... 🔄😜")
+            raise TooManyRequestException(
+                "Woah, too many requests! Maybe take a little break? I'll keep trying... 🔄😜"
+            )
 
         # Attempt to parse JSON response
         try:
@@ -138,6 +140,34 @@ class TwitterDownloaderAPIV2:
             )
 
         return response_data
+
+
+class TwitterDownloaderAPIV3:
+    def __init__(self, tweet_url: str):
+        self.tweet_url = tweet_url
+
+    def get_tweet_id(self) -> str:
+        """
+        Extract the tweet ID from a Twitter/X URL.
+
+        Returns:
+        str: The tweet ID extracted from the URL.
+
+        Example:
+        URL: https://twitter.com/username/status/1274296339375853568
+        Returns: 1274296339375853568
+        """
+        # Support both twitter.com and x.com
+        pattern = r"(?:https?://)?(?:www\.)?(?:twitter\.com|x\.com)/(?:#!\/)?[^/]+/status(?:es)?/(\d+)"
+        match = re.search(pattern, self.tweet_url)
+
+        print(match)
+
+        if not match:
+            raise ValueError("Invalid Twitter/X URL format")
+
+        tweet_id = match.group(1)
+        return tweet_id
 
 
 def get_tweet_url(text: str) -> str:
