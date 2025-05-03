@@ -1,8 +1,10 @@
 import re
 
 import requests
+import tenacity
 from django.conf import settings
 from saiyaku import retry
+from tenacity import stop_after_attempt, stop_after_delay
 
 
 class TooManyRequestException(Exception):
@@ -138,6 +140,136 @@ class TwitterDownloaderAPIV2:
             )
 
         return response_data
+
+
+class TwitterDownloaderAPIV3:
+    API_URL = settings.TWITTER_DOWNLOADER_API_URL
+    AUTHORIZATION = {
+        "Authorization": f"Bearer {settings.TWITTER_DOWNLOADER_API_KEY}",
+    }
+
+    @tenacity.retry(
+        stop=(stop_after_delay(10) | stop_after_attempt(3)),
+        wait=tenacity.wait_exponential(multiplier=1, min=1, max=10),
+    )
+    def get_tweet_data(self, tweet_id: str):
+        base_url = self.API_URL.rstrip("/")  # Remove trailing slash if exists
+        path = "/".join(["api", "v1", "twitter", "web", "fetch_tweet_detail"])
+        url = f"{base_url}/{path}"
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            **self.AUTHORIZATION,
+        }
+        self.response = requests.get(
+            url,
+            headers=headers,
+            timeout=30,
+            params={"tweet_id": tweet_id},
+        )
+
+        response_data = self.get_response_data()
+
+        entities = response_data.get("entities", {})
+
+        tweet_data = {}
+        tweet_data_photos = []
+        tweet_data_videos = []
+
+        media_list = entities.get("media", [])
+        for media in media_list:
+            # For each media, the type is should be "photo", "video", or "animated_gif"
+
+            if media.get("type") == "photo":
+                tweet_data_photos.append(media.get("media_url_https"))
+
+            if media.get("type") == "video" or media.get("type") == "animated_gif":
+                video_info = media.get("video_info", {})
+                if video_info:
+                    video_variants = video_info.get("variants", [])
+                    for variant in video_variants:
+                        if variant.get("bitrate"):
+                            tweet_data_videos.append(
+                                {
+                                    "url": variant.get("url"),
+                                    "bitrate": variant.get("bitrate"),
+                                    "size": re.findall(r"[0-9]+x[0-9]+", variant.get("url"))[0],
+                                }
+                            )
+
+        tweet_data_videos = sorted(tweet_data_videos, key=lambda d: d["bitrate"])[::-1]
+        tweet_data["photos"] = tweet_data_photos
+        tweet_data["videos"] = tweet_data_videos
+
+        print("tweet_data", tweet_data)
+
+    def _validate_response_status(self) -> None:
+        """
+        Validates the HTTP response status from the Twitter API request.
+        This private method checks if the response status is okay (2xx).
+        If the response is not successful, it raises an exception with
+        the status code information.
+        Raises:
+            Exception: If the response status is not okay (not 2xx),
+                      includes the status code in the error message.
+        Returns:
+            None: If validation passes, returns nothing.
+        """
+
+        if not self.response.ok:
+            raise Exception(f"Failed to fetch tweet data from API. Status code: {self.response.status_code}")
+
+    def _validate_response_json(self) -> None:
+        """
+        Validates the JSON response from the Twitter API request.
+        This private method checks if the response is in JSON format.
+        If the response is not JSON, it raises an exception.
+        Raises:
+            Exception: If the response is not JSON.
+        Returns:
+            None: If validation passes, returns nothing.
+        """
+        try:
+            self.response.json()
+        except ValueError:
+            raise Exception("Failed to parse API response to JSON. Please check the response format.")
+
+    def _validate_response_data(self) -> None:
+        """
+        Validates the data in the JSON response from the Twitter API request.
+        This private method checks if the response contains the expected data.
+        If the data is missing or not in the expected format, it raises an exception.
+        Raises:
+            Exception: If the response data is missing or not in the expected format.
+        Returns:
+            None: If validation passes, returns nothing.
+        """
+        response_data = self.response.json()
+        if not response_data.get("data"):
+            raise Exception("Unable to find the tweet data in the API response. Please check the response structure.")
+
+    def get_response_data(self) -> dict:
+        """
+        Returns the response data from the Twitter API request.
+        This method checks if the response is valid and contains the expected data.
+        If the data is not available, it raises an exception.
+        Returns:
+            dict: The response data from the Twitter API request.
+        Raises:
+            Exception: If the response data is not available or not in the expected format.
+        """
+
+        self._validate_response_status()
+        self._validate_response_json()
+        self._validate_response_data()
+
+        response_data = self.response.json()
+        if not response_data.get("data"):
+            raise Exception("Unable to find the tweet data in the API response. Please check the response structure.")
+
+        data = response_data.get("data")
+
+        return data if data.get("created_at") else None
 
 
 def get_tweet_url(text: str) -> str:
