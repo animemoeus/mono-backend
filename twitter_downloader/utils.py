@@ -185,23 +185,44 @@ class TwitterDownloaderAPIV3:
 
             if media.get("type") == "video" or media.get("type") == "animated_gif":
                 video_info = media.get("video_info", {})
+
                 if video_info:
                     video_variants = video_info.get("variants", [])
+                    tweet_video_variants = []  # Separate list for variants of current video
+
                     for variant in video_variants:
                         if variant.get("bitrate"):
-                            tweet_data_videos.append(
+                            tweet_video_variants.append(
                                 {
                                     "url": variant.get("url"),
+                                    "thumbnail": media.get("media_url_https"),
                                     "bitrate": variant.get("bitrate"),
                                     "size": re.findall(r"[0-9]+x[0-9]+", variant.get("url"))[0],
                                 }
                             )
 
-        tweet_data_videos = sorted(tweet_data_videos, key=lambda d: d["bitrate"])[::-1]
+                    # Sort variants by bitrate in descending order
+                    tweet_video_variants = sorted(tweet_video_variants, key=lambda d: d["bitrate"])[::-1]
+
+                    # Add the video with all its variants as a separate entry
+                    if tweet_video_variants:
+                        tweet_data_videos.append(
+                            {
+                                "media_id": media.get("id_str", ""),
+                                "type": media.get("type", "video"),
+                                "thumbnail": media.get("media_url_https"),
+                                "variants": tweet_video_variants,
+                            }
+                        )
+
+        tweet_data["tweet_id"] = response_data.get("id")
+        tweet_data["text"] = response_data.get("text")
         tweet_data["photos"] = tweet_data_photos
         tweet_data["videos"] = tweet_data_videos
+        tweet_data["is_nsfw"] = response_data.get("sensitive", False)
+        # tweet_data["raw"] = response_data
 
-        print("tweet_data", tweet_data)
+        return tweet_data
 
     def _validate_response_status(self) -> None:
         """
