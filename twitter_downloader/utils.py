@@ -1,3 +1,4 @@
+import logging
 import re
 
 import requests
@@ -5,6 +6,8 @@ import tenacity
 from django.conf import settings
 from saiyaku import retry
 from tenacity import stop_after_attempt, stop_after_delay
+
+logger = logging.getLogger(__name__)
 
 
 class TooManyRequestException(Exception):
@@ -67,6 +70,24 @@ class TwitterDownloader:
             "description": response.get("description") or "",
             "videos": _videos,
         }
+
+    @staticmethod
+    def extract_tweet_id_from_url(tweet_url: str) -> str:
+        """
+        Extract the tweet ID from a Twitter/X URL.
+
+        Args:
+            tweet_url (str): Full Twitter URL
+
+        Returns:
+            str: The extracted tweet ID
+        """
+        import re
+
+        match = re.search(r"/status/(\d+)", tweet_url)
+        if match:
+            return match.group(1)
+        raise ValueError("Invalid Twitter URL format")
 
 
 class TwitterDownloaderAPIV2:
@@ -143,30 +164,67 @@ class TwitterDownloaderAPIV2:
 
 
 class TwitterDownloaderAPIV3:
+    """
+    Twitter API client for fetching tweet details using v3 API.
+
+    This class handles API authentication, request formatting, response validation,
+    and data extraction for Twitter/X tweet content including text, photos, and videos.
+
+    Attributes:
+        API_URL (str): Base URL for the Twitter API.
+        AUTHORIZATION (dict): Authorization headers with Bearer token.
+    """
+
     API_URL = settings.TWITTER_DOWNLOADER_API_URL
     AUTHORIZATION = {
         "Authorization": f"Bearer {settings.TWITTER_DOWNLOADER_API_KEY}",
     }
 
+    def __init__(self):
+        pass
+
     @tenacity.retry(
         stop=(stop_after_delay(10) | stop_after_attempt(3)),
-        wait=tenacity.wait_exponential(multiplier=1, min=1, max=10),
     )
-    def get_tweet_data(self, tweet_id: str):
-        base_url = self.API_URL.rstrip("/")  # Remove trailing slash if exists
-        path = "/".join(["api", "v1", "twitter", "web", "fetch_tweet_detail"])
-        url = f"{base_url}/{path}"
+    def get_tweet_data(self, tweet_id: str) -> dict:
+        """
+        Fetch and process data for a specific tweet.
+
+        Args:
+            tweet_id (str): The Twitter/X tweet ID to retrieve.
+
+        Returns:
+            dict: Processed tweet data including:
+                - tweet_id: The ID of the tweet
+                - text: The text content of the tweet
+                - photos: List of photo URLs
+                - videos: List of video objects with variants
+                - is_nsfw: Boolean indicating if content is sensitive
+
+        Raises:
+            Exception: If the API request fails, response validation fails,
+                      or network connectivity issues occur.
+        """
+        logger.debug(f"Fetching tweet data for ID: {tweet_id}")
+
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
             **self.AUTHORIZATION,
         }
-        self.response = requests.get(
-            url,
-            headers=headers,
-            timeout=30,
-            params={"tweet_id": tweet_id},
-        )
+        base_url = self.API_URL.rstrip("/")  # Remove trailing slash if exists
+        path = "/".join(["api", "v1", "twitter", "web", "fetch_tweet_detail"])
+        url = f"{base_url}/{path}"
+
+        try:
+            self.response = requests.get(
+                url,
+                headers=headers,
+                timeout=30,
+                params={"tweet_id": tweet_id},
+            )
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Network error when connecting to Twitter API: {str(e)}")
 
         response_data = self.get_response_data()
 
@@ -179,10 +237,10 @@ class TwitterDownloaderAPIV3:
         media_list = entities.get("media", [])
         for media in media_list:
             # For each media, the type is should be "photo", "video", or "animated_gif"
-
             if media.get("type") == "photo":
                 tweet_data_photos.append(media.get("media_url_https"))
 
+            # Twitter API v3 returns videos and gifs as "video" or "animated_gif"
             if media.get("type") == "video" or media.get("type") == "animated_gif":
                 video_info = media.get("video_info", {})
 
@@ -191,13 +249,15 @@ class TwitterDownloaderAPIV3:
                     tweet_video_variants = []  # Separate list for variants of current video
 
                     for variant in video_variants:
-                        if variant.get("bitrate"):
+                        if variant.get("content_type") == "video/mp4":
                             tweet_video_variants.append(
                                 {
                                     "url": variant.get("url"),
                                     "thumbnail": media.get("media_url_https"),
                                     "bitrate": variant.get("bitrate"),
-                                    "size": re.findall(r"[0-9]+x[0-9]+", variant.get("url"))[0],
+                                    "size": re.findall(r"[0-9]+x[0-9]+", variant.get("url"))[0]
+                                    if re.findall(r"[0-9]+x[0-9]+", variant.get("url"))
+                                    else "0x0",
                                 }
                             )
 
@@ -222,6 +282,7 @@ class TwitterDownloaderAPIV3:
         tweet_data["is_nsfw"] = response_data.get("sensitive", False)
         # tweet_data["raw"] = response_data
 
+        logger.info(f"Successfully retrieved data for tweet ID: {tweet_id}")
         return tweet_data
 
     def _validate_response_status(self) -> None:
@@ -285,11 +346,8 @@ class TwitterDownloaderAPIV3:
         self._validate_response_data()
 
         response_data = self.response.json()
-        if not response_data.get("data"):
-            raise Exception("Unable to find the tweet data in the API response. Please check the response structure.")
 
         data = response_data.get("data")
-
         return data if data.get("created_at") else None
 
 
