@@ -33,6 +33,7 @@ class TelegramUser(BaseTelegramUserModel):
                 "photo": message.get("thumbnail"),
                 "text": "arter",
                 "parse_mode": "HTML",
+                "has_spoiler": message.get("is_nsfw", False),
                 "reply_markup": {
                     "inline_keyboard": [
                         [{"text": f"🔗 {video['size']}", "url": video["url"]} for video in message.get("videos")[:3]],
@@ -67,6 +68,7 @@ class TelegramUser(BaseTelegramUserModel):
                 "video": tweet_data.get("videos")[0]["url"],
                 "caption": tweet_data.get("description"),
                 "parse_mode": "HTML",
+                "has_spoiler": tweet_data.get("is_nsfw", False),
                 "reply_to_message_id": "",
                 "reply_markup": {
                     "inline_keyboard": [
@@ -87,47 +89,6 @@ class TelegramUser(BaseTelegramUserModel):
         response = requests.request("POST", url, headers=headers, data=payload)
 
         print("response", response.text)
-
-        if response.ok:
-            return response.ok
-
-        if response.status_code != 200:
-            return self.send_photo(tweet_data)
-
-    def send_video_v2(self, tweet_data):
-        self.send_chat_action("upload_video")
-
-        external_link = ExternalLink.objects.filter(is_active=True).order_by("-updated_at")
-        external_link = (
-            [
-                [{"text": i.title, "web_app": {"url": i.url}}] if i.is_web_app else [{"text": i.title, "url": i.url}]
-                for i in external_link
-            ]
-            if external_link
-            else []
-        )
-
-        url = f"https://api.telegram.org/bot{self.BOT_TOKEN}/sendVideo"
-
-        payload = json.dumps(
-            {
-                "chat_id": self.user_id,
-                "video": tweet_data.get("videos")[0]["url"],
-                "caption": tweet_data.get("description"),
-                "parse_mode": "HTML",
-                "reply_to_message_id": "",
-                "reply_markup": {
-                    "inline_keyboard": [
-                        [{"text": f"🔗 {video['size']}", "url": video["url"]} for video in tweet_data.get("videos")],
-                    ]
-                    + external_link
-                },
-            }
-        )
-
-        headers = {"Content-Type": "application/json"}
-
-        response = requests.request("POST", url, headers=headers, data=payload)
 
         if response.ok:
             return response.ok

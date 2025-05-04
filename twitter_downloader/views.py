@@ -3,7 +3,6 @@ import re
 from django.shortcuts import render
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -26,7 +25,6 @@ class SafelinkView(View):
 
         return render(request, "twitter_downloader/download.html", context={"uuid": uuid})
 
-    @csrf_exempt
     def post(self, request):
         uuid = request.POST.get("uuid")
 
@@ -40,6 +38,7 @@ class SafelinkView(View):
                     "description": tweet_data.get("text", ""),
                     "videos": video.get("variants", []),
                     "thumbnail": video.get("thumbnail"),
+                    "is_nsfw": tweet_data.get("is_nsfw"),
                 }
             )
 
