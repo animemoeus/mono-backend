@@ -5,7 +5,7 @@ import requests
 import tenacity
 from django.conf import settings
 from saiyaku import retry
-from tenacity import stop_after_attempt, stop_after_delay
+from tenacity import stop_after_attempt
 
 logger = logging.getLogger(__name__)
 
@@ -184,7 +184,7 @@ class TwitterDownloaderAPIV3:
         pass
 
     @tenacity.retry(
-        stop=(stop_after_delay(10) | stop_after_attempt(3)),
+        stop=(stop_after_attempt(2)),
     )
     def get_tweet_data(self, tweet_id: str) -> dict:
         """
@@ -227,6 +227,9 @@ class TwitterDownloaderAPIV3:
             raise Exception(f"Network error when connecting to Twitter API: {str(e)}")
 
         response_data = self.get_response_data()
+        print("response_data", response_data)
+        if not response_data:
+            raise Exception("Unable to find the tweet data in the API response. Please check the response structure.")
 
         entities = response_data.get("entities", {})
 
@@ -372,4 +375,4 @@ def get_tweet_id_from_url(tweet_url: str) -> str:
     match = re.search(r"/status/(\d+)", tweet_url)
     if match:
         return match.group(1)
-    raise ValueError("Invalid Twitter URL format")
+    raise ValueError("Unable to extract tweet ID from the provided URL.")

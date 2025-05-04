@@ -3,6 +3,7 @@ import re
 from django.shortcuts import render
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -14,7 +15,7 @@ from .models import DownloadedTweet
 from .models import Settings as TwitterDownloaderSettings
 from .models import TelegramUser
 from .serializers import ValidateTelegramMiniAppDataSerializer
-from .utils import TwitterDownloader, TwitterDownloaderAPIV2, get_tweet_url
+from .utils import TwitterDownloaderAPIV2, TwitterDownloaderAPIV3, get_tweet_id_from_url, get_tweet_url
 
 
 class SafelinkView(View):
@@ -25,11 +26,22 @@ class SafelinkView(View):
 
         return render(request, "twitter_downloader/download.html", context={"uuid": uuid})
 
+    @csrf_exempt
     def post(self, request):
         uuid = request.POST.get("uuid")
 
         tweet = DownloadedTweet.objects.get(uuid=uuid)
-        tweet.telegram_user.send_video(tweet.tweet_data)
+        tweet_data = tweet.tweet_data
+
+        videos = tweet_data.get("videos", [])
+        for video in videos:
+            tweet.telegram_user.send_video(
+                {
+                    "description": tweet_data.get("text", ""),
+                    "videos": video.get("variants", []),
+                    "thumbnail": video.get("thumbnail"),
+                }
+            )
 
         return render(request, "twitter_downloader/success.html")
 
@@ -43,11 +55,16 @@ class TelegramWebhookView(APIView):
             and request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
             != TwitterDownloaderSettings.get_solo().secret_token
         ):
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"message": "WTF?!"},  # TODO: Change this to a more appropriate message
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
         webhook = TelegramWebhookParser(request.body)
         if not webhook.data:
-            return Response()
+            # Telegram webhook mechanism will try to retry sending the request if it fails
+            # So we need to return 200 OK to avoid Telegram from retrying
+            return Response(status=status.HTTP_200_OK)
 
         # Get or create TelegramUser
         user_data = webhook.data.get("user")
@@ -71,13 +88,15 @@ class TelegramWebhookView(APIView):
         # Check if the bot is under maintenance
         if self.is_maintenance:
             telegram_user.send_maintenance_message()
-            return Response()
+            return Response(status=status.HTTP_200_OK)
 
+        # Check if the user is banned
         if telegram_user.is_banned:
             telegram_user.send_banned_message()
-            return Response()
+            return Response(status=status.HTTP_200_OK)
 
         text_message = webhook.data.get("text_message")
+        print("text_message", text_message)
         if text_message:
             self.handle_text_message(telegram_user, text_message)
 
@@ -85,6 +104,12 @@ class TelegramWebhookView(APIView):
 
     @property
     def is_maintenance(self):
+        """
+        Check if the Twitter downloader is in maintenance mode.
+        Returns:
+            bool: True if the system is in maintenance mode, False otherwise.
+        """
+
         return TwitterDownloaderSettings.get_solo().is_maintenance
 
     def handle_text_message(self, telegram_user: TelegramUser, message: str):
@@ -128,7 +153,22 @@ class TelegramWebhookView(APIView):
         urls = re.findall(r"https://\S+", message.lower())
         url = urls[0] if urls else None
 
-        tweet_data = TwitterDownloader.get_video_data(url)
+        try:
+            tweet_id = get_tweet_id_from_url(url)
+        except Exception:
+            telegram_user.send_message(
+                "Hmm... I couldn't find a valid tweet URL in your message. Could you double-check it? 😊"
+            )
+            return Response(status=status.HTTP_200_OK)
+
+        twitter_api = TwitterDownloaderAPIV3()
+
+        try:
+            tweet_data = twitter_api.get_tweet_data(tweet_id)
+        except Exception:
+            telegram_user.send_message("Sorry, I can't find any video in that tweet link.")
+            return Response(status=status.HTTP_200_OK)
+
         if not tweet_data:
             telegram_user.send_message("Sorry, I can't find any video in that tweet link.")
             return Response()
@@ -154,7 +194,8 @@ class TelegramWebhookV2View(APIView):
             webhook_user = telegram_webhook.get_user()
         except Exception as e:
             return self._response_with_message(
-                f"Oops! There was an error: {str(e)}. Please try again.", status.HTTP_400_BAD_REQUEST
+                f"Oops! There was an error: {str(e)}. Please try again.",
+                status.HTTP_400_BAD_REQUEST,
             )
 
         # Get or create Telegram User

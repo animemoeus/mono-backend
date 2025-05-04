@@ -35,7 +35,7 @@ class TelegramUser(BaseTelegramUserModel):
                 "parse_mode": "HTML",
                 "reply_markup": {
                     "inline_keyboard": [
-                        [{"text": f'🔗 {video["size"]}', "url": video["url"]} for video in message.get("videos")],
+                        [{"text": f"🔗 {video['size']}", "url": video["url"]} for video in message.get("videos")[:3]],
                     ]
                 },
             }
@@ -58,6 +58,8 @@ class TelegramUser(BaseTelegramUserModel):
             else []
         )
 
+        print("tweet_data", tweet_data)
+
         url = f"https://api.telegram.org/bot{self.BOT_TOKEN}/sendVideo"
         payload = json.dumps(
             {
@@ -68,7 +70,55 @@ class TelegramUser(BaseTelegramUserModel):
                 "reply_to_message_id": "",
                 "reply_markup": {
                     "inline_keyboard": [
-                        [{"text": f'🔗 {video["size"]}', "url": video["url"]} for video in tweet_data.get("videos")],
+                        [
+                            {"text": f"🔗 {video['size']}", "url": video["url"]}
+                            for video in tweet_data.get("videos")[:3]
+                        ],
+                    ]
+                    + external_link
+                },
+            }
+        )
+
+        print("payload", payload)
+
+        headers = {"Content-Type": "application/json"}
+
+        response = requests.request("POST", url, headers=headers, data=payload)
+
+        print("response", response.text)
+
+        if response.ok:
+            return response.ok
+
+        if response.status_code != 200:
+            return self.send_photo(tweet_data)
+
+    def send_video_v2(self, tweet_data):
+        self.send_chat_action("upload_video")
+
+        external_link = ExternalLink.objects.filter(is_active=True).order_by("-updated_at")
+        external_link = (
+            [
+                [{"text": i.title, "web_app": {"url": i.url}}] if i.is_web_app else [{"text": i.title, "url": i.url}]
+                for i in external_link
+            ]
+            if external_link
+            else []
+        )
+
+        url = f"https://api.telegram.org/bot{self.BOT_TOKEN}/sendVideo"
+
+        payload = json.dumps(
+            {
+                "chat_id": self.user_id,
+                "video": tweet_data.get("videos")[0]["url"],
+                "caption": tweet_data.get("description"),
+                "parse_mode": "HTML",
+                "reply_to_message_id": "",
+                "reply_markup": {
+                    "inline_keyboard": [
+                        [{"text": f"🔗 {video['size']}", "url": video["url"]} for video in tweet_data.get("videos")],
                     ]
                     + external_link
                 },
@@ -159,7 +209,7 @@ class DownloadedTweet(models.Model):
         return self.tweet_url
 
     def send_to_telegram_user(self) -> bool:
-        url = f'https://api.animemoe.us{reverse("twitter-downloader:safelink")}?key={str(self.uuid)}'
+        url = f"https://api.animemoe.us{reverse('twitter-downloader:safelink')}?key={str(self.uuid)}"
         result = self.telegram_user.send_download_button_with_safelink("🔰 DOWNLOAD 🔰", url)
 
         return result
