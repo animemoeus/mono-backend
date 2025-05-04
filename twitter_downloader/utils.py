@@ -241,6 +241,7 @@ class TwitterDownloaderAPIV3:
                 tweet_data_photos.append(media.get("media_url_https"))
 
             # Twitter API v3 returns videos and gifs as "video" or "animated_gif"
+            # The gif is not have width and height
             if media.get("type") == "video" or media.get("type") == "animated_gif":
                 video_info = media.get("video_info", {})
 
@@ -257,7 +258,7 @@ class TwitterDownloaderAPIV3:
                                     "bitrate": variant.get("bitrate"),
                                     "size": re.findall(r"[0-9]+x[0-9]+", variant.get("url"))[0]
                                     if re.findall(r"[0-9]+x[0-9]+", variant.get("url"))
-                                    else "0x0",
+                                    else "0x0",  # Default to "0x0" if no size found (e.g., gif variant does not have size)
                                 }
                             )
 
@@ -356,3 +357,19 @@ def get_tweet_url(text: str) -> str:
     url = urls[0] if urls else ""
 
     return url
+
+
+def get_tweet_id_from_url(tweet_url: str) -> str:
+    """
+    Extract the tweet ID from a Twitter/X URL.
+
+    Args:
+        tweet_url (str): Full Twitter URL
+
+    Returns:
+        str: The extracted tweet ID
+    """
+    match = re.search(r"/status/(\d+)", tweet_url)
+    if match:
+        return match.group(1)
+    raise ValueError("Invalid Twitter URL format")

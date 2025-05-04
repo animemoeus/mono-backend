@@ -2,7 +2,12 @@ from django.conf import settings
 from django.test import TestCase
 
 from backend.utils.telegram import validate_telegram_mini_app_data
-from twitter_downloader.utils import TwitterDownloader, TwitterDownloaderAPIV2, TwitterDownloaderAPIV3
+from twitter_downloader.utils import (
+    TwitterDownloader,
+    TwitterDownloaderAPIV2,
+    TwitterDownloaderAPIV3,
+    get_tweet_id_from_url,
+)
 
 
 class TestTwitterDownloader(TestCase):
@@ -153,20 +158,18 @@ class TestTwitterDownloaderAPIV3(TestCase):
         for photo in tweet_data["photos"]:
             self.assertIsNotNone(photo, "Photo should not be None")
 
-    # def test_extract_tweet_id_from_url(self):
-    #     """Test extracting tweet ID from various URL formats"""
-    #     url_formats = [
-    #         "https://x.com/username/status/1234567890",
-    #         "https://twitter.com/username/status/1234567890",
-    #         "https://x.com/username/status/1234567890?s=20&t=abcdef",
-    #         "https://twitter.com/username/status/1234567890/photo/1",
-    #     ]
+    def test_extract_tweet_id_from_url(self):
+        """Test extracting tweet ID from various URL formats"""
+        url_formats = [
+            "https://x.com/username/status/1234567890",
+            "https://twitter.com/username/status/1234567890",
+            "https://x.com/username/status/1234567890?s=20&t=abcdef",
+            "https://twitter.com/username/status/1234567890/photo/1",
+        ]
 
-    #     for url in url_formats:
-    #         tweet_id = self.twitter_downloader.extract_tweet_id_from_url(url)
-    #         self.assertEqual(
-    #             tweet_id, "1234567890", f"Should extract ID 1234567890 from {url}"
-    #         )
+        for url in url_formats:
+            tweet_id = get_tweet_id_from_url(url)
+            self.assertEqual(tweet_id, "1234567890", f"Should extract ID 1234567890 from {url}")
 
 
 class TestValidateTelegramMiniAppData(TestCase):
