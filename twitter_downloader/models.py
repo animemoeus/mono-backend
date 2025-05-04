@@ -33,9 +33,10 @@ class TelegramUser(BaseTelegramUserModel):
                 "photo": message.get("thumbnail"),
                 "text": "arter",
                 "parse_mode": "HTML",
+                "has_spoiler": message.get("is_nsfw", False),
                 "reply_markup": {
                     "inline_keyboard": [
-                        [{"text": f'🔗 {video["size"]}', "url": video["url"]} for video in message.get("videos")],
+                        [{"text": f"🔗 {video['size']}", "url": video["url"]} for video in message.get("videos")[:3]],
                     ]
                 },
             }
@@ -58,17 +59,23 @@ class TelegramUser(BaseTelegramUserModel):
             else []
         )
 
-        url = f"https://api.telegram.org/bot{self.BOT_TOKEN}/sendVideo"
+        url = f"https://api.telegram.org/bot{self.BOT_TOKEN}/sendPaidMedia"
         payload = json.dumps(
             {
                 "chat_id": self.user_id,
-                "video": tweet_data.get("videos")[0]["url"],
+                "star_count": 1,
+                # "video": tweet_data.get("videos")[0]["url"],
+                "media": [{"type": "video", "media": tweet_data.get("videos")[0]["url"]}],
                 "caption": tweet_data.get("description"),
                 "parse_mode": "HTML",
+                "has_spoiler": tweet_data.get("is_nsfw", False),
                 "reply_to_message_id": "",
                 "reply_markup": {
                     "inline_keyboard": [
-                        [{"text": f'🔗 {video["size"]}', "url": video["url"]} for video in tweet_data.get("videos")],
+                        [
+                            {"text": f"🔗 {video['size']}", "url": video["url"]}
+                            for video in tweet_data.get("videos")[:3]
+                        ],
                     ]
                     + external_link
                 },
@@ -159,7 +166,7 @@ class DownloadedTweet(models.Model):
         return self.tweet_url
 
     def send_to_telegram_user(self) -> bool:
-        url = f'https://api.animemoe.us{reverse("twitter-downloader:safelink")}?key={str(self.uuid)}'
+        url = f"https://api.animemoe.us{reverse('twitter-downloader:safelink')}?key={str(self.uuid)}"
         result = self.telegram_user.send_download_button_with_safelink("🔰 DOWNLOAD 🔰", url)
 
         return result
