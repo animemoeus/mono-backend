@@ -59,8 +59,6 @@ class TelegramUser(BaseTelegramUserModel):
             else []
         )
 
-        print("tweet_data", tweet_data)
-
         url = f"https://api.telegram.org/bot{self.BOT_TOKEN}/sendPaidMedia"
         payload = json.dumps(
             {
@@ -84,13 +82,9 @@ class TelegramUser(BaseTelegramUserModel):
             }
         )
 
-        print("payload", payload)
-
         headers = {"Content-Type": "application/json"}
 
         response = requests.request("POST", url, headers=headers, data=payload)
-
-        print("response", response.text)
 
         if response.ok:
             return response.ok

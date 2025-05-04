@@ -227,7 +227,6 @@ class TwitterDownloaderAPIV3:
             raise Exception(f"Network error when connecting to Twitter API: {str(e)}")
 
         response_data = self.get_response_data()
-        print("response_data", response_data)
         if not response_data:
             raise Exception("Unable to find the tweet data in the API response. Please check the response structure.")
 
