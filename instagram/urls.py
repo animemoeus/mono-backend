@@ -6,6 +6,7 @@ from .views import (
     InstagramUserFollowingListView,
     InstagramUserHistoryListView,
     InstagramUserListView,
+    InstagramUserStoryListView,
     RoastingProfileView,
 )
 
@@ -20,6 +21,11 @@ urlpatterns = [
         "users/<str:uuid>/history/",
         InstagramUserHistoryListView.as_view(),
         name="instagram-user-history-list",
+    ),
+    path(
+        "users/<str:uuid>/stories/",
+        InstagramUserStoryListView.as_view(),
+        name="instagram-user-story-list",
     ),
     path(
         "users/<str:username>/follower/",

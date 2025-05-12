@@ -27,7 +27,7 @@ class User(models.Model):
     username = models.CharField(max_length=150, unique=True)
     full_name = models.CharField(max_length=150, blank=True)
     profile_picture = models.FileField(upload_to=user_profile_picture_upload_location, blank=True, null=True)
-    profile_picture_url = models.URLField(max_length=500, help_text="The original profile picture URL from Instagram")
+    profile_picture_url = models.URLField(max_length=2500, help_text="The original profile picture URL from Instagram")
     biography = models.TextField(blank=True)
     is_private = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
@@ -244,8 +244,8 @@ class Story(models.Model):
 
     story_id = models.CharField(max_length=50, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    thumbnail_url = models.URLField(max_length=1000)
-    media_url = models.URLField(max_length=1000, blank=True)
+    thumbnail_url = models.URLField(max_length=2500)
+    media_url = models.URLField(max_length=2500, blank=True)
 
     thumbnail = models.ImageField(upload_to=user_stories_upload_location, blank=True, null=True)
     media = models.FileField(upload_to=user_stories_upload_location, blank=True, null=True)

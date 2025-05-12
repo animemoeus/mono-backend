@@ -2,6 +2,7 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
+from .models import Story as InstagramStory
 from .models import User as InstagramUser
 from .models import UserFollower as InstagramUserFollower
 from .models import UserFollowing as InstagramUserFollowing
@@ -131,3 +132,9 @@ class InstagramUserHistorySerializer(ModelSerializer):
         if file_key.startswith("media/"):
             file_key = file_key[6:]
         return f"{settings.MEDIA_URL.rstrip('/')}/{file_key.lstrip('/')}"
+
+
+class InstagramStorySerializer(ModelSerializer):
+    class Meta:
+        model = InstagramStory
+        exclude = ["thumbnail_url", "media_url"]

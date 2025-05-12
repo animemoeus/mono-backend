@@ -7,7 +7,7 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import RoastingLog
+from .models import RoastingLog, Story
 from .models import User as InstagramUser
 from .models import UserFollower as InstagramUserFollower
 from .models import UserFollowing as InstagramUserFollowing
@@ -16,8 +16,10 @@ from .pagination import (
     InstagramUserFollowingPagination,
     InstagramUserHistoryPagination,
     InstagramUserListPagination,
+    InstagramUserStoryPagination,
 )
 from .serializers import (
+    InstagramStorySerializer,
     InstagramUserDetailSerializer,
     InstagramUserFollowerSerializer,
     InstagramUserFollowingSerializer,
@@ -103,6 +105,25 @@ class InstagramUserHistoryListView(ListAPIView):
             return queryset
         except InstagramUser.DoesNotExist:
             raise NotFound("Instagram user not found")
+
+
+class InstagramUserStoryListView(ListAPIView):
+    serializer_class = InstagramStorySerializer
+    pagination_class = InstagramUserStoryPagination
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["story_created_at", "created_at"]
+    ordering = ["-story_created_at"]
+
+    def get_queryset(self):
+        uuid = self.kwargs.get("uuid", None)
+        try:
+            user = InstagramUser.objects.get(uuid=uuid)
+            queryset = Story.objects.filter(user=user)
+            return queryset
+        except InstagramUser.DoesNotExist:
+            raise NotFound("Instagram user not found")
+        except Exception as e:
+            raise NotFound(f"An error occurred while fetching stories: {e}")
 
 
 class RoastingProfileView(APIView):
