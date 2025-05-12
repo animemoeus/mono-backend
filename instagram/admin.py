@@ -13,7 +13,7 @@ class UserAdmin(SimpleHistoryAdmin):
     search_fields = ("username",)
     list_display = (
         "username",
-        "updated_from_api_datetime",
+        "updated_at_from_api",
         "allow_auto_update_stories",
         "created_at",
         "updated_at",
@@ -28,7 +28,7 @@ class UserAdmin(SimpleHistoryAdmin):
         "profile_picture_url",
         "follower_count",
         "following_count",
-        "updated_from_api_datetime",
+        "updated_at_from_api",
         "created_at",
         "updated_at",
     )
@@ -44,13 +44,16 @@ class UserAdmin(SimpleHistoryAdmin):
                     "full_name",
                     "biography",
                     "profile_picture",
-                    # "profile_picture_url",
+                    "profile_picture_url",
                 )
             },
         ),
         ("Statistics", {"fields": ("follower_count", "following_count")}),
         ("Settings", {"fields": ("allow_auto_update_stories",)}),
-        ("Timestamps", {"fields": ("updated_from_api_datetime", "created_at", "updated_at")}),
+        (
+            "Timestamps",
+            {"fields": ("created_at", "updated_at", "updated_at_from_api")},
+        ),
     )
 
     def response_change(self, request, obj: User):

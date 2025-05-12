@@ -6,7 +6,13 @@ from .models import UserFollower as InstagramUserFollower
 from .models import UserFollowing as InstagramUserFollowing
 
 
-class InstagramUserSerializer(ModelSerializer):
+class InstagramUserListSerializer(ModelSerializer):
+    class Meta:
+        model = InstagramUser
+        exclude = ["profile_picture_url"]
+
+
+class InstagramUserDetailSerializer(ModelSerializer):
     class Meta:
         model = InstagramUser
         exclude = [

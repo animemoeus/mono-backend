@@ -32,9 +32,9 @@ class User(models.Model):
     follower_count = models.PositiveIntegerField(default=0)
     following_count = models.PositiveIntegerField(default=0)
     allow_auto_update_stories = models.BooleanField(default=False)
-    updated_from_api_datetime = models.DateTimeField(verbose_name="Update from API datetime", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    updated_at_from_api = models.DateTimeField(verbose_name="Updated From API", blank=True, null=True)
 
     history = HistoricalRecords()
 
