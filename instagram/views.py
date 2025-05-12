@@ -85,7 +85,9 @@ class InstagramUserHistoryListView(ListAPIView):
     serializer_class = InstagramUserHistorySerializer
     pagination_class = InstagramUserHistoryPagination
     filter_backends = [filters.OrderingFilter]
-    ordering_fields = ["history_date", "username", "follower_count", "following_count"]
+    ordering_fields = [
+        "history_date",
+    ]
     ordering = ["-history_date"]
 
     def get_queryset(self):
