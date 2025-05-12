@@ -11,11 +11,17 @@ from .models import RoastingLog
 from .models import User as InstagramUser
 from .models import UserFollower as InstagramUserFollower
 from .models import UserFollowing as InstagramUserFollowing
-from .pagination import InstagramUserFollowerPagination, InstagramUserFollowingPagination, InstagramUserListPagination
+from .pagination import (
+    InstagramUserFollowerPagination,
+    InstagramUserFollowingPagination,
+    InstagramUserHistoryPagination,
+    InstagramUserListPagination,
+)
 from .serializers import (
     InstagramUserDetailSerializer,
     InstagramUserFollowerSerializer,
     InstagramUserFollowingSerializer,
+    InstagramUserHistorySerializer,
     InstagramUserListSerializer,
 )
 from .utils import InstagramAPI, RoastingIG
@@ -73,6 +79,28 @@ class InstagramUserFollowingListView(ListAPIView):
         if not queryset:
             raise NotFound
         return queryset
+
+
+class InstagramUserHistoryListView(ListAPIView):
+    serializer_class = InstagramUserHistorySerializer
+    pagination_class = InstagramUserHistoryPagination
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["history_date", "username", "follower_count", "following_count"]
+    ordering = ["-history_date"]
+
+    def get_queryset(self):
+        uuid = self.kwargs.get("uuid", None)
+
+        try:
+            user = InstagramUser.objects.get(uuid=uuid)
+            queryset = user.history.all()
+
+            if not queryset.exists():
+                raise NotFound("No history records found for this user")
+
+            return queryset
+        except InstagramUser.DoesNotExist:
+            raise NotFound("Instagram user not found")
 
 
 class RoastingProfileView(APIView):
