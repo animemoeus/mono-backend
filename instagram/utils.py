@@ -55,19 +55,35 @@ class InstagramAPI:
         stop=tenacity.stop.stop_after_attempt(3),
         wait=tenacity.wait.wait_random(min=1, max=5),
     )
-    def get_user_info_by_id_v2(self, user_id: str) -> dict:
-        url = self.base_url + "/api/v1/instagram/web_app/fetch_user_info_by_user_id_v2"
+    def get_user_info_by_id(self, user_id: str) -> dict:
+        """
+        Fetches user information from Instagram API by user ID.
+        This method makes a GET request to the Instagram web API to retrieve detailed
+        information about a user based on their Instagram user ID.
+        Args:
+            user_id (str): The Instagram user ID to lookup
+        Returns:
+            dict: User information data returned from Instagram API
+        Raises:
+            Exception: If the API request fails with a non-200 status code
+            Exception: If the API response cannot be parsed as JSON
+        """
+
+        url = self.base_url + "/api/v1/instagram/web_app/fetch_user_info_by_user_id"
         params = {"user_id": user_id}
         response = requests.get(url, headers=self.headers, params=params, timeout=self.REQUEST_TIMEOUT)
 
         if not response.ok:
-            return {}
+            logger.error(f"Instagram API error for user ID '{user_id}': Status code {response.status_code}")
+            raise Exception(f"Failed to fetch user info with API status code: {response.status_code}")
 
-        response_json = response.json()
+        try:
+            response_json = response.json()
+        except ValueError:
+            logger.error(f"Failed to parse JSON response for user ID '{user_id}': {response.text}")
+            raise Exception("Failed to parse JSON response")
+
         response_data = response_json.get("data")
-
-        print(response_data)
-
         return response_data
 
     def is_private_account(self, username: str) -> bool:
