@@ -23,3 +23,9 @@ class InstagramUserHistoryPagination(PageNumberPagination):
     page_size = 15
     max_page_size = 50
     page_size_query_param = "count"
+
+
+class InstagramUserStoryPagination(PageNumberPagination):
+    page_size = 10
+    max_page_size = 50
+    page_size_query_param = "count"
