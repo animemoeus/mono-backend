@@ -126,8 +126,11 @@ class User(models.Model):
             if api_field in user_info:
                 setattr(self, model_field, user_info[api_field])
 
+        # Save profile picture if it exists in user_info
         if self.profile_picture_url:
-            self.save_from_url_to_file_field("profile_picture", "jpg", self.profile_picture_url, save=False)
+            self.save_from_url_to_file_field(
+                "profile_picture", "jpg", self.profile_picture_url, save=False
+            )  # Ensure save=False to avoid multiple history records
 
         # Save all changes at once to create a single history entry
         self.updated_at_from_api = timezone.now()
