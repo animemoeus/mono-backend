@@ -10,22 +10,29 @@ from .tasks import update_user_follower, update_user_following
 class UserAdmin(SimpleHistoryAdmin):
     change_form_template = "instagram/admin_edit_form.html"
 
-    search_fields = ("username",)
+    search_fields = ("username", "full_name", "biography")
     list_display = (
         "username",
-        "updated_at_from_api",
-        "allow_auto_update_stories",
-        "created_at",
-        "updated_at",
+        "full_name",
+        "is_private",
+        "is_verified",
         "follower_count",
         "following_count",
+        "media_count",
+        "updated_at_from_api",
+        "allow_auto_update_stories",
     )
+    list_filter = ("is_private", "is_verified", "allow_auto_update_stories")
     readonly_fields = (
+        "uuid",
         "instagram_id",
         "full_name",
         "biography",
         "profile_picture",
         "profile_picture_url",
+        "is_private",
+        "is_verified",
+        "media_count",
         "follower_count",
         "following_count",
         "updated_at_from_api",
@@ -39,6 +46,7 @@ class UserAdmin(SimpleHistoryAdmin):
             "User Information",
             {
                 "fields": (
+                    "uuid",
                     "username",
                     "instagram_id",
                     "full_name",
@@ -48,11 +56,35 @@ class UserAdmin(SimpleHistoryAdmin):
                 )
             },
         ),
-        ("Statistics", {"fields": ("follower_count", "following_count")}),
+        (
+            "Account Status",
+            {
+                "fields": (
+                    "is_private",
+                    "is_verified",
+                )
+            },
+        ),
+        (
+            "Statistics",
+            {
+                "fields": (
+                    "media_count",
+                    "follower_count",
+                    "following_count",
+                )
+            },
+        ),
         ("Settings", {"fields": ("allow_auto_update_stories",)}),
         (
             "Timestamps",
-            {"fields": ("created_at", "updated_at", "updated_at_from_api")},
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                    "updated_at_from_api",
+                )
+            },
         ),
     )
 
