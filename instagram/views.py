@@ -11,15 +11,26 @@ from .models import RoastingLog
 from .models import User as InstagramUser
 from .models import UserFollower as InstagramUserFollower
 from .models import UserFollowing as InstagramUserFollowing
-from .pagination import InstagramUserFollowerPagination, InstagramUserFollowingPagination, InstagramUserPagination
-from .serializers import InstagramUserFollowerSerializer, InstagramUserFollowingSerializer, InstagramUserSerializer
+from .pagination import (
+    InstagramUserFollowerPagination,
+    InstagramUserFollowingPagination,
+    InstagramUserHistoryPagination,
+    InstagramUserListPagination,
+)
+from .serializers import (
+    InstagramUserDetailSerializer,
+    InstagramUserFollowerSerializer,
+    InstagramUserFollowingSerializer,
+    InstagramUserHistorySerializer,
+    InstagramUserListSerializer,
+)
 from .utils import InstagramAPI, RoastingIG
 
 
 class InstagramUserListView(ListAPIView):
     queryset = InstagramUser.objects.all()
-    serializer_class = InstagramUserSerializer
-    pagination_class = InstagramUserPagination
+    serializer_class = InstagramUserListSerializer
+    pagination_class = InstagramUserListPagination
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["username", "full_name", "biography"]
@@ -33,7 +44,7 @@ class InstagramUserListView(ListAPIView):
 
 
 class InstagramUserDetailView(RetrieveAPIView):
-    serializer_class = InstagramUserSerializer
+    serializer_class = InstagramUserDetailSerializer
     queryset = InstagramUser.objects.all()
     lookup_field = "uuid"
 
@@ -70,11 +81,38 @@ class InstagramUserFollowingListView(ListAPIView):
         return queryset
 
 
+class InstagramUserHistoryListView(ListAPIView):
+    serializer_class = InstagramUserHistorySerializer
+    pagination_class = InstagramUserHistoryPagination
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = [
+        "history_date",
+    ]
+    ordering = ["-history_date"]
+
+    def get_queryset(self):
+        uuid = self.kwargs.get("uuid", None)
+
+        try:
+            user = InstagramUser.objects.get(uuid=uuid)
+            queryset = user.history.all()
+
+            if not queryset.exists():
+                raise NotFound("No history records found for this user")
+
+            return queryset
+        except InstagramUser.DoesNotExist:
+            raise NotFound("Instagram user not found")
+
+
 class RoastingProfileView(APIView):
     def get(self, request, username: str):
         captcha = request.query_params.get("captcha")
         if not self.recaptcha_validation(captcha):
-            return Response({"error": "Hmm, kayaknya captchanya salah deh... coba cek lagi deh~"}, status=400)
+            return Response(
+                {"error": "Hmm, kayaknya captchanya salah deh... coba cek lagi deh~"},
+                status=400,
+            )
 
         try:
             instagram_api = InstagramAPI()

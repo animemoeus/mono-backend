@@ -10,25 +10,32 @@ from .tasks import update_user_follower, update_user_following
 class UserAdmin(SimpleHistoryAdmin):
     change_form_template = "instagram/admin_edit_form.html"
 
-    search_fields = ("username",)
+    search_fields = ("username", "full_name", "biography")
     list_display = (
         "username",
-        "updated_from_api_datetime",
-        "allow_auto_update_stories",
-        "created_at",
-        "updated_at",
+        "full_name",
+        "is_private",
+        "is_verified",
         "follower_count",
         "following_count",
+        "media_count",
+        "updated_at_from_api",
+        "allow_auto_update_stories",
     )
+    list_filter = ("is_private", "is_verified", "allow_auto_update_stories")
     readonly_fields = (
+        "uuid",
         "instagram_id",
         "full_name",
         "biography",
         "profile_picture",
         "profile_picture_url",
+        "is_private",
+        "is_verified",
+        "media_count",
         "follower_count",
         "following_count",
-        "updated_from_api_datetime",
+        "updated_at_from_api",
         "created_at",
         "updated_at",
     )
@@ -39,18 +46,46 @@ class UserAdmin(SimpleHistoryAdmin):
             "User Information",
             {
                 "fields": (
+                    "uuid",
                     "username",
                     "instagram_id",
                     "full_name",
                     "biography",
                     "profile_picture",
-                    # "profile_picture_url",
+                    "profile_picture_url",
                 )
             },
         ),
-        ("Statistics", {"fields": ("follower_count", "following_count")}),
+        (
+            "Account Status",
+            {
+                "fields": (
+                    "is_private",
+                    "is_verified",
+                )
+            },
+        ),
+        (
+            "Statistics",
+            {
+                "fields": (
+                    "media_count",
+                    "follower_count",
+                    "following_count",
+                )
+            },
+        ),
         ("Settings", {"fields": ("allow_auto_update_stories",)}),
-        ("Timestamps", {"fields": ("updated_from_api_datetime", "created_at", "updated_at")}),
+        (
+            "Timestamps",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                    "updated_at_from_api",
+                )
+            },
+        ),
     )
 
     def response_change(self, request, obj: User):
@@ -91,6 +126,33 @@ class UserAdmin(SimpleHistoryAdmin):
     def handle_update_user_following(self, request, obj: User):
         update_user_following.delay(obj.instagram_id)
         self.message_user(request, "User following updated")
+
+    def save_model(self, request, obj, form, change):
+        """
+        Override the default save_model method to conditionally skip model saving.
+        This method examines the POST data to determine if the save action is part
+        of an API update operation. If the request contains any of the API update
+        flags (_update-information-from-api, _update-stories-from-api,
+        _update-follower-from-api, _update-following-from-api), the save operation
+        is skipped. Otherwise, it delegates to the parent class's save_model method.
+        Parameters:
+            request (HttpRequest): The request that triggered the save.
+            obj (Model): The model instance to save.
+            form (ModelForm): The form instance used to save the model.
+            change (bool): True if this is a change to an existing object, False if it's a new object.
+        Returns:
+            None
+        """
+
+        if (
+            "_update-information-from-api" in request.POST
+            or "_update-stories-from-api" in request.POST
+            or "_update-follower-from-api" in request.POST
+            or "_update-following-from-api" in request.POST
+        ):
+            return
+
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Story)

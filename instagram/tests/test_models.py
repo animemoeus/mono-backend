@@ -18,13 +18,22 @@ class InstagramTestCase(TestCase):
 
         self.assertEqual(self.user_1.instagram_id, None, "Instagram user id should be empty")
         self.user_1.update_information_from_api()
-        self.assertEqual(self.user_1.instagram_id, user_1_info.get("pk"), "Instagram user id should be available")
+        self.assertEqual(
+            self.user_1.instagram_id,
+            user_1_info.get("pk"),
+            "Instagram user id should be available",
+        )
 
-        self.assertEqual(user_1_info.get("username"), "arter_tendean", 'Username should be "arter_tendean"')
+        self.assertEqual(
+            user_1_info.get("username"),
+            "arter_tendean",
+            'Username should be "arter_tendean"',
+        )
 
         self.user_1.update_information_from_api()
         self.assertIsNotNone(
-            self.user_1.profile_picture, "After update information from API, profile picture should not be None"
+            self.user_1.profile_picture,
+            "After update information from API, profile picture should not be None",
         )
 
         self.assertEqual(
@@ -50,7 +59,7 @@ class InstagramTestCase(TestCase):
 
         with self.assertRaises(Exception) as context:
             self.user_2.get_information_from_api()
-        self.assertEqual(str(context.exception), "Cannot get user information from Instagram API")
+            self.assertEqual(str(context.exception), "Cannot get user information from Instagram API")
 
     def test_get_user_stories(self):
         user_1_stories = self.user_1.get_user_stories()

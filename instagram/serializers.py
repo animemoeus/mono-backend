@@ -6,7 +6,13 @@ from .models import UserFollower as InstagramUserFollower
 from .models import UserFollowing as InstagramUserFollowing
 
 
-class InstagramUserSerializer(ModelSerializer):
+class InstagramUserListSerializer(ModelSerializer):
+    class Meta:
+        model = InstagramUser
+        exclude = ["profile_picture_url"]
+
+
+class InstagramUserDetailSerializer(ModelSerializer):
     class Meta:
         model = InstagramUser
         exclude = [
@@ -40,3 +46,20 @@ class InstagramUserFollowingSerializer(ModelSerializer):
             return obj.profile_picture_url
 
         return obj.profile_picture.url
+
+
+class InstagramUserHistorySerializer(ModelSerializer):
+    """
+    Serializer for historical records of Instagram User profiles.
+    """
+
+    class Meta:
+        model = InstagramUser.history.model
+        exclude = [
+            # Fields added by simple_history
+            "history_user",
+            "history_change_reason",
+            "history_type",
+            # Original model fields
+            "profile_picture_url",
+        ]
