@@ -9,6 +9,7 @@ class TestInstagramAPI(TestCase):
     def setUp(self):
         self.instagram_api = InstagramAPI()
         self.test_user_1 = "arter_tendean"
+        self.test_user_2 = "xtra.artx"
 
     def test_get_user_info_v2(self):
         """Test the get_user_info_v2 method returns expected user data structure"""
@@ -76,6 +77,18 @@ class TestInstagramAPI(TestCase):
         # Testing with a username that doesn't exist (random string)
         with self.assertRaises(Exception):
             self.instagram_api.get_user_info_v2("this_user_definitely_doesnt_exist_12345678909876543")
+
+    def test_is_private_account(self):
+        """Test the is_private_account method for both private and public accounts"""
+        # Test user 1 (should return whether the account is private or not)
+        is_private_1 = self.instagram_api.is_private_account(self.test_user_1)
+        self.assertIsNotNone(is_private_1, "Should return a boolean value for is_private")
+        self.assertIsInstance(is_private_1, bool, "Result should be a boolean")
+
+        # Test user 2 (should return whether the account is private or not)
+        is_private_2 = self.instagram_api.is_private_account(self.test_user_2)
+        self.assertIsNotNone(is_private_2, "Should return a boolean value for is_private")
+        self.assertIsInstance(is_private_2, bool, "Result should be a boolean")
 
 
 class TestGetInstagramRoastingText(TestCase):

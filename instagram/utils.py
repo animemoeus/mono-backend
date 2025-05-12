@@ -71,6 +71,16 @@ class InstagramAPI:
         return response_data
 
     def is_private_account(self, username: str) -> bool:
+        """
+        Check if an Instagram account is private.
+        This method determines whether the specified Instagram user account is set to private
+        by retrieving user information and checking the 'is_private' flag.
+        Args:
+            username (str): The Instagram username to check.
+        Returns:
+            bool: True if the account is private, False otherwise.
+        """
+
         user_info = self.get_user_info_v2(username)
         return user_info.get("is_private")
 
