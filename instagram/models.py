@@ -55,46 +55,52 @@ class User(models.Model):
         return user_info
 
     def update_information_from_api(self) -> Self:
+        # Get user information from API
         user_info = self.get_information_from_api()
 
-        if "pk" in user_info:
-            self.instagram_id = user_info["pk"]
+        # Map API fields to model fields
+        field_mapping = {
+            "pk": "instagram_id",
+            "username": "username",
+            "full_name": "full_name",
+            "biography": "biography",
+            "follower_count": "follower_count",
+            "following_count": "following_count",
+        }
 
-        if "username" in user_info:
-            self.username = user_info["username"]
-
-        if "full_name" in user_info:
-            self.full_name = user_info["full_name"]
-
-        if "biography" in user_info:
-            self.biography = user_info["biography"]
-
-        if "follower_count" in user_info:
-            self.follower_count = user_info["follower_count"]
-
-        if "following_count" in user_info:
-            self.following_count = user_info["following_count"]
+        # Update fields if they exist in user_info
+        for api_field, model_field in field_mapping.items():
+            if api_field in user_info:
+                setattr(self, model_field, user_info[api_field])
 
         if user_info.get("hd_profile_pic_url_info") and user_info.get("hd_profile_pic_url_info").get("url"):
             hd_profile_pic_url = user_info.get("hd_profile_pic_url_info").get("url")
+            needs_profile_pic_update = False
 
-            # Check if the profile picture url is empty and update the file field
+            # Check if the profile picture url is empty
             if not self.profile_picture_url:
                 self.profile_picture_url = hd_profile_pic_url
-                self.save_from_url_to_file_field("profile_picture", "jpg", self.profile_picture_url)
+                needs_profile_pic_update = True
 
-            # Check if the profile picture is empty and update the file field
-            if not self.profile_picture and self.profile_picture_url:
-                self.save_from_url_to_file_field("profile_picture", "jpg", hd_profile_pic_url)
+            # Check if the profile picture is empty and profile picture url exists
+            elif not self.profile_picture and self.profile_picture_url:
+                needs_profile_pic_update = True
 
-            # Check if the profile picture URL has changed and update the profile picture field
-            if self.profile_picture_url.split("?")[0] != hd_profile_pic_url.split("?")[0]:
-                self.save_from_url_to_file_field("profile_picture", "jpg", hd_profile_pic_url)
+            # Check if the profile picture URL has changed
+            elif self.profile_picture_url.split("?")[0] != hd_profile_pic_url.split("?")[0]:
+                needs_profile_pic_update = True
 
             self.profile_picture_url = hd_profile_pic_url
 
-        self.updated_from_api_datetime = timezone.now()
+        # Update the timestamp for API update
+        self.updated_at_from_api = timezone.now()
+
+        # Save all changes at once to create a single history entry
         self.save()
+
+        # Handle profile picture update after saving the model to avoid multiple history entries
+        if user_info.get("hd_profile_pic_url_info") and needs_profile_pic_update:
+            self.save_from_url_to_file_field("profile_picture", "jpg", self.profile_picture_url)
 
         return self
 
