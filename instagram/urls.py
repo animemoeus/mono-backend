@@ -1,6 +1,8 @@
 from django.urls import path
 
 from .views import (
+    InstagramStoryDetailView,
+    InstagramStoryListView,
     InstagramUserDetailView,
     InstagramUserFollowerListView,
     InstagramUserFollowingListView,
@@ -38,6 +40,12 @@ urlpatterns = [
         name="instagram-user-following-list",
     ),
     path("roasting/<str:username>/", RoastingProfileView.as_view(), name="roasting"),
+    path("stories/", InstagramStoryListView.as_view(), name="instagram-story-list"),
+    path(
+        "stories/<str:story_id>/",
+        InstagramStoryDetailView.as_view(),
+        name="instagram-story-detail",
+    ),
 ]
 
 app_name = "instagram"

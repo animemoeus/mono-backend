@@ -45,6 +45,31 @@ class InstagramUserListView(ListAPIView):
     ordering = ["-created_at"]
 
 
+class InstagramStoryListView(ListAPIView):
+    """
+    View for listing all stories across all users, with optional filtering and ordering
+    """
+
+    serializer_class = InstagramStorySerializer
+    pagination_class = InstagramUserStoryPagination
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["story_created_at", "created_at"]
+    ordering = ["-story_created_at"]
+
+    def get_queryset(self):
+        return Story.objects.select_related("user").all()
+
+
+class InstagramStoryDetailView(RetrieveAPIView):
+    """
+    View for retrieving details of a specific story
+    """
+
+    serializer_class = InstagramStorySerializer
+    queryset = Story.objects.all()
+    lookup_field = "story_id"
+
+
 class InstagramUserDetailView(RetrieveAPIView):
     serializer_class = InstagramUserDetailSerializer
     queryset = InstagramUser.objects.all()
@@ -118,7 +143,7 @@ class InstagramUserStoryListView(ListAPIView):
         uuid = self.kwargs.get("uuid", None)
         try:
             user = InstagramUser.objects.get(uuid=uuid)
-            queryset = Story.objects.filter(user=user)
+            queryset = Story.objects.select_related("user").filter(user=user)
             return queryset
         except InstagramUser.DoesNotExist:
             raise NotFound("Instagram user not found")

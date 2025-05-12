@@ -135,6 +135,8 @@ class InstagramUserHistorySerializer(ModelSerializer):
 
 
 class InstagramStorySerializer(ModelSerializer):
+    user = InstagramUserDetailSerializer(read_only=True)
+
     class Meta:
         model = InstagramStory
         exclude = ["thumbnail_url", "media_url"]
