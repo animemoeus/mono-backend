@@ -1,6 +1,7 @@
 import requests
 from django.conf import settings
 from django.core.cache import cache
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -52,7 +53,10 @@ class InstagramStoryListView(ListAPIView):
 
     serializer_class = InstagramStorySerializer
     pagination_class = InstagramUserStoryPagination
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = {
+        "user__username": ["exact"],
+    }
     ordering_fields = ["story_created_at", "created_at"]
     ordering = ["-story_created_at"]
 
