@@ -27,13 +27,10 @@ class InstagramUserListSerializer(ModelSerializer):
             return obj.story_set.exists()
 
     def get_has_history(self, obj):
-        # Check if history is prefetched before making the query
-        if hasattr(obj, "_prefetched_objects_cache") and "history" in obj._prefetched_objects_cache:
-            # Use the prefetched data
-            return bool(obj._prefetched_objects_cache["history"])
-        else:
-            # Fallback to query if not prefetched
-            return obj.history.exists()
+        # Cache the history check at the instance level
+        if not hasattr(obj, "_has_history"):
+            obj._has_history = obj.history.exists()
+        return obj._has_history
 
 
 class InstagramUserDetailSerializer(ModelSerializer):
@@ -56,13 +53,10 @@ class InstagramUserDetailSerializer(ModelSerializer):
             return obj.story_set.exists()
 
     def get_has_history(self, obj):
-        # Check if history is prefetched before making the query
-        if hasattr(obj, "_prefetched_objects_cache") and "history" in obj._prefetched_objects_cache:
-            # Use the prefetched data
-            return bool(obj._prefetched_objects_cache["history"])
-        else:
-            # Fallback to query if not prefetched
-            return obj.history.exists()
+        # Cache the history check at the instance level
+        if not hasattr(obj, "_has_history"):
+            obj._has_history = obj.history.exists()
+        return obj._has_history
 
 
 class InstagramUserFollowerSerializer(ModelSerializer):
