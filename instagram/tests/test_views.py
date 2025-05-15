@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -5,7 +7,32 @@ from rest_framework import status
 from instagram.models import Story, User
 
 
-class TestInstagramUserHistoryListView(TestCase):
+# Mock response for request.get calls
+class MockResponse:
+    def __init__(self):
+        self.status_code = 200
+        self.content = b"fake-image-content"
+
+
+class InstagramTestCase(TestCase):
+    """Base test class that handles request mocking for all Instagram tests"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up class-level request mocking"""
+        # Start request mocker
+        cls.request_patcher = patch("requests.get", return_value=MockResponse())
+        cls.request_mock = cls.request_patcher.start()
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        """Clean up class-level request mocking"""
+        cls.request_patcher.stop()
+        super().tearDownClass()
+
+
+class TestInstagramUserHistoryListView(InstagramTestCase):
     def setUp(self):
         # Create a test user
         self.user = User.objects.create(
@@ -107,7 +134,7 @@ class TestInstagramUserHistoryListView(TestCase):
         self.assertEqual(len(data["results"]), 5)
 
 
-class TestInstagramUserStoryListView(TestCase):
+class TestInstagramUserStoryListView(InstagramTestCase):
     def setUp(self):
         """Set up test data"""
         # Create a test user
@@ -231,7 +258,7 @@ class TestInstagramUserStoryListView(TestCase):
         self.assertEqual(len(data["results"]), 5)
 
 
-class TestInstagramUserListView(TestCase):
+class TestInstagramUserListView(InstagramTestCase):
     def setUp(self):
         """Set up test data"""
         # Create a test user with no stories
@@ -301,7 +328,7 @@ class TestInstagramUserListView(TestCase):
         self.assertTrue(user_with_stories["has_history"])  # All users have at least creation history
 
 
-class TestInstagramUserDetailView(TestCase):
+class TestInstagramUserDetailView(InstagramTestCase):
     def setUp(self):
         """Set up test data"""
         # Create a test user with no stories
