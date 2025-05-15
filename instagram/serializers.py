@@ -10,17 +10,39 @@ from .utils import get_s3_signed_url
 
 
 class InstagramUserListSerializer(ModelSerializer):
+    has_stories = serializers.SerializerMethodField()
+
     class Meta:
         model = InstagramUser
         exclude = ["profile_picture_url"]
 
+    def get_has_stories(self, obj):
+        # Check if story_set is prefetched before making the query
+        if hasattr(obj, "_prefetched_objects_cache") and "story_set" in obj._prefetched_objects_cache:
+            # Use the prefetched data
+            return bool(obj._prefetched_objects_cache["story_set"])
+        else:
+            # Fallback to query if not prefetched
+            return obj.story_set.exists()
+
 
 class InstagramUserDetailSerializer(ModelSerializer):
+    has_stories = serializers.SerializerMethodField()
+
     class Meta:
         model = InstagramUser
         exclude = [
             "profile_picture_url",
         ]
+
+    def get_has_stories(self, obj):
+        # Check if story_set is prefetched before making the query
+        if hasattr(obj, "_prefetched_objects_cache") and "story_set" in obj._prefetched_objects_cache:
+            # Use the prefetched data
+            return bool(obj._prefetched_objects_cache["story_set"])
+        else:
+            # Fallback to query if not prefetched
+            return obj.story_set.exists()
 
 
 class InstagramUserFollowerSerializer(ModelSerializer):
