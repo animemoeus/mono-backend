@@ -229,3 +229,141 @@ class TestInstagramUserStoryListView(TestCase):
         response = self.client.get(f"{url}?count=5")
         data = response.json()
         self.assertEqual(len(data["results"]), 5)
+
+
+class TestInstagramUserListView(TestCase):
+    def setUp(self):
+        """Set up test data"""
+        # Create a test user with no stories
+        self.user_without_stories = User.objects.create(
+            username="no_stories_user",
+            full_name="No Stories User",
+            biography="User with no stories",
+            is_private=False,
+            is_verified=True,
+        )
+
+        # Create a test user with stories
+        self.user_with_stories = User.objects.create(
+            username="has_stories_user",
+            full_name="Has Stories User",
+            biography="User with stories",
+            is_private=False,
+            is_verified=True,
+        )
+
+        # Add some stories to the second user
+        for i in range(3):
+            Story.objects.create(
+                user=self.user_with_stories,
+                story_id=f"test_story_{i}",
+                thumbnail_url=f"https://example.com/thumbnail_{i}.jpg",
+                media_url=f"https://example.com/media_{i}.mp4",
+                story_created_at="2024-05-12T10:00:00Z",
+            )
+
+        # Add history to the first user
+        self.user_without_stories.biography = "Updated Bio"
+        self.user_without_stories.save()
+
+    def test_user_list_contains_new_fields(self):
+        """Test that the user list API includes has_stories and has_history fields"""
+        url = reverse("instagram:instagram-user-list")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+
+        # Find our test users in the results
+        user_without_stories = None
+        user_with_stories = None
+
+        for user in data["results"]:
+            if user["username"] == "no_stories_user":
+                user_without_stories = user
+            elif user["username"] == "has_stories_user":
+                user_with_stories = user
+
+        # Check that both users were found
+        self.assertIsNotNone(user_without_stories, "Test user 'no_stories_user' not found in API response")
+        self.assertIsNotNone(user_with_stories, "Test user 'has_stories_user' not found in API response")
+
+        # Check that has_stories field exists and has correct values
+        self.assertIn("has_stories", user_without_stories)
+        self.assertIn("has_stories", user_with_stories)
+        self.assertFalse(user_without_stories["has_stories"])
+        self.assertTrue(user_with_stories["has_stories"])
+
+        # Check that has_history field exists and has correct values
+        self.assertIn("has_history", user_without_stories)
+        self.assertIn("has_history", user_with_stories)
+        self.assertTrue(user_without_stories["has_history"])  # This user has history due to biography update
+        self.assertTrue(user_with_stories["has_history"])  # All users have at least creation history
+
+
+class TestInstagramUserDetailView(TestCase):
+    def setUp(self):
+        """Set up test data"""
+        # Create a test user with no stories
+        self.user_without_stories = User.objects.create(
+            username="detail_no_stories_user",
+            full_name="Detail No Stories User",
+            biography="User with no stories",
+            is_private=False,
+            is_verified=True,
+        )
+
+        # Create a test user with stories
+        self.user_with_stories = User.objects.create(
+            username="detail_has_stories_user",
+            full_name="Detail Has Stories User",
+            biography="User with stories",
+            is_private=False,
+            is_verified=True,
+        )
+
+        # Add some stories to the second user
+        for i in range(3):
+            Story.objects.create(
+                user=self.user_with_stories,
+                story_id=f"detail_test_story_{i}",
+                thumbnail_url=f"https://example.com/thumbnail_{i}.jpg",
+                media_url=f"https://example.com/media_{i}.mp4",
+                story_created_at="2024-05-12T10:00:00Z",
+            )
+
+        # Add history to the first user
+        self.user_without_stories.biography = "Updated Bio"
+        self.user_without_stories.save()
+
+    def test_user_detail_contains_new_fields(self):
+        """Test that the user detail API includes has_stories and has_history fields"""
+        # Test user without stories
+        url = reverse("instagram:instagram-user-detail", kwargs={"uuid": self.user_without_stories.uuid})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user_without_stories = response.json()
+
+        # Check that has_stories field exists and has correct value
+        self.assertIn("has_stories", user_without_stories)
+        self.assertFalse(user_without_stories["has_stories"])
+
+        # Check that has_history field exists and has correct value
+        self.assertIn("has_history", user_without_stories)
+        self.assertTrue(user_without_stories["has_history"])  # This user has history due to biography update
+
+        # Test user with stories
+        url = reverse("instagram:instagram-user-detail", kwargs={"uuid": self.user_with_stories.uuid})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user_with_stories = response.json()
+
+        # Check that has_stories field exists and has correct value
+        self.assertIn("has_stories", user_with_stories)
+        self.assertTrue(user_with_stories["has_stories"])
+
+        # Check that has_history field exists and has correct value
+        self.assertIn("has_history", user_with_stories)
+        self.assertTrue(user_with_stories["has_history"])  # All users have at least creation history
