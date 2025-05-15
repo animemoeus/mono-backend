@@ -30,7 +30,7 @@ from .utils import InstagramAPI, RoastingIG
 
 
 class InstagramUserListView(ListAPIView):
-    queryset = InstagramUser.objects.prefetch_related("story_set").all()
+    queryset = InstagramUser.objects.prefetch_related("story_set", "history").all()
     serializer_class = InstagramUserListSerializer
     pagination_class = InstagramUserListPagination
 
@@ -72,7 +72,7 @@ class InstagramStoryDetailView(RetrieveAPIView):
 
 class InstagramUserDetailView(RetrieveAPIView):
     serializer_class = InstagramUserDetailSerializer
-    queryset = InstagramUser.objects.prefetch_related("story_set").all()
+    queryset = InstagramUser.objects.prefetch_related("story_set", "history").all()
     lookup_field = "uuid"
 
 
