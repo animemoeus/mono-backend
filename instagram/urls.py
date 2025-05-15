@@ -13,7 +13,7 @@ from .views import (
 )
 
 urlpatterns = [
-    path("users/", InstagramUserListView.as_view(), name="instagram_user_list"),
+    path("users/", InstagramUserListView.as_view(), name="instagram-user-list"),
     path(
         "users/<str:uuid>/",
         InstagramUserDetailView.as_view(),
