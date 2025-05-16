@@ -48,11 +48,22 @@ def update_instagram_users_profile():
 
 
 @shared_task
-def update_instagram_user_profile(username: str):
+def update_instagram_user_profile(uuid: str):
     from .models import User as InstagramUser
 
-    instagram_user = InstagramUser.objects.get(username=username)
+    instagram_user = InstagramUser.objects.get(uuid=uuid)
     instagram_user.update_information_from_api()
+
+
+@shared_task
+def update_instagram_auto_profiles():
+    """Update profiles for users who have allowed automatic profile updates."""
+    from .models import User as InstagramUser
+
+    instagram_users = InstagramUser.objects.filter(allow_auto_update_profile=True)
+
+    for user in instagram_users:
+        update_instagram_user_profile.delay(user.uuid)
 
 
 @shared_task
