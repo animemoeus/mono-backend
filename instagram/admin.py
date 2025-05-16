@@ -21,6 +21,7 @@ class UserAdmin(SimpleHistoryAdmin):
         "media_count",
         "updated_at_from_api",
         "allow_auto_update_stories",
+        "allow_auto_update_profile",
     )
     list_filter = ("is_private", "is_verified", "allow_auto_update_stories")
     readonly_fields = (
@@ -75,7 +76,7 @@ class UserAdmin(SimpleHistoryAdmin):
                 )
             },
         ),
-        ("Settings", {"fields": ("allow_auto_update_stories",)}),
+        ("Settings", {"fields": ("allow_auto_update_stories", "allow_auto_update_profile")}),
         (
             "Timestamps",
             {

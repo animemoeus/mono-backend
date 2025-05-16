@@ -34,7 +34,9 @@ class User(models.Model):
     media_count = models.PositiveIntegerField(default=0)
     follower_count = models.PositiveIntegerField(default=0)
     following_count = models.PositiveIntegerField(default=0)
+
     allow_auto_update_stories = models.BooleanField(default=False)
+    allow_auto_update_profile = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
