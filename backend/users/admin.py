@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.auth import admin as auth_admin
 from django.contrib.auth import decorators, get_user_model
 from django.utils.translation import gettext_lazy as _
+from unfold.admin import ModelAdmin
 
 from backend.users.forms import UserAdminChangeForm, UserAdminCreationForm
 
@@ -15,7 +16,7 @@ if settings.DJANGO_ADMIN_FORCE_ALLAUTH:
 
 
 @admin.register(User)
-class UserAdmin(auth_admin.UserAdmin):
+class UserAdmin(auth_admin.UserAdmin, ModelAdmin):
     form = UserAdminChangeForm
     add_form = UserAdminCreationForm
     fieldsets = (
