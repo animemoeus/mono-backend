@@ -1,21 +1,23 @@
 from django.contrib import admin
-from import_export.admin import ImportExportModelAdmin
+from unfold.admin import ModelAdmin
 
 from .models import DiscordWebhook, Image, TelegramUser
 
+# from import_export.admin import ImportExportModelAdmin
+
 
 @admin.register(Image)
-class ImageAdmin(ImportExportModelAdmin):
+class ImageAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
     list_display = ("image_id",)
     search_fields = ("image_id",)
 
 
 @admin.register(TelegramUser)
-class TelegramUserAdmin(admin.ModelAdmin):
+class TelegramUserAdmin(ModelAdmin):
     pass
 
 
 @admin.register(DiscordWebhook)
-class DiscordWebhookAdmin(admin.ModelAdmin):
+class DiscordWebhookAdmin(ModelAdmin):
     pass
