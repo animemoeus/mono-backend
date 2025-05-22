@@ -52,3 +52,5 @@ pyscord-storage==2.0.3 # https://github.com/animemoeus/pyscord-storage
 django-health-check==3.18.3 # https://github.com/revsys/django-health-check
 saiyaku==2023.12.11 #  https://github.com/animemoeus/saiyaku
 openai==1.68.2 #  https://pypi.org/project/openai/
+
+django-unfold==0.58.0  # https://pypi.org/project/django-unfold/
