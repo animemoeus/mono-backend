@@ -1,13 +1,14 @@
 from django.contrib import admin, messages
 from django.http import HttpResponseRedirect
 from simple_history.admin import SimpleHistoryAdmin
+from unfold.admin import ModelAdmin
 
 from .models import RoastingLog, Story, User, UserFollower, UserFollowing
 from .tasks import update_user_follower, update_user_following
 
 
 @admin.register(User)
-class UserAdmin(SimpleHistoryAdmin):
+class UserAdmin(SimpleHistoryAdmin, ModelAdmin):
     change_form_template = "instagram/admin_edit_form.html"
 
     search_fields = ("username", "full_name", "biography")
@@ -76,7 +77,10 @@ class UserAdmin(SimpleHistoryAdmin):
                 )
             },
         ),
-        ("Settings", {"fields": ("allow_auto_update_stories", "allow_auto_update_profile")}),
+        (
+            "Settings",
+            {"fields": ("allow_auto_update_stories", "allow_auto_update_profile")},
+        ),
         (
             "Timestamps",
             {
@@ -157,7 +161,7 @@ class UserAdmin(SimpleHistoryAdmin):
 
 
 @admin.register(Story)
-class StoryAdmin(admin.ModelAdmin):
+class StoryAdmin(ModelAdmin):
     list_display = ("user", "story_id", "created_at", "story_created_at")
     readonly_fields = ["story_id", "created_at", "story_created_at"]
     search_fields = ("user", "story_id")
@@ -165,7 +169,7 @@ class StoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(UserFollower)
-class UserFollowerAdmin(admin.ModelAdmin):
+class UserFollowerAdmin(ModelAdmin):
     list_display = ["username", "full_name", "user", "is_private_account", "created_at"]
     readonly_fields = [
         "profile_picture",
@@ -176,7 +180,7 @@ class UserFollowerAdmin(admin.ModelAdmin):
 
 
 @admin.register(UserFollowing)
-class UserFollowingAdmin(admin.ModelAdmin):
+class UserFollowingAdmin(ModelAdmin):
     list_display = ["username", "full_name", "user", "is_private_account", "created_at"]
     readonly_fields = [
         "profile_picture",
@@ -186,7 +190,7 @@ class UserFollowingAdmin(admin.ModelAdmin):
 
 
 @admin.register(RoastingLog)
-class RoastingLogAdmin(admin.ModelAdmin):
+class RoastingLogAdmin(ModelAdmin):
     list_display = ("username", "created_at")
     readonly_fields = ("username", "roasting_text", "user_data", "created_at")
     search_fields = ("username",)
