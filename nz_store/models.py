@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 from .utils import get_product_image_upload_path
 
@@ -35,8 +36,20 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    history = HistoricalRecords()
+
     def __str__(self):
         return self.name
+
+    @property
+    def available_stock(self):
+        """Returns the count of available (not sold) account stocks"""
+        return self.account_stocks.filter(is_sold=False).count()
+
+    def sync_stock_with_accounts(self):
+        """Sync the stock field with available account stocks"""
+        self.stock = self.available_stock
+        self.save(update_fields=["stock"])
 
 
 class AccountStock(models.Model):
@@ -54,6 +67,8 @@ class AccountStock(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.product.name} - {self.email}  {self.username}"

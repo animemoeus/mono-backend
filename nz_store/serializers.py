@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from .models import Product, ProductCategory
@@ -14,6 +15,7 @@ class ProductCategorySerializer(ModelSerializer):
 
 class ProductSerializer(ModelSerializer):
     category = ProductCategorySerializer(read_only=True)
+    available_stock = serializers.ReadOnlyField()
 
     class Meta:
         model = Product
@@ -24,6 +26,7 @@ class ProductSerializer(ModelSerializer):
             "image",
             "price",
             "stock",
+            "available_stock",
             "category",
             "created_at",
             "updated_at",
