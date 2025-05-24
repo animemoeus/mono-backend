@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from simple_history.admin import SimpleHistoryAdmin
 from unfold.admin import ModelAdmin
+from unfold.contrib.filters.admin import AutocompleteSelectFilter
 from unfold.decorators import action
 
 from .models import AccountStock, Product, ProductCategory, TelegramUser
@@ -21,7 +22,8 @@ class ProductAdmin(SimpleHistoryAdmin, ModelAdmin):
     list_display = ("name", "category", "price", "stock", "created_at", "updated_at")
     search_fields = ("name", "category__name")
     readonly_fields = ("stock", "created_at", "updated_at")
-    list_filter = ("category",)
+    list_filter = (["category", AutocompleteSelectFilter],)
+    ordering = ("name",)
 
     actions_detail = ["update_stock"]
 
@@ -50,7 +52,8 @@ class AccountStockAdmin(SimpleHistoryAdmin, ModelAdmin):
     )
     search_fields = ("email", "username", "product__name")
     readonly_fields = ("created_at", "updated_at")
-    list_filter = ("is_sold",)
+    list_filter = (["product", AutocompleteSelectFilter], "is_sold")
+    ordering = ("-created_at",)
 
 
 @admin.register(TelegramUser)
