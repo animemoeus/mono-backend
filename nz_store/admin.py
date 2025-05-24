@@ -19,10 +19,18 @@ class ProductCategoryAdmin(ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(SimpleHistoryAdmin, ModelAdmin):
     autocomplete_fields = ("category",)
-    list_display = ("name", "category", "price", "stock", "created_at", "updated_at")
+    list_display = (
+        "name",
+        "category",
+        "price",
+        "stock",
+        "is_active",
+        "created_at",
+        "updated_at",
+    )
     search_fields = ("name", "category__name")
     readonly_fields = ("stock", "created_at", "updated_at")
-    list_filter = (["category", AutocompleteSelectFilter],)
+    list_filter = (["category", AutocompleteSelectFilter], "is_active")
     ordering = ("name",)
 
     actions_detail = ["update_stock"]
