@@ -178,7 +178,7 @@ class Settings(SingletonModel):
             return
 
         url = f"https://api.telegram.org/bot{self.bot_token}/setMyName"
-        payload = json.dumps({"name": self.bot_name})
+        payload = json.dumps({"name": f"[🚨 MAINTENANCE] {self.bot_name}" if self.maintenance_mode else self.bot_name})
         headers = {"Content-Type": "application/json"}
 
         try:

@@ -73,7 +73,7 @@ class TelegramUserAdmin(ModelAdmin):
 
 
 @admin.register(Settings)
-class SettingsAdmin(ModelAdmin):
+class SettingsAdmin(SimpleHistoryAdmin, ModelAdmin):
     list_display = ("bot_name", "created_at", "updated_at")
     readonly_fields = ("created_at", "updated_at")
 
