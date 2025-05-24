@@ -74,6 +74,7 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
     "unfold",
+    "unfold.contrib.filters",
     "unfold.contrib.simple_history",
     "django.contrib.admin",
     "django.forms",
@@ -108,6 +109,7 @@ LOCAL_APPS = [
     # Your stuff: custom apps go here
     "discord",
     "instagram",
+    "nz_store",
     "tiktok",
     "waifu",
     "twitter_downloader",
