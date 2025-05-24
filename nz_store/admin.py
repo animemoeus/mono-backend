@@ -6,7 +6,7 @@ from unfold.admin import ModelAdmin
 from unfold.contrib.filters.admin import AutocompleteSelectFilter
 from unfold.decorators import action
 
-from .models import AccountStock, Product, ProductCategory, TelegramUser
+from .models import AccountStock, Product, ProductCategory, Settings, TelegramUser
 
 
 @admin.register(ProductCategory)
@@ -70,3 +70,13 @@ class TelegramUserAdmin(ModelAdmin):
     search_fields = ("telegram_id", "username")
     readonly_fields = ("created_at", "updated_at")
     list_filter = ("username",)
+
+
+@admin.register(Settings)
+class SettingsAdmin(ModelAdmin):
+    list_display = ("bot_name", "created_at", "updated_at")
+    readonly_fields = ("created_at", "updated_at")
+
+    def has_add_permission(self, request):
+        """Prevent adding new settings, only allow editing the existing one."""
+        return not Settings.objects.exists()
