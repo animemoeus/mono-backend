@@ -2,7 +2,7 @@ import factory
 from django.utils import timezone
 from factory import SubFactory
 
-from nz_store.models import AccountStock, Order, Product, ProductCategory, TelegramUser
+from nz_store.models import AccountStock, Order, Product, ProductCategory, Settings, TelegramUser
 
 
 class ProductCategoryFactory(factory.django.DjangoModelFactory):
@@ -95,3 +95,17 @@ class OrderFactory(factory.django.DjangoModelFactory):
             # Create a new account stock for the correct product
             self.account_stock = AccountStockFactory(product=self.product)
             self.save()
+
+
+class SettingsFactory(factory.django.DjangoModelFactory):
+    """Factory for Settings model."""
+
+    class Meta:
+        model = Settings
+        django_get_or_create = ["id"]  # Use singleton pattern
+
+    id = 1  # Always use ID 1 for singleton
+    bot_token = factory.Faker("sha256")
+    bot_name = factory.Faker("company")
+    bot_description = factory.Faker("text", max_nb_chars=200)
+    maintenance_mode = factory.Faker("boolean", chance_of_getting_true=20)
