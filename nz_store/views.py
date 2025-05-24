@@ -1,3 +1,15 @@
-# from django.shortcuts import render
+from rest_framework.generics import ListAPIView
 
-# # Create your views here.
+from .models import Product
+from .pagination import ProductListPagination
+from .serializers import ProductSerializer
+
+
+class ProductListView(ListAPIView):
+    """
+    API endpoint to get all NZ products with pagination.
+    """
+
+    queryset = Product.objects.select_related("category").all()
+    serializer_class = ProductSerializer
+    pagination_class = ProductListPagination

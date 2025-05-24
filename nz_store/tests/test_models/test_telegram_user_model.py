@@ -64,7 +64,12 @@ class TelegramUserModelTest(TestCase):
 
         # Test max length
         long_telegram_id = "1" * 256  # Exceeds max_length of 255
-        user = TelegramUser(telegram_id=long_telegram_id, username="test", first_name="Test", last_name="User")
+        user = TelegramUser(
+            telegram_id=long_telegram_id,
+            username="test",
+            first_name="Test",
+            last_name="User",
+        )
 
         with self.assertRaises(ValidationError):
             user.full_clean()
@@ -95,7 +100,12 @@ class TelegramUserModelTest(TestCase):
 
         # Test max length
         long_username = "u" * 256  # Exceeds max_length of 255
-        user = TelegramUser(telegram_id="999888777", username=long_username, first_name="Test", last_name="User")
+        user = TelegramUser(
+            telegram_id="999888777",
+            username=long_username,
+            first_name="Test",
+            last_name="User",
+        )
 
         with self.assertRaises(ValidationError):
             user.full_clean()
@@ -115,7 +125,12 @@ class TelegramUserModelTest(TestCase):
 
         # Test max length
         long_first_name = "J" * 256  # Exceeds max_length of 255
-        user = TelegramUser(telegram_id="888777666", username="test", first_name=long_first_name, last_name="User")
+        user = TelegramUser(
+            telegram_id="888777666",
+            username="test",
+            first_name=long_first_name,
+            last_name="User",
+        )
 
         with self.assertRaises(ValidationError):
             user.full_clean()
@@ -135,7 +150,12 @@ class TelegramUserModelTest(TestCase):
 
         # Test max length
         long_last_name = "D" * 256  # Exceeds max_length of 255
-        user = TelegramUser(telegram_id="777666555", username="test", first_name="Test", last_name=long_last_name)
+        user = TelegramUser(
+            telegram_id="777666555",
+            username="test",
+            first_name="Test",
+            last_name=long_last_name,
+        )
 
         with self.assertRaises(ValidationError):
             user.full_clean()
@@ -180,7 +200,8 @@ class TelegramUserModelTest(TestCase):
         """Test get_or_create behavior with telegram_id."""
         # Test creating a new user
         user1, created1 = TelegramUser.objects.get_or_create(
-            telegram_id="111222333", defaults={"username": "newuser", "first_name": "New", "last_name": "User"}
+            telegram_id="111222333",
+            defaults={"username": "newuser", "first_name": "New", "last_name": "User"},
         )
         self.assertTrue(created1)
         self.assertEqual(user1.telegram_id, "111222333")
@@ -250,4 +271,7 @@ class TelegramUserModelTest(TestCase):
         created_users = TelegramUser.objects.bulk_create(users)
 
         self.assertEqual(len(created_users), 3)
-        self.assertEqual(TelegramUser.objects.filter(telegram_id__in=["100", "200", "300"]).count(), 3)
+        self.assertEqual(
+            TelegramUser.objects.filter(telegram_id__in=["100", "200", "300"]).count(),
+            3,
+        )
