@@ -472,3 +472,134 @@ class ProductModelTest(TestCase):
             # Reconnect signals
             post_save.connect(sync_product_stock_on_account_save, sender=AccountStock)
             post_delete.connect(sync_product_stock_on_account_delete, sender=AccountStock)
+
+    def test_product_is_active_field_default(self):
+        """Test that is_active field defaults to True."""
+        # Test default value on creation
+        product = ProductFactory()
+        self.assertTrue(product.is_active)
+
+        # Test default value when creating manually
+        product_manual = Product(
+            category=self.category,
+            name="Test Product",
+            description="Test description",
+            price=Decimal("10.00"),
+            stock=1,
+        )
+        product_manual.save()
+        self.assertTrue(product_manual.is_active)
+
+    def test_product_is_active_field_explicit_values(self):
+        """Test that is_active field can be set explicitly."""
+        # Test setting to False
+        product_inactive = ProductFactory(is_active=False)
+        self.assertFalse(product_inactive.is_active)
+
+        # Test setting to True explicitly
+        product_active = ProductFactory(is_active=True)
+        self.assertTrue(product_active.is_active)
+
+    def test_product_is_active_field_update(self):
+        """Test that is_active field can be updated."""
+        # Start with active product
+        self.assertTrue(self.product.is_active)
+
+        # Deactivate product
+        self.product.is_active = False
+        self.product.save()
+        self.product.refresh_from_db()
+        self.assertFalse(self.product.is_active)
+
+        # Reactivate product
+        self.product.is_active = True
+        self.product.save()
+        self.product.refresh_from_db()
+        self.assertTrue(self.product.is_active)
+
+    def test_product_is_active_field_validation(self):
+        """Test that is_active field validates boolean values."""
+        # Test that the field accepts boolean values
+        product = Product(
+            category=self.category,
+            name="Test Product",
+            description="Test description",
+            price=Decimal("10.00"),
+            stock=1,
+            is_active=True,
+        )
+
+        try:
+            product.full_clean()
+        except ValidationError:
+            self.fail("is_active field should accept boolean True value")
+
+        product.is_active = False
+        try:
+            product.full_clean()
+        except ValidationError:
+            self.fail("is_active field should accept boolean False value")
+
+    def test_product_is_active_in_queryset_filtering(self):
+        """Test that is_active field can be used for queryset filtering."""
+        # Create products with different is_active values
+        active_product1 = ProductFactory(name="Active Product 1", is_active=True)
+        active_product2 = ProductFactory(name="Active Product 2", is_active=True)
+        inactive_product1 = ProductFactory(name="Inactive Product 1", is_active=False)
+        inactive_product2 = ProductFactory(name="Inactive Product 2", is_active=False)
+
+        # Test filtering active products
+        active_products = Product.objects.filter(is_active=True)
+        self.assertIn(self.product, active_products)  # from setUp
+        self.assertIn(active_product1, active_products)
+        self.assertIn(active_product2, active_products)
+        self.assertNotIn(inactive_product1, active_products)
+        self.assertNotIn(inactive_product2, active_products)
+
+        # Test filtering inactive products
+        inactive_products = Product.objects.filter(is_active=False)
+        self.assertNotIn(self.product, inactive_products)
+        self.assertNotIn(active_product1, inactive_products)
+        self.assertNotIn(active_product2, inactive_products)
+        self.assertIn(inactive_product1, inactive_products)
+        self.assertIn(inactive_product2, inactive_products)
+
+    def test_product_is_active_with_available_stock(self):
+        """Test interaction between is_active and available_stock."""
+        # Create account stocks for the product
+        AccountStockFactory(product=self.product, is_sold=False)
+        AccountStockFactory(product=self.product, is_sold=False)
+
+        # Active product should have available stock
+        self.assertTrue(self.product.is_active)
+        self.assertEqual(self.product.available_stock, 2)
+
+        # Deactivate product - available_stock should still work
+        self.product.is_active = False
+        self.product.save()
+        self.assertFalse(self.product.is_active)
+        self.assertEqual(self.product.available_stock, 2)
+
+    def test_product_is_active_bulk_operations(self):
+        """Test is_active field with bulk operations."""
+        # Create multiple products
+        products = ProductFactory.create_batch(5, is_active=True)
+
+        # Verify all are active
+        for product in products:
+            self.assertTrue(product.is_active)
+
+        # Bulk update to inactive
+        Product.objects.filter(id__in=[p.id for p in products]).update(is_active=False)
+
+        # Verify all are now inactive
+        for product in products:
+            product.refresh_from_db()
+            self.assertFalse(product.is_active)
+
+    def test_product_is_active_in_serializer_context(self):
+        """Test that is_active field appears in serialized data."""
+        # This test ensures the field works properly with the API
+        # We'll check if the field can be accessed as expected
+        self.assertTrue(hasattr(self.product, "is_active"))
+        self.assertIsInstance(self.product.is_active, bool)

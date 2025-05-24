@@ -30,6 +30,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
     image = factory.django.ImageField(width=640, height=480, color="blue")
     price = factory.LazyAttribute(lambda obj: Decimal(factory.Faker._get_faker().random_number(digits=3)) / 100)
     stock = factory.Faker("random_int", min=0, max=1000)
+    is_active = True  # Default to True to match model default
 
 
 class TelegramUserFactory(factory.django.DjangoModelFactory):

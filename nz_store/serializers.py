@@ -27,6 +27,7 @@ class ProductSerializer(ModelSerializer):
             "price",
             "stock",
             "available_stock",
+            "is_active",
             "category",
             "created_at",
             "updated_at",
