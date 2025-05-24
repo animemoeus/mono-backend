@@ -28,7 +28,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
     name = factory.Faker("catch_phrase")
     description = factory.Faker("text", max_nb_chars=500)
     image = factory.django.ImageField(width=640, height=480, color="blue")
-    price = factory.LazyAttribute(lambda obj: Decimal(factory.Faker._get_faker().random_number(digits=3)) / 100)
+    price = factory.Faker("pydecimal", left_digits=3, right_digits=2, positive=True)
     stock = factory.Faker("random_int", min=0, max=1000)
     is_active = True  # Default to True to match model default
 
