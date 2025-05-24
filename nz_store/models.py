@@ -1,5 +1,6 @@
 import uuid
 
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -27,8 +28,10 @@ class Product(models.Model):
     description = models.TextField()
     image = models.ImageField(
         upload_to=get_product_image_upload_path,
-        blank=True,
         null=True,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"])],
+        help_text="Product image (max 5MB, jpg/jpeg/png/webp only)",
     )
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField()
