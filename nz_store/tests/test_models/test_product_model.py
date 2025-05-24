@@ -4,10 +4,11 @@ from unittest.mock import patch
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db.models.signals import post_delete, post_save
 from django.test import TestCase
 
-from nz_store.models import Product
-from nz_store.tests.factories import ProductCategoryFactory, ProductFactory
+from nz_store.models import AccountStock, Product
+from nz_store.tests.factories import AccountStockFactory, ProductCategoryFactory, ProductFactory
 
 
 class ProductModelTest(TestCase):
@@ -295,3 +296,179 @@ class ProductModelTest(TestCase):
                 price=Decimal("10.00"),
             )
             product.full_clean()
+
+    def test_available_stock_property(self):
+        """Test the available_stock property calculation."""
+        # Product with no account stocks should return 0
+        self.assertEqual(self.product.available_stock, 0)
+
+        # Create some account stocks for the product
+        account1 = AccountStockFactory(product=self.product, is_sold=False)
+        account2 = AccountStockFactory(product=self.product, is_sold=False)
+        AccountStockFactory(product=self.product, is_sold=True)  # Sold account
+
+        # Should return only unsold accounts
+        self.assertEqual(self.product.available_stock, 2)
+
+        # Mark another account as sold
+        account1.is_sold = True
+        account1.save()
+
+        # Refresh from database and check again
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.available_stock, 1)
+
+        # Mark all as sold
+        account2.is_sold = True
+        account2.save()
+
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.available_stock, 0)
+
+    def test_available_stock_with_multiple_products(self):
+        """Test that available_stock only counts accounts for the specific product."""
+        # Create another product
+        other_product = ProductFactory()
+
+        # Create account stocks for both products
+        AccountStockFactory(product=self.product, is_sold=False)
+        AccountStockFactory(product=self.product, is_sold=False)
+        AccountStockFactory(product=other_product, is_sold=False)
+        AccountStockFactory(product=other_product, is_sold=False)
+        AccountStockFactory(product=other_product, is_sold=False)
+
+        # Each product should only count its own account stocks
+        self.assertEqual(self.product.available_stock, 2)
+        self.assertEqual(other_product.available_stock, 3)
+
+    def test_sync_stock_with_accounts_method(self):
+        """Test the sync_stock_with_accounts method."""
+        # Initial stock value
+        original_stock = self.product.stock
+        self.assertEqual(original_stock, 50)  # From setUp
+
+        # Product has no account stocks initially
+        self.assertEqual(self.product.available_stock, 0)
+
+        # Sync should set stock to 0
+        self.product.sync_stock_with_accounts()
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 0)
+
+        # Create some account stocks
+        AccountStockFactory(product=self.product, is_sold=False)
+        AccountStockFactory(product=self.product, is_sold=False)
+        AccountStockFactory(product=self.product, is_sold=True)  # Sold account
+
+        # Sync should update stock to match available accounts
+        self.product.sync_stock_with_accounts()
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 2)
+
+        # Add more accounts
+        AccountStockFactory(product=self.product, is_sold=False)
+        AccountStockFactory(product=self.product, is_sold=False)
+
+        # Sync again
+        self.product.sync_stock_with_accounts()
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 4)
+
+    def test_sync_stock_with_accounts_saves_only_stock_field(self):
+        """Test that sync_stock_with_accounts only updates the stock field."""
+        # Change product name but don't save
+        original_name = self.product.name
+
+        self.product.name = "Changed Name"
+
+        # Create account stock
+        AccountStockFactory(product=self.product, is_sold=False)
+
+        # Sync stock
+        self.product.sync_stock_with_accounts()
+
+        # Refresh from database
+        self.product.refresh_from_db()
+
+        # Stock should be updated, but name should remain unchanged
+        self.assertEqual(self.product.stock, 1)
+        self.assertEqual(self.product.name, original_name)  # Name should not be saved
+
+    def test_sync_stock_with_accounts_performance(self):
+        """Test that sync_stock_with_accounts uses efficient database queries."""
+        # Create multiple account stocks
+        for i in range(10):
+            AccountStockFactory(product=self.product, is_sold=(i % 3 == 0))  # Some sold, some not
+
+        # Test that the method works correctly
+        expected_available = self.product.available_stock
+
+        # Note: With simple_history, we expect 3 queries:
+        # 1. SELECT COUNT for available_stock
+        # 2. UPDATE for the product stock
+        # 3. INSERT for historical record
+        with self.assertNumQueries(3):
+            self.product.sync_stock_with_accounts()
+
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, expected_available)
+
+    def test_available_stock_query_efficiency(self):
+        """Test that available_stock property uses efficient database queries."""
+        # Create account stocks
+        AccountStockFactory.create_batch(5, product=self.product, is_sold=False)
+        AccountStockFactory.create_batch(3, product=self.product, is_sold=True)
+
+        # Test that available_stock uses a single query
+        with self.assertNumQueries(1):
+            count = self.product.available_stock
+
+        self.assertEqual(count, 5)
+
+    def test_available_stock_with_no_accounts(self):
+        """Test available_stock property when product has no account stocks."""
+        # Ensure no account stocks exist for the product
+        self.product.account_stocks.all().delete()
+
+        # Should return 0
+        self.assertEqual(self.product.available_stock, 0)
+
+    def test_sync_stock_after_account_stock_changes(self):
+        """Test that manual stock sync works after account stock changes."""
+        # Temporarily disconnect signals to test manual sync behavior
+        from nz_store.signals import sync_product_stock_on_account_delete, sync_product_stock_on_account_save
+
+        post_save.disconnect(sync_product_stock_on_account_save, sender=AccountStock)
+        post_delete.disconnect(sync_product_stock_on_account_delete, sender=AccountStock)
+
+        try:
+            # Create initial account stocks
+            account1 = AccountStockFactory(product=self.product, is_sold=False)
+            account2 = AccountStockFactory(product=self.product, is_sold=False)
+
+            # Sync and verify
+            self.product.sync_stock_with_accounts()
+            self.assertEqual(self.product.stock, 2)
+
+            # Change account stock status
+            account1.is_sold = True
+            account1.save()
+
+            # Stock should not auto-update (signals are disconnected)
+            self.product.refresh_from_db()
+            self.assertEqual(self.product.stock, 2)  # Still old value
+
+            # Manual sync should update it
+            self.product.sync_stock_with_accounts()
+            self.assertEqual(self.product.stock, 1)
+
+            # Delete an account stock
+            account2.delete()
+
+            # Manual sync should reflect the deletion
+            self.product.sync_stock_with_accounts()
+            self.assertEqual(self.product.stock, 0)
+        finally:
+            # Reconnect signals
+            post_save.connect(sync_product_stock_on_account_save, sender=AccountStock)
+            post_delete.connect(sync_product_stock_on_account_delete, sender=AccountStock)
