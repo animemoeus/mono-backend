@@ -2,6 +2,8 @@ import uuid
 
 from django.db import models
 
+from .utils import get_product_image_upload_path
+
 
 class ProductCategory(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -22,6 +24,11 @@ class Product(models.Model):
     category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE, related_name="products")
     name = models.CharField(max_length=255)
     description = models.TextField()
+    image = models.ImageField(
+        upload_to=get_product_image_upload_path,
+        blank=True,
+        null=True,
+    )
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField()
 
