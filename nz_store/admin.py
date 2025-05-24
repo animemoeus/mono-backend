@@ -13,6 +13,7 @@ class ProductCategoryAdmin(ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(ModelAdmin):
+    autocomplete_fields = ("category",)
     list_display = ("name", "category", "price", "stock", "created_at", "updated_at")
     search_fields = ("name", "category__name")
     readonly_fields = ("created_at", "updated_at")
