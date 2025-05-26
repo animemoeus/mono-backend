@@ -41,7 +41,7 @@ class Product(models.Model):
         help_text="Product image (max 5MB, jpg/jpeg/png/webp only)",
     )
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    stock = models.PositiveIntegerField()
+    stock = models.PositiveIntegerField(default=0, help_text="Number of available accounts for this product")
     is_active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
