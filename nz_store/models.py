@@ -214,12 +214,3 @@ class Settings(SingletonModel):
             requests.request("POST", url, headers=headers, data=payload)
         except requests.RequestException as e:
             logging.error(f"Failed to set bot description: {e}")
-
-
-class WebhookLog(models.Model):
-    payload = models.JSONField()
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Webhook Log {self.uuid}"
