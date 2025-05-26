@@ -287,15 +287,18 @@ class ProductModelTest(TestCase):
             )
             product.full_clean()
 
-        # Test missing stock
-        with self.assertRaises(ValidationError):
-            product = Product(
-                category=self.category,
-                name="Test Product",
-                description="Test description",
-                price=Decimal("10.00"),
-            )
+        # Test product with all required fields (stock has default=0, so it's not required)
+        product = Product(
+            category=self.category,
+            name="Test Product",
+            description="Test description",
+            price=Decimal("10.00"),
+        )
+        # This should not raise ValidationError as stock has default=0
+        try:
             product.full_clean()
+        except ValidationError:
+            self.fail("Product should be valid with all required fields provided (stock has default value)")
 
     def test_available_stock_property(self):
         """Test the available_stock property calculation."""
