@@ -5,12 +5,23 @@ from .models import Product, ProductCategory
 
 
 class ProductCategorySerializer(ModelSerializer):
+    product_count = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductCategory
         fields = [
             "uuid",
             "name",
+            "description",
+            "product_count",
         ]
+
+    def get_product_count(self, obj):
+        """Return the count of active products in this category."""
+        # Use the annotated count from the queryset if available, otherwise query the database
+        if hasattr(obj, "product_count"):
+            return obj.product_count
+        return obj.products.filter(is_active=True).count()
 
 
 class ProductSerializer(ModelSerializer):
