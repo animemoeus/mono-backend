@@ -1,7 +1,7 @@
 from django.db import models
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from .models import Product, ProductCategory
 from .pagination import CategoryListPagination, ProductListPagination
@@ -38,3 +38,13 @@ class ProductListAPIView(ListAPIView):
     search_fields = ["name", "category__name"]
     ordering_fields = ["created_at", "price", "name"]
     ordering = ["-created_at"]
+
+
+class ProductDetailAPIView(RetrieveAPIView):
+    """
+    API endpoint to get a single NZ product by UUID.
+    """
+
+    queryset = Product.objects.select_related("category").filter(is_active=True)
+    serializer_class = ProductSerializer
+    lookup_field = "uuid"
