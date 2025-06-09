@@ -1,34 +1,43 @@
 from django.contrib import admin, messages
-from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from simple_history.admin import SimpleHistoryAdmin
+from unfold.admin import ModelAdmin
+from unfold.decorators import action
 
 from .models import RoastingLog, Story, User, UserFollower, UserFollowing
 from .tasks import update_user_follower, update_user_following
 
 
 @admin.register(User)
-class UserAdmin(SimpleHistoryAdmin):
-    change_form_template = "instagram/admin_edit_form.html"
-
-    search_fields = ("username",)
+class UserAdmin(SimpleHistoryAdmin, ModelAdmin):
+    search_fields = ("username", "full_name", "biography")
     list_display = (
         "username",
-        "updated_from_api_datetime",
-        "allow_auto_update_stories",
-        "created_at",
-        "updated_at",
+        "full_name",
+        "is_private",
+        "is_verified",
         "follower_count",
         "following_count",
+        "media_count",
+        "updated_at_from_api",
+        "allow_auto_update_stories",
+        "allow_auto_update_profile",
     )
+    list_filter = ("is_private", "is_verified", "allow_auto_update_stories")
     readonly_fields = (
+        "uuid",
         "instagram_id",
         "full_name",
         "biography",
         "profile_picture",
         "profile_picture_url",
+        "is_private",
+        "is_verified",
+        "media_count",
         "follower_count",
         "following_count",
-        "updated_from_api_datetime",
+        "updated_at_from_api",
         "created_at",
         "updated_at",
     )
@@ -39,62 +48,130 @@ class UserAdmin(SimpleHistoryAdmin):
             "User Information",
             {
                 "fields": (
+                    "uuid",
                     "username",
                     "instagram_id",
                     "full_name",
                     "biography",
                     "profile_picture",
-                    # "profile_picture_url",
+                    "profile_picture_url",
                 )
             },
         ),
-        ("Statistics", {"fields": ("follower_count", "following_count")}),
-        ("Settings", {"fields": ("allow_auto_update_stories",)}),
-        ("Timestamps", {"fields": ("updated_from_api_datetime", "created_at", "updated_at")}),
+        (
+            "Account Status",
+            {
+                "fields": (
+                    "is_private",
+                    "is_verified",
+                )
+            },
+        ),
+        (
+            "Statistics",
+            {
+                "fields": (
+                    "media_count",
+                    "follower_count",
+                    "following_count",
+                )
+            },
+        ),
+        (
+            "Settings",
+            {"fields": ("allow_auto_update_stories", "allow_auto_update_profile")},
+        ),
+        (
+            "Timestamps",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                    "updated_at_from_api",
+                )
+            },
+        ),
     )
 
-    def response_change(self, request, obj: User):
-        if "_update-information-from-api" in request.POST:
-            self.handle_update_information_from_api(request, obj)
-            return HttpResponseRedirect(".")
+    actions_detail = [
+        {
+            "title": "API Actions",
+            "items": [
+                "handle_update_information_from_api",
+                "handle_update_stories",
+                "handle_update_followers",
+                "handle_update_following",
+            ],
+        },
+    ]
 
-        if "_update-stories-from-api" in request.POST:
-            self.handle_update_user_stories(request, obj)
-            return HttpResponseRedirect(".")
-
-        if "_update-follower-from-api" in request.POST:
-            self.handle_update_user_follower(request, obj)
-            return HttpResponseRedirect(".")
-
-        if "_update-following-from-api" in request.POST:
-            self.handle_update_user_following(request, obj)
-            return HttpResponseRedirect(".")
-
-        return super().response_change(request, obj)
-
-    def handle_update_information_from_api(self, request, obj: User):
+    @action(description="Update Information")
+    def handle_update_information_from_api(self, request, object_id):
         try:
+            obj = User.objects.get(pk=object_id)
             obj.update_information_from_api()
             self.message_user(request, "Successfully get information from API")
         except Exception as e:
-            self.message_user(request, "Failed to get information from the API", level=messages.ERROR)
+            self.message_user(
+                request,
+                "Failed to get information from the API",
+                level=messages.ERROR,
+            )
             self.message_user(request, e, level=messages.ERROR)
 
-    def handle_update_user_stories(self, request, obj: User):
-        stories, saved_stories = obj.update_user_stories()
-        self.message_user(request, f"{len(saved_stories)}/{len(stories)} stories updated")
+        return redirect(reverse_lazy("admin:instagram_user_change", args=[object_id]))
 
-    def handle_update_user_follower(self, request, obj: User):
-        update_user_follower.delay(obj.instagram_id)
-        self.message_user(request, "User follower updated")
+    @action(description="Get Stories")
+    def handle_update_stories(self, request, object_id):
+        try:
+            obj = User.objects.get(pk=object_id)
+            obj.update_user_stories()
+            self.message_user(request, "Successfully get information from API")
+        except Exception as e:
+            self.message_user(
+                request,
+                "Failed to get information from the API",
+                level=messages.ERROR,
+            )
+            self.message_user(request, e, level=messages.ERROR)
 
-    def handle_update_user_following(self, request, obj: User):
-        update_user_following.delay(obj.instagram_id)
-        self.message_user(request, "User following updated")
+        return redirect(reverse_lazy("admin:instagram_user_change", args=[object_id]))
+
+    @action(description="Update Followers")
+    def handle_update_followers(self, request, object_id):
+        try:
+            obj = User.objects.get(pk=object_id)
+            update_user_follower.delay(obj.instagram_id)
+            self.message_user(request, "Successfully get information from API")
+        except Exception as e:
+            self.message_user(
+                request,
+                "Failed to get information from the API",
+                level=messages.ERROR,
+            )
+            self.message_user(request, e, level=messages.ERROR)
+
+        return redirect(reverse_lazy("admin:instagram_user_change", args=[object_id]))
+
+    @action(description="Update Following")
+    def handle_update_following(self, request, object_id):
+        try:
+            obj = User.objects.get(pk=object_id)
+            update_user_following.delay(obj.instagram_id)
+            self.message_user(request, "Successfully get information from API")
+        except Exception as e:
+            self.message_user(
+                request,
+                "Failed to get information from the API",
+                level=messages.ERROR,
+            )
+            self.message_user(request, e, level=messages.ERROR)
+
+        return redirect(reverse_lazy("admin:instagram_user_change", args=[object_id]))
 
 
 @admin.register(Story)
-class StoryAdmin(admin.ModelAdmin):
+class StoryAdmin(ModelAdmin):
     list_display = ("user", "story_id", "created_at", "story_created_at")
     readonly_fields = ["story_id", "created_at", "story_created_at"]
     search_fields = ("user", "story_id")
@@ -102,7 +179,7 @@ class StoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(UserFollower)
-class UserFollowerAdmin(admin.ModelAdmin):
+class UserFollowerAdmin(ModelAdmin):
     list_display = ["username", "full_name", "user", "is_private_account", "created_at"]
     readonly_fields = [
         "profile_picture",
@@ -113,7 +190,7 @@ class UserFollowerAdmin(admin.ModelAdmin):
 
 
 @admin.register(UserFollowing)
-class UserFollowingAdmin(admin.ModelAdmin):
+class UserFollowingAdmin(ModelAdmin):
     list_display = ["username", "full_name", "user", "is_private_account", "created_at"]
     readonly_fields = [
         "profile_picture",
@@ -123,7 +200,7 @@ class UserFollowingAdmin(admin.ModelAdmin):
 
 
 @admin.register(RoastingLog)
-class RoastingLogAdmin(admin.ModelAdmin):
+class RoastingLogAdmin(ModelAdmin):
     list_display = ("username", "created_at")
     readonly_fields = ("username", "roasting_text", "user_data", "created_at")
     search_fields = ("username",)

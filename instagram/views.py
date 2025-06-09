@@ -1,25 +1,39 @@
 import requests
 from django.conf import settings
 from django.core.cache import cache
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import RoastingLog
+from .models import RoastingLog, Story
 from .models import User as InstagramUser
 from .models import UserFollower as InstagramUserFollower
 from .models import UserFollowing as InstagramUserFollowing
-from .pagination import InstagramUserFollowerPagination, InstagramUserFollowingPagination, InstagramUserPagination
-from .serializers import InstagramUserFollowerSerializer, InstagramUserFollowingSerializer, InstagramUserSerializer
+from .pagination import (
+    InstagramUserFollowerPagination,
+    InstagramUserFollowingPagination,
+    InstagramUserHistoryPagination,
+    InstagramUserListPagination,
+    InstagramUserStoryPagination,
+)
+from .serializers import (
+    InstagramStorySerializer,
+    InstagramUserDetailSerializer,
+    InstagramUserFollowerSerializer,
+    InstagramUserFollowingSerializer,
+    InstagramUserHistorySerializer,
+    InstagramUserListSerializer,
+)
 from .utils import InstagramAPI, RoastingIG
 
 
 class InstagramUserListView(ListAPIView):
-    queryset = InstagramUser.objects.all()
-    serializer_class = InstagramUserSerializer
-    pagination_class = InstagramUserPagination
+    queryset = InstagramUser.objects.prefetch_related("story_set").all()
+    serializer_class = InstagramUserListSerializer
+    pagination_class = InstagramUserListPagination
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["username", "full_name", "biography"]
@@ -32,9 +46,37 @@ class InstagramUserListView(ListAPIView):
     ordering = ["-created_at"]
 
 
+class InstagramStoryListView(ListAPIView):
+    """
+    View for listing all stories across all users, with optional filtering and ordering
+    """
+
+    serializer_class = InstagramStorySerializer
+    pagination_class = InstagramUserStoryPagination
+    filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = {
+        "user__username": ["exact"],
+    }
+    ordering_fields = ["story_created_at", "created_at"]
+    ordering = ["-story_created_at"]
+
+    def get_queryset(self):
+        return Story.objects.select_related("user").all()
+
+
+class InstagramStoryDetailView(RetrieveAPIView):
+    """
+    View for retrieving details of a specific story
+    """
+
+    serializer_class = InstagramStorySerializer
+    queryset = Story.objects.all()
+    lookup_field = "story_id"
+
+
 class InstagramUserDetailView(RetrieveAPIView):
-    serializer_class = InstagramUserSerializer
-    queryset = InstagramUser.objects.all()
+    serializer_class = InstagramUserDetailSerializer
+    queryset = InstagramUser.objects.prefetch_related("story_set").all()
     lookup_field = "uuid"
 
 
@@ -70,11 +112,57 @@ class InstagramUserFollowingListView(ListAPIView):
         return queryset
 
 
+class InstagramUserHistoryListView(ListAPIView):
+    serializer_class = InstagramUserHistorySerializer
+    pagination_class = InstagramUserHistoryPagination
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = [
+        "history_date",
+    ]
+    ordering = ["-history_date"]
+
+    def get_queryset(self):
+        uuid = self.kwargs.get("uuid", None)
+
+        try:
+            user = InstagramUser.objects.get(uuid=uuid)
+            queryset = user.history.all()
+
+            if not queryset.exists():
+                raise NotFound("No history records found for this user")
+
+            return queryset
+        except InstagramUser.DoesNotExist:
+            raise NotFound("Instagram user not found")
+
+
+class InstagramUserStoryListView(ListAPIView):
+    serializer_class = InstagramStorySerializer
+    pagination_class = InstagramUserStoryPagination
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["story_created_at", "created_at"]
+    ordering = ["-story_created_at"]
+
+    def get_queryset(self):
+        uuid = self.kwargs.get("uuid", None)
+        try:
+            user = InstagramUser.objects.get(uuid=uuid)
+            queryset = Story.objects.select_related("user").filter(user=user)
+            return queryset
+        except InstagramUser.DoesNotExist:
+            raise NotFound("Instagram user not found")
+        except Exception as e:
+            raise NotFound(f"An error occurred while fetching stories: {e}")
+
+
 class RoastingProfileView(APIView):
     def get(self, request, username: str):
         captcha = request.query_params.get("captcha")
         if not self.recaptcha_validation(captcha):
-            return Response({"error": "Hmm, kayaknya captchanya salah deh... coba cek lagi deh~"}, status=400)
+            return Response(
+                {"error": "Hmm, kayaknya captchanya salah deh... coba cek lagi deh~"},
+                status=400,
+            )
 
         try:
             instagram_api = InstagramAPI()

@@ -7,6 +7,8 @@ from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.authtoken.views import obtain_auth_token
 
+import config.settings.celery_beat_admin  # noqa: F401
+
 urlpatterns = [
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
     path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
@@ -20,8 +22,12 @@ urlpatterns = [
     path("discord/", include("discord.urls", namespace="discord")),
     path("tiktok/", include("tiktok.urls", namespace="tiktok")),
     path("waifu/", include("waifu.urls", namespace="waifu")),
+    path("nz-store/", include("nz_store.urls", namespace="nz-store")),
     path("health-check/", include("health_check.urls", namespace="health-check")),
-    path("twitter-downloader/", include("twitter_downloader.urls", namespace="twitter-downloader")),
+    path(
+        "twitter-downloader/",
+        include("twitter_downloader.urls", namespace="twitter-downloader"),
+    ),
     path("prometheus/", include("django_prometheus.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

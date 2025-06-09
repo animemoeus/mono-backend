@@ -1,8 +1,0 @@
-# TiDB
-# ------------------------------------------------------------------------------
-TIDB_HOST=gateway01.ap-southeast-1.prod.aws.tidbcloud.com
-TIDB_PORT=4000
-TIDB_DB=test_mono_backend
-TIDB_USER=arter
-TIDB_PASSWORD=tendean
-TIDB_SSL_CA=compose/local/tidb/testing.pem

@@ -73,6 +73,9 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
+    "unfold",
+    "unfold.contrib.filters",
+    "unfold.contrib.simple_history",
     "django.contrib.admin",
     "django.forms",
     "import_export",
@@ -106,6 +109,7 @@ LOCAL_APPS = [
     # Your stuff: custom apps go here
     "discord",
     "instagram",
+    "nz_store",
     "tiktok",
     "waifu",
     "twitter_downloader",
@@ -391,10 +395,12 @@ WAIFU_TELEGRAM_BOT_TOKEN = env.str("WAIFU_TELEGRAM_BOT_TOKEN", default="")
 WAIFU_DISCORD_REFRESH_URL_BOT_TOKEN = env.str("WAIFU_DISCORD_REFRESH_URL_BOT_TOKEN", default="")
 
 # twitter_video_downloader
-TWITTER_DOWNLOADER_API_URL = env.str("TWITTER_DOWNLOADER_API_URL", default="")
 TWITTER_DOWNLOADER_KEY = env.str("TWITTER_DOWNLOADER_KEY", default="")
 TWITTER_DOWNLOADER_HOST = env.str("TWITTER_DOWNLOADER_HOST", default="")
 TWITTER_DOWNLOADER_COOKIE = env.str("TWITTER_DOWNLOADER_COOKIE", default="")
+
+TWITTER_DOWNLOADER_API_URL = env.str("TWITTER_DOWNLOADER_API_URL", default="")
+TWITTER_DOWNLOADER_API_KEY = env.str("TWITTER_DOWNLOADER_API_KEY", default="")
 TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN = env.str("TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN", default="")
 
 # discord

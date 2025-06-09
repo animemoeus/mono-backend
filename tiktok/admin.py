@@ -1,11 +1,12 @@
 from django.contrib import admin, messages
 from django.http import HttpResponseRedirect
+from unfold.admin import ModelAdmin
 
 from .models import SavedTiktokVideo, TiktokMonitor, User
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(ModelAdmin):
     change_form_template = "tiktok/admin_edit_form.html"
     readonly_fields = (
         "nickname",
@@ -52,18 +53,22 @@ class UserAdmin(admin.ModelAdmin):
             self.message_user(request, "Successfully updated user data from API.")
         except Exception as e:
             pass
-            self.message_user(request, "Failed to update user data from the API.", level=messages.ERROR)
+            self.message_user(
+                request,
+                "Failed to update user data from the API.",
+                level=messages.ERROR,
+            )
             self.message_user(request, e, level=messages.ERROR)
 
 
 @admin.register(TiktokMonitor)
-class TiktokMonitorAdmin(admin.ModelAdmin):
+class TiktokMonitorAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
     list_display = ["username", "created_at", "updated_at", "enabled"]
     search_fields = ("username",)
 
 
 @admin.register(SavedTiktokVideo)
-class SavedTiktokVideoAdmin(admin.ModelAdmin):
+class SavedTiktokVideoAdmin(ModelAdmin):
     def has_add_permission(self, request, obj=None):
         return False
