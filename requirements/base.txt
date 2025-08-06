@@ -54,3 +54,6 @@ saiyaku==2023.12.11 #  https://github.com/animemoeus/saiyaku
 openai==1.68.2 #  https://pypi.org/project/openai/
 
 django-unfold==0.59.0  # https://pypi.org/project/django-unfold/
+
+# PostgreSQL Vector Extension
+pgvector==0.4.1  # https://pypi.org/project/pgvector/
