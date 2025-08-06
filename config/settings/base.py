@@ -102,6 +102,7 @@ THIRD_PARTY_APPS = [
     "health_check.contrib.celery",
     "health_check.contrib.celery_ping",
     "solo",
+    "django_extensions",  # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
 ]
 
 LOCAL_APPS = [
