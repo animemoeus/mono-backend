@@ -41,7 +41,7 @@ class MovieAdmin(ModelAdmin):
         "release_date",
         "original_language",
     )
-    ordering = ("-release_date",)
+    ordering = ("-id",)
 
     fieldsets = (
         (
@@ -50,6 +50,7 @@ class MovieAdmin(ModelAdmin):
                 "fields": (
                     "title",
                     "description",
+                    "embedding",
                     "release_date",
                     "rating",
                     "original_language",
