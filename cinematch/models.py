@@ -1,4 +1,5 @@
 from django.db import models
+from pgvector.django import VectorField
 
 
 class Genre(models.Model):
@@ -36,6 +37,8 @@ class Movie(models.Model):
     genre = models.ManyToManyField(Genre, related_name="movies")
     talent = models.ManyToManyField(Talent, related_name="movies")
     original_language = models.CharField(max_length=255, blank=True, null=True)
+
+    embedding = VectorField(dimensions=1536, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
