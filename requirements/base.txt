@@ -57,3 +57,6 @@ django-unfold==0.59.0  # https://pypi.org/project/django-unfold/
 
 # PostgreSQL Vector Extension
 pgvector==0.4.1  # https://pypi.org/project/pgvector/
+
+# Django Extensions (needed for runscript command)
+django-extensions==3.2.3  # https://github.com/django-extensions/django-extensions
