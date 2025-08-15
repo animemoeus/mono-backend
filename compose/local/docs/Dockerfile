@@ -1,16 +1,16 @@
 # define an alias for the specific python version used in this file.
-FROM python:3.11.13-slim-bullseye as python
+FROM docker.io/python:3.12.11-slim-bookworm AS python
 
 
 # Python build stage
-FROM python as python-build-stage
+FROM python AS python-build-stage
 
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONDONTWRITEBYTECODE=1
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
-  # psycopg2 dependencies
+  # psycopg dependencies
   libpq-dev \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
@@ -20,22 +20,22 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 COPY ./requirements /requirements
 
 # create python dependency wheels
-RUN pip wheel --no-cache-dir --wheel-dir /usr/src/app/wheels  \
+RUN pip wheel --no-cache-dir --wheel-dir /usr/src/app/wheels \
   -r /requirements/local.txt -r /requirements/production.txt \
   && rm -rf /requirements
 
 
 # Python 'run' stage
-FROM python as python-run-stage
+FROM python AS python-run-stage
 
 ARG BUILD_ENVIRONMENT
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # To run the Makefile
   make \
-  # psycopg2 dependencies
+  # psycopg dependencies
   libpq-dev \
   # Translations dependencies
   gettext \

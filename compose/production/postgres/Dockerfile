@@ -1,8 +1,4 @@
-FROM postgres:16
-
-# Install pgvector
-RUN apt-get update && apt-get install -y postgresql-16-pgvector \
-    && rm -rf /var/lib/apt/lists/*
+FROM docker.io/postgres:17
 
 COPY ./compose/production/postgres/maintenance /usr/local/bin/maintenance
 RUN chmod +x /usr/local/bin/maintenance/*

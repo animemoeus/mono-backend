@@ -1,6 +1,6 @@
 
 # define an alias for the specific python version used in this file.
-FROM python:3.11.13-slim-bullseye AS python
+FROM docker.io/python:3.12.11-slim-bookworm AS python
 
 # Python build stage
 FROM python AS python-build-stage
@@ -11,14 +11,15 @@ ARG BUILD_ENVIRONMENT=production
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
-  # psycopg2 dependencies
+  # psycopg dependencies
   libpq-dev
+
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
 
 # Create Python Dependency and Sub-Dependency Wheels.
-RUN pip wheel --wheel-dir /usr/src/app/wheels  \
+RUN pip wheel --wheel-dir /usr/src/app/wheels \
   -r ${BUILD_ENVIRONMENT}.txt
 
 
@@ -28,28 +29,31 @@ FROM python AS python-run-stage
 ARG BUILD_ENVIRONMENT=production
 ARG APP_HOME=/app
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV BUILD_ENV ${BUILD_ENVIRONMENT}
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV BUILD_ENV=${BUILD_ENVIRONMENT}
 
 WORKDIR ${APP_HOME}
 
 RUN addgroup --system django \
   && adduser --system --ingroup django django
 
+
 # Install required system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
-  # psycopg2 dependencies
+  # psycopg dependencies
   libpq-dev \
   # Translations dependencies
   gettext \
+  # entrypoint
+  wait-for-it \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
 
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
-COPY --from=python-build-stage /usr/src/app/wheels  /wheels/
+COPY --from=python-build-stage /usr/src/app/wheels /wheels/
 
 # use wheels to install python dependencies
 RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
@@ -78,16 +82,18 @@ COPY --chown=django:django ./compose/production/django/celery/flower/start /star
 RUN sed -i 's/\r$//g' /start-flower
 RUN chmod +x /start-flower
 
+
 # copy application code to WORKDIR
 COPY --chown=django:django . ${APP_HOME}
+# explicitly create the media folder before changing ownership below
+RUN mkdir -p ${APP_HOME}/core/media
 
 # make django owner of the WORKDIR directory as well.
-RUN chown django:django ${APP_HOME}
+RUN chown -R django:django ${APP_HOME}
 
 USER django
 
 RUN DATABASE_URL="" \
-  CELERY_BROKER_URL="" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
   python manage.py compilemessages
 

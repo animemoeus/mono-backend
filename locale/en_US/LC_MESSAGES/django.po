@@ -1,6 +1,6 @@
-# Translations for the backend project
-# Copyright (C) 2023 Arter Tendean
-# Arter Tendean <arter@animemoe.us>, 2023.
+# Translations for the AnimeMoeUs MonoBackend project
+# Copyright (C) 2025 Arter Tendean
+# Arter Tendean <arter.tendean.07@gmail.com>, 2025.
 #
 #, fuzzy
 msgid ""
