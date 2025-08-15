@@ -1,9 +1,9 @@
 # Translations
 
-Start by configuring the `LANGUAGES` settings in `base.py`, by uncommenting languages you are willing to support. Then, translations strings will be placed in this folder when running:
+Start by configuring the `LANGUAGES` settings in `base.py`, by uncommenting languages you are willing to support. Then, translation strings will be placed in this folder when running:
 
 ```bash
-docker compose -f local.yml run --rm django python manage.py makemessages -all --no-location
+docker compose -f docker-compose.local.yml run --rm django python manage.py makemessages --all --no-location
 ```
 
 This should generate `django.po` (stands for Portable Object) files under each locale `<locale name>/LC_MESSAGES/django.po`. Each translatable string in the codebase is collected with its `msgid` and need to be translated as `msgstr`, for example:
@@ -16,10 +16,10 @@ msgstr "utilisateurs"
 Once all translations are done, they need to be compiled into `.mo` files (stands for Machine Object), which are the actual binary files used by the application:
 
 ```bash
-docker compose -f local.yml run --rm django python manage.py compilemessages
+docker compose -f docker-compose.local.yml run --rm django python manage.py compilemessages
 ```
 
-Note that the `.po` files are NOT used by the application directly, so if the `.mo` files are out of dates, the content won't appear as translated even if the `.po` files are up-to-date.
+Note that the `.po` files are NOT used by the application directly, so if the `.mo` files are out of date, the content won't appear as translated even if the `.po` files are up-to-date.
 
 ## Production
 

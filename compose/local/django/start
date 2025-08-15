@@ -6,4 +6,4 @@ set -o nounset
 
 
 python manage.py migrate
-exec python manage.py runserver 0.0.0.0:8000
+exec uvicorn config.asgi:application --host 0.0.0.0 --reload --reload-include '*.html'

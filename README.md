@@ -1,43 +1,15 @@
-# AnimeMoeUs Backend
+# AnimeMoeUs MonoBackend
+
+Behold My Awesome Project!
 
 [![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
-[![codecov](https://codecov.io/gh/animemoeus/mono-backend/branch/master/graph/badge.svg?token=8UHQY5ZZSE)](https://codecov.io/gh/animemoeus/mono-backend)
-[![Black code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-[![Deployment](https://github.com/animemoeus/backend/actions/workflows/deployment.yml/badge.svg)](https://github.com/animemoeus/backend/actions/workflows/deployment.yml)
-[![Uptime Robot status](https://img.shields.io/uptimerobot/status/m788586431-1256ae08e9b37721503fdef8)](https://stats.uptimerobot.com/GKy6liBGw7/788586431)
-[![Uptime Robot ratio (30 days)](https://img.shields.io/uptimerobot/ratio/m788586431-1256ae08e9b37721503fdef8)](https://stats.uptimerobot.com/GKy6liBGw7/788586431)
-[![GitHub Release](https://img.shields.io/github/v/release/animemoeus/backend)](https://github.com/animemoeus/backend/releases)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
----
-
-- [📈 Uptime Robot](https://stats.uptimerobot.com/GKy6liBGw7)
-- [🧑‍⚕️ Health Check](https://api.animemoe.us/health-check/)
-- [👀 Admin Panel](https://api.animemoe.us/admin/)
-- [🌸 Django Flower](https://flower.animemoe.us/)
-- [📊 Docker Logs](https://dozzle.unklab.id/)
-
----
-
-## Discord
-
-### Refresh Expired URL
-
-[![Uptime Robot status](https://img.shields.io/uptimerobot/status/m797080158-bcfd7f8a26110828783eff90)](https://stats.uptimerobot.com/GKy6liBGw7/797080158) [![Uptime Robot ratio (30 days)](https://img.shields.io/uptimerobot/ratio/m797080158-bcfd7f8a26110828783eff90)](https://stats.uptimerobot.com/GKy6liBGw7/797080158)
-
-#### https://docs.api.animemoe.us/discord/refresh-url
-
----
-
-## Twitter Downloader
-
-### Docs: https://docs.api.animemoe.us/twitter-downloader/twitter-video-downloader-bot
-
-
----
+License: MIT
 
 ## Settings
 
-Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings.html).
+Moved to [settings](https://cookiecutter-django.readthedocs.io/en/latest/1-getting-started/settings.html).
 
 ## Basic Commands
 
@@ -55,7 +27,7 @@ For convenience, you can keep your normal user logged in on Chrome and your supe
 
 Running type checks with mypy:
 
-    $ mypy backend
+    $ mypy core
 
 ### Test coverage
 
@@ -71,7 +43,7 @@ To run the tests, check your test coverage, and generate an HTML coverage report
 
 ### Live reloading and Sass CSS compilation
 
-Moved to [Live reloading and SASS compilation](https://cookiecutter-django.readthedocs.io/en/latest/developing-locally.html#sass-compilation-live-reloading).
+Moved to [Live reloading and SASS compilation](https://cookiecutter-django.readthedocs.io/en/latest/2-local-development/developing-locally.html#using-webpack-or-gulp).
 
 ### Celery
 
@@ -80,7 +52,7 @@ This app comes with Celery.
 To run a celery worker:
 
 ```bash
-cd backend
+cd core
 celery -A config.celery_app worker -l info
 ```
 
@@ -89,16 +61,25 @@ Please note: For Celery's import magic to work, it is important _where_ the cele
 To run [periodic tasks](https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html), you'll need to start the celery beat scheduler service. You can start it as a standalone process:
 
 ```bash
-cd backend
+cd core
 celery -A config.celery_app beat
 ```
 
 or you can embed the beat service inside a worker with the `-B` option (not recommended for production use):
 
 ```bash
-cd backend
+cd core
 celery -A config.celery_app worker -B -l info
 ```
+
+### Email Server
+
+In development, it is often nice to be able to see emails that are being sent from your application. For that reason local SMTP server [Mailpit](https://github.com/axllent/mailpit) with a web interface is available as docker container.
+
+Container mailpit will start automatically when you will run all docker containers.
+Please check [cookiecutter-django Docker documentation](https://cookiecutter-django.readthedocs.io/en/latest/2-local-development/developing-locally-docker.html) for more details how to start all containers.
+
+With Mailpit running, to view messages that are sent by your application, open your browser and go to `http://127.0.0.1:8025`
 
 ### Sentry
 
@@ -113,4 +94,4 @@ The following details how to deploy this application.
 
 ### Docker
 
-See detailed [cookiecutter-django Docker documentation](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html).
+See detailed [cookiecutter-django Docker documentation](https://cookiecutter-django.readthedocs.io/en/latest/3-deployment/deployment-with-docker.html).

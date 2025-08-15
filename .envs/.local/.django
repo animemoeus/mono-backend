@@ -2,32 +2,13 @@
 # ------------------------------------------------------------------------------
 USE_DOCKER=yes
 IPYTHONDIR=/app/.ipython
-
 # Redis
 # ------------------------------------------------------------------------------
 REDIS_URL=redis://redis:6379/0
+
 # Celery
 # ------------------------------------------------------------------------------
 
 # Flower
-CELERY_FLOWER_USER=debug
-CELERY_FLOWER_PASSWORD=debug
-
-# Tiktok
-# ------------------------------------------------------------------------------
-TIKTOK_MONITOR_TELEGRAM_BOT_SECRET="1421107253:AAEKZzGV5izwIINbURy5r-eH-Vk2e_eoOeY"
-TIKTOK_MONITOR_TELEGRAM_PRIVATE_CHANNEL_ID=-1002024746398
-
-# Waifu
-# ------------------------------------------------------------------------------
-PIXIVPY_3_REFRESH_TOKEN=pDe_QoJXV4jyodMLil1sgRB63Z-IVCk5jTG3HW1nCt4
-WAIFU_TELEGRAM_BOT_TOKEN="1421107253:AAEKZzGV5izwIINbURy5r-eH-Vk2e_eoOeY"
-
-# twitter_downloader
-TWITTER_DOWNLOADER_API_URL="https://api"
-TWITTER_DOWNLOADER_API_KEY="1bYSG3tO+VQzsywO/"
-TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN="1421107253:AAEKZzGV5izwIINbURy5r-eH-Vk2e_eoOeY"
-
-# discord
-DISCORD_REFRESH_URL=asd
-DISCORD_REFRESH_URL_BOT_TOKEN=asd
+CELERY_FLOWER_USER=OXXpLpyfCBOBgxPauoGwGAykDQvqXIrP
+CELERY_FLOWER_PASSWORD=NOktGWRiueDttag1MhInKKUcD6wKPGe4ZtbeuIQn9WDkUVAdcO4P5gDtXt9w86ZB

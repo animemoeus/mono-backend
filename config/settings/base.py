@@ -1,14 +1,14 @@
-"""
-Base settings to build other settings files upon.
-"""
+# ruff: noqa: ERA001, E501
+"""Base settings to build other settings files upon."""
 
+import ssl
 from pathlib import Path
 
 import environ
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
-# backend/
-APPS_DIR = BASE_DIR / "backend"
+# core/
+APPS_DIR = BASE_DIR / "core"
 env = environ.Env()
 
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
@@ -24,7 +24,7 @@ DEBUG = env.bool("DJANGO_DEBUG", False)
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # though not all of them may be available with every OS.
 # In Windows, this must be set to your system time zone.
-TIME_ZONE = "Asia/Jakarta"
+TIME_ZONE = "UTC"
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
 LANGUAGE_CODE = "en-us"
 # https://docs.djangoproject.com/en/dev/ref/settings/#languages
@@ -48,13 +48,8 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
-
-DATABASES["default"]["ENGINE"] = "django_prometheus.db.backends.postgresql"
-
-
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -73,48 +68,26 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
-    "unfold",
-    "unfold.contrib.filters",
-    "unfold.contrib.simple_history",
     "django.contrib.admin",
     "django.forms",
-    "import_export",
-    "django_hosts",
-    "simple_history",  # https://github.com/jazzband/django-simple-history
-    "django_prometheus",
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "allauth",
     "allauth.account",
+    "allauth.mfa",
     "allauth.socialaccount",
     "django_celery_beat",
     "rest_framework",
-    "django_filters",
     "rest_framework.authtoken",
     "corsheaders",
     "drf_spectacular",
-    "health_check",
-    "health_check.db",
-    "health_check.cache",
-    "health_check.contrib.migrations",
-    "health_check.contrib.celery",
-    "health_check.contrib.celery_ping",
-    "solo",
-    "django_extensions",  # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
 ]
 
 LOCAL_APPS = [
-    "backend.users",
+    "core.users",
     # Your stuff: custom apps go here
-    "cinematch",
-    "discord",
-    "instagram",
-    "nz_store",
-    "tiktok",
-    "waifu",
-    "twitter_downloader",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -122,7 +95,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIGRATIONS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
-MIGRATION_MODULES = {"sites": "backend.contrib.sites.migrations"}
+MIGRATION_MODULES = {"sites": "core.contrib.sites.migrations"}
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
@@ -150,7 +123,9 @@ PASSWORD_HASHERS = [
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -160,8 +135,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
-    "django_prometheus.middleware.PrometheusBeforeMiddleware",
-    "django_hosts.middleware.HostsRequestMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -173,14 +146,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
-    "django_hosts.middleware.HostsResponseMiddleware",
-    "simple_history.middleware.HistoryRequestMiddleware",  # https://github.com/jazzband/django-simple-history
-    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
-
-# django-hosts
-ROOT_HOSTCONF = "config.hosts"
-DEFAULT_HOST = "www"
 
 # STATIC
 # ------------------------------------------------------------------------------
@@ -225,10 +191,10 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "backend.users.context_processors.allauth_settings",
+                "core.users.context_processors.allauth_settings",
             ],
         },
-    }
+    },
 ]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#form-renderer
@@ -267,18 +233,12 @@ EMAIL_TIMEOUT = 5
 # Django Admin URL.
 ADMIN_URL = "admin/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
-ADMINS = [("""Arter Tendean""", "arter@animemoe.us")]
+ADMINS = [("""Arter Tendean""", "arter.tendean.07@gmail.com")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
 # https://cookiecutter-django.readthedocs.io/en/latest/settings.html#other-environment-settings
 # Force the `admin` sign in process to go through the `django-allauth` workflow
 DJANGO_ADMIN_FORCE_ALLAUTH = env.bool("DJANGO_ADMIN_FORCE_ALLAUTH", default=False)
-
-
-# Health Check Configuration
-HEALTH_CHECK = {
-    "CELERY_TIMEOUT": 7,
-}
 
 # LOGGING
 # ------------------------------------------------------------------------------
@@ -298,10 +258,13 @@ LOGGING = {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
             "formatter": "verbose",
-        }
+        },
     },
     "root": {"level": "INFO", "handlers": ["console"]},
 }
+
+REDIS_URL = env("REDIS_URL", default="redis://redis:6379/0")
+REDIS_SSL = REDIS_URL.startswith("rediss://")
 
 # Celery
 # ------------------------------------------------------------------------------
@@ -309,9 +272,13 @@ if USE_TZ:
     # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-timezone
     CELERY_TIMEZONE = TIME_ZONE
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-broker_url
-CELERY_BROKER_URL = env("CELERY_BROKER_URL")
+CELERY_BROKER_URL = REDIS_URL
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#redis-backend-use-ssl
+CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE} if REDIS_SSL else None
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_backend
-CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#redis-backend-use-ssl
+CELERY_REDIS_BACKEND_USE_SSL = CELERY_BROKER_USE_SSL
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-extended
 CELERY_RESULT_EXTENDED = True
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-backend-always-retry
@@ -337,23 +304,25 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_WORKER_SEND_TASK_EVENTS = True
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std-setting-task_send_sent_event
 CELERY_TASK_SEND_SENT_EVENT = True
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#worker-hijack-root-logger
+CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 # django-allauth
 # ------------------------------------------------------------------------------
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_AUTHENTICATION_METHOD = "username"
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_REQUIRED = True
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
+# https://docs.allauth.org/en/latest/account/configuration.html
+ACCOUNT_LOGIN_METHODS = {"username"}
+# https://docs.allauth.org/en/latest/account/configuration.html
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
+# https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_ADAPTER = "backend.users.adapters.AccountAdapter"
-# https://django-allauth.readthedocs.io/en/latest/forms.html
-ACCOUNT_FORMS = {"signup": "backend.users.forms.UserSignupForm"}
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-SOCIALACCOUNT_ADAPTER = "backend.users.adapters.SocialAccountAdapter"
-# https://django-allauth.readthedocs.io/en/latest/forms.html
-SOCIALACCOUNT_FORMS = {"signup": "backend.users.forms.UserSocialSignupForm"}
+# https://docs.allauth.org/en/latest/account/configuration.html
+ACCOUNT_ADAPTER = "core.users.adapters.AccountAdapter"
+# https://docs.allauth.org/en/latest/account/forms.html
+ACCOUNT_FORMS = {"signup": "core.users.forms.UserSignupForm"}
+# https://docs.allauth.org/en/latest/socialaccount/configuration.html
+SOCIALACCOUNT_ADAPTER = "core.users.adapters.SocialAccountAdapter"
+# https://docs.allauth.org/en/latest/socialaccount/configuration.html
+SOCIALACCOUNT_FORMS = {"signup": "core.users.forms.UserSocialSignupForm"}
 
 # django-rest-framework
 # -------------------------------------------------------------------------------
@@ -363,62 +332,21 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ),
-    # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
-# CORS_URLS_REGEX = r"^/api/.*$"
-CORS_ALLOW_ALL_ORIGINS = True  # Update this to specific domains later
-# CORS_ALLOW_CREDENTIALS = True
+CORS_URLS_REGEX = r"^/api/.*$"
 
-# CORS_ALLOW_ALL_ORIGINS = True
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
 # See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
 SPECTACULAR_SETTINGS = {
-    "TITLE": "backend API",
-    "DESCRIPTION": "Documentation of API endpoints of backend",
+    "TITLE": "AnimeMoeUs MonoBackend API",
+    "DESCRIPTION": "Documentation of API endpoints of AnimeMoeUs MonoBackend",
     "VERSION": "1.0.0",
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
+    "SCHEMA_PATH_PREFIX": "/api/",
 }
 # Your stuff...
 # ------------------------------------------------------------------------------
-DISCORD_FILE_SIZE_LIMIT = env.int("DISCORD_FILE_SIZE_LIMIT", default=25)
-DISCORD_STORAGE_UPLOAD_FROM_URL_WEBHOOK = env.str("DISCORD_STORAGE_UPLOAD_FROM_URL_WEBHOOK", default="")
-DISCORD_STORAGE_UPLOAD_FROM_FILE_WEBHOOK = env.str("DISCORD_STORAGE_UPLOAD_FROM_FILE_WEBHOOK", default="")
-
-# Tiktok
-TIKTOK_MONITOR_TELEGRAM_BOT_SECRET = env.str("TIKTOK_MONITOR_TELEGRAM_BOT_SECRET", default="")
-TIKTOK_MONITOR_TELEGRAM_PRIVATE_CHANNEL_ID = env.str("TIKTOK_MONITOR_TELEGRAM_PRIVATE_CHANNEL_ID", default="")
-
-# Waifu
-PIXIVPY_3_REFRESH_TOKEN = env.str("PIXIVPY_3_REFRESH_TOKEN", default="")
-WAIFU_TELEGRAM_BOT_TOKEN = env.str("WAIFU_TELEGRAM_BOT_TOKEN", default="")
-WAIFU_DISCORD_REFRESH_URL_BOT_TOKEN = env.str("WAIFU_DISCORD_REFRESH_URL_BOT_TOKEN", default="")
-
-# twitter_video_downloader
-TWITTER_DOWNLOADER_KEY = env.str("TWITTER_DOWNLOADER_KEY", default="")
-TWITTER_DOWNLOADER_HOST = env.str("TWITTER_DOWNLOADER_HOST", default="")
-TWITTER_DOWNLOADER_COOKIE = env.str("TWITTER_DOWNLOADER_COOKIE", default="")
-
-TWITTER_DOWNLOADER_API_URL = env.str("TWITTER_DOWNLOADER_API_URL", default="")
-TWITTER_DOWNLOADER_API_KEY = env.str("TWITTER_DOWNLOADER_API_KEY", default="")
-TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN = env.str("TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN", default="")
-
-# discord
-DISCORD_REFRESH_URL = env.str("DISCORD_REFRESH_URL", default="")
-DISCORD_REFRESH_URL_BOT_TOKEN = env.str("DISCORD_REFRESH_URL_BOT_TOKEN", default="")
-
-# instagram
-INSTAGRAM_API_URL = env.str("INSTAGRAM_API_URL", default="")
-INSTAGRAM_API_KEY = env.str("INSTAGRAM_API_KEY", default="")
-
-# tikhub
-TIKHUB_API_URL = env.str("TIKHUB_API_URL", default="")
-TIKHUB_API_KEY = env.str("TIKHUB_API_KEY", default="")
-
-# OpenAI
-OPENAI_API_KEY = env.str("OPENAI_API_KEY", default="")
-
-# Google Captcha
-GOOGLE_CAPTCHA_SECRET_KEY = env.str("GOOGLE_CAPTCHA_SECRET_KEY", default="")

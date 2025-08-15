@@ -7,12 +7,12 @@ env:
 
 on:
   pull_request:
-    branches: ["master", "main"]
-    paths-ignore: ["docs/**"]
+    branches: ['main']
+    paths-ignore: ['docs/**']
 
   push:
-    branches: ["master", "main"]
-    paths-ignore: ["docs/**"]
+    branches: ['main']
+    paths-ignore: ['docs/**']
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
@@ -23,64 +23,58 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version-file: '.python-version'
       # Consider using pre-commit.ci for open source project
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1
 
-  # With no caching at all the entire ci process takes 4m 30s to complete!
+  # With no caching at all the entire ci process takes 3m to complete!
   pytest:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Update Environment Variable
-        run: |
-          echo "DISCORD_REFRESH_URL=${{ secrets.DISCORD_REFRESH_URL }}" >> .envs/.local/.django
-          echo "DISCORD_REFRESH_URL_BOT_TOKEN=${{ secrets.DISCORD_REFRESH_URL_BOT_TOKEN }}" >> .envs/.local/.django
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-          echo "INSTAGRAM_API_URL=${{ secrets.INSTAGRAM_API_URL }}" >> .envs/.local/.django
-          echo "INSTAGRAM_API_KEY=${{ secrets.INSTAGRAM_API_KEY }}" >> .envs/.local/.django
-          cat .envs/.local/.django
+      - name: Build and cache local backend
+        uses: docker/bake-action@v6
+        with:
+          push: false
+          load: true
+          files: docker-compose.local.yml
+          targets: django
+          set: |
+            django.cache-from=type=gha,scope=django-cached-tests
+            django.cache-to=type=gha,scope=django-cached-tests,mode=max
+            postgres.cache-from=type=gha,scope=postgres-cached-tests
+            postgres.cache-to=type=gha,scope=postgres-cached-tests,mode=max
 
-          echo "TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN=${{ secrets.TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN }}" >> .envs/.local/.django
-          echo "TWITTER_DOWNLOADER_API_URL=${{ secrets.TWITTER_DOWNLOADER_API_URL }}" >> .envs/.local/.django
-          echo "TWITTER_DOWNLOADER_API_KEY=${{ secrets.TWITTER_DOWNLOADER_API_KEY }}" >> .envs/.local/.django
-          echo "TWITTER_DOWNLOADER_KEY=${{ secrets.TWITTER_DOWNLOADER_KEY }}" >> .envs/.local/.django
-          echo "TWITTER_DOWNLOADER_HOST=${{ secrets.TWITTER_DOWNLOADER_HOST }}" >> .envs/.local/.django
-          echo "TWITTER_DOWNLOADER_COOKIE=${{ secrets.TWITTER_DOWNLOADER_COOKIE }}" >> .envs/.local/.django
-          cat .envs/.local/.django
+      - name: Build and cache docs
+        uses: docker/bake-action@v6
+        with:
+          push: false
+          load: true
+          files: docker-compose.docs.yml
+          set: |
+            docs.cache-from=type=gha,scope=cached-docs
+            docs.cache-to=type=gha,scope=cached-docs,mode=max
 
-          echo "WAIFU_DISCORD_REFRESH_URL_BOT_TOKEN=${{ secrets.WAIFU_DISCORD_REFRESH_URL_BOT_TOKEN }}" >> .envs/.local/.django
-          cat .envs/.local/.django
-
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .envs/.local/.django
-          cat .envs/.local/.django
-
-          echo "TIKHUB_API_URL=${{ secrets.TIKHUB_API_URL }}" >> .envs/.local/.django
-          echo "TIKHUB_API_KEY=${{ secrets.TIKHUB_API_KEY }}" >> .envs/.local/.django
-          cat .envs/.local/.django
-
-      - name: Build the Stack
-        run: docker compose -f local.yml build
+      - name: Check DB Migrations
+        run: docker compose -f docker-compose.local.yml run --rm django python manage.py makemigrations --check
 
       - name: Run DB Migrations
-        run: docker compose -f local.yml run --rm django python manage.py migrate
+        run: docker compose -f docker-compose.local.yml run --rm django python manage.py migrate
 
-      - name: Run Django Tests & Coverage
-        run: docker compose -f local.yml run django pytest --cov --cov-report=xml --cov-fail-under=85
-
-      - name: Upload results to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Run Django Tests
+        run: docker compose -f docker-compose.local.yml run django pytest
 
       - name: Tear down the Stack
-        run: docker compose -f local.yml down
+        run: docker compose -f docker-compose.local.yml down
