@@ -30,12 +30,12 @@ urlpatterns = [
         name="instagram-user-story-list",
     ),
     path(
-        "users/<str:username>/follower/",
+        "users/<str:uuid>/follower/",
         InstagramUserFollowerListView.as_view(),
         name="instagram-user-follower-list",
     ),
     path(
-        "users/<str:username>/following/",
+        "users/<str:uuid>/following/",
         InstagramUserFollowingListView.as_view(),
         name="instagram-user-following-list",
     ),
