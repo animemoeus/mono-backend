@@ -88,12 +88,16 @@ class InstagramUserFollowerListView(ListAPIView):
     ordering = ["username"]
 
     def get_queryset(self):
-        username = self.kwargs.get("username", None)
-        queryset = InstagramUserFollower.objects.filter(user__username=username)
+        uuid = self.kwargs.get("uuid", None)
+        try:
+            user = InstagramUser.objects.get(uuid=uuid)
+            queryset = InstagramUserFollower.objects.filter(user=user)
 
-        if not queryset:
-            raise NotFound
-        return queryset
+            if not queryset.exists():
+                raise NotFound("No followers found for this user")
+            return queryset
+        except InstagramUser.DoesNotExist:
+            raise NotFound("Instagram user not found")
 
 
 class InstagramUserFollowingListView(ListAPIView):
@@ -104,12 +108,16 @@ class InstagramUserFollowingListView(ListAPIView):
     ordering = ["-username"]
 
     def get_queryset(self):
-        username = self.kwargs.get("username", None)
-        queryset = InstagramUserFollowing.objects.filter(user__username=username)
+        uuid = self.kwargs.get("uuid", None)
+        try:
+            user = InstagramUser.objects.get(uuid=uuid)
+            queryset = InstagramUserFollowing.objects.filter(user=user)
 
-        if not queryset:
-            raise NotFound
-        return queryset
+            if not queryset.exists():
+                raise NotFound("No following found for this user")
+            return queryset
+        except InstagramUser.DoesNotExist:
+            raise NotFound("Instagram user not found")
 
 
 class InstagramUserHistoryListView(ListAPIView):
