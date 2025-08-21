@@ -146,6 +146,11 @@ class User(models.Model):
         self.updated_at_from_api = timezone.now()
         self.save()
 
+        # Decrement the counter if user has a limit count
+        if self.auto_update_profile_limit_count > 0:
+            self.auto_update_profile_limit_count -= 1
+            self.save(update_fields=["auto_update_profile_limit_count"])
+
         return self
 
     def get_user_stories(self) -> list:
@@ -186,6 +191,11 @@ class User(models.Model):
                     story_created_at=story["created_at"],
                 )
                 saved_stories.append(x)
+
+        # Decrement the counter if user has a limit count
+        if self.auto_update_stories_limit_count > 0:
+            self.auto_update_stories_limit_count -= 1
+            self.save(update_fields=["auto_update_stories_limit_count"])
 
         return stories, saved_stories
 
