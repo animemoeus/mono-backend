@@ -12,6 +12,7 @@ import config.settings.celery_beat_admin  # noqa: F401
 urlpatterns = [
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
     path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
+    path("authentication/", include("authentication.urls", namespace="authentication")),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
