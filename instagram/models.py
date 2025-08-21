@@ -35,6 +35,14 @@ class User(models.Model):
     follower_count = models.PositiveIntegerField(default=0)
     following_count = models.PositiveIntegerField(default=0)
 
+    # Field to store user auto-update limits
+    auto_update_stories_limit_count = models.PositiveIntegerField(
+        default=5, help_text="Free users can update stories up to this limit"
+    )
+    auto_update_profile_limit_count = models.PositiveIntegerField(
+        default=5, help_text="Free users can update profile up to this limit"
+    )
+
     allow_auto_update_stories = models.BooleanField(default=False)
     allow_auto_update_profile = models.BooleanField(default=False)
 
