@@ -26,6 +26,7 @@ django-simple-history==3.8.0  # https://github.com/jazzband/django-simple-histor
 djangorestframework==3.15.2  # https://github.com/encode/django-rest-framework
 django-cors-headers==4.7.0  # https://github.com/adamchainz/django-cors-headers
 django-filter==25.1  # https://github.com/carltongibson/django-filter
+djangorestframework-simplejwt==5.5.1  # https://github.com/jazzband/djangorestframework-simplejwt
 
 # DRF-spectacular for api documentation
 drf-spectacular==0.28.0  # https://github.com/tfranzel/drf-spectacular
@@ -60,3 +61,6 @@ pgvector==0.4.1  # https://pypi.org/project/pgvector/
 
 # Django Extensions (needed for runscript command)
 django-extensions==3.2.3  # https://github.com/django-extensions/django-extensions
+
+# Firebase Admin
+firebase-admin==7.1.0  # https://github.com/firebase/firebase-admin-python
