@@ -1,4 +1,5 @@
 from celery import shared_task
+from django.db.models import Q
 
 
 @shared_task
@@ -21,7 +22,9 @@ def update_user_following(instagram_id: str):
 def get_instagram_users_stories():
     from .models import User as InstagramUser
 
-    instagram_user = InstagramUser.objects.filter(allow_auto_update_stories=True)
+    instagram_user = InstagramUser.objects.filter(
+        Q(allow_auto_update_stories=True) | Q(auto_update_stories_limit_count__gt=0)
+    )
 
     for user in instagram_user:
         get_instagram_user_stories.delay(user.username)
@@ -60,7 +63,9 @@ def update_instagram_auto_profiles():
     """Update profiles for users who have allowed automatic profile updates."""
     from .models import User as InstagramUser
 
-    instagram_users = InstagramUser.objects.filter(allow_auto_update_profile=True)
+    instagram_users = InstagramUser.objects.filter(
+        Q(allow_auto_update_profile=True) | Q(auto_update_profile_limit_count__gt=0)
+    )
 
     for user in instagram_users:
         update_instagram_user_profile.delay(user.uuid)

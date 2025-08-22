@@ -35,6 +35,14 @@ class User(models.Model):
     follower_count = models.PositiveIntegerField(default=0)
     following_count = models.PositiveIntegerField(default=0)
 
+    # Field to store user auto-update limits
+    auto_update_stories_limit_count = models.PositiveIntegerField(
+        default=5, help_text="Free users can update stories up to this limit"
+    )
+    auto_update_profile_limit_count = models.PositiveIntegerField(
+        default=5, help_text="Free users can update profile up to this limit"
+    )
+
     allow_auto_update_stories = models.BooleanField(default=False)
     allow_auto_update_profile = models.BooleanField(default=False)
 
@@ -138,6 +146,11 @@ class User(models.Model):
         self.updated_at_from_api = timezone.now()
         self.save()
 
+        # Decrement the counter if user has a limit count
+        if self.auto_update_profile_limit_count > 0:
+            self.auto_update_profile_limit_count -= 1
+            self.save(update_fields=["auto_update_profile_limit_count"])
+
         return self
 
     def get_user_stories(self) -> list:
@@ -178,6 +191,11 @@ class User(models.Model):
                     story_created_at=story["created_at"],
                 )
                 saved_stories.append(x)
+
+        # Decrement the counter if user has a limit count
+        if self.auto_update_stories_limit_count > 0:
+            self.auto_update_stories_limit_count -= 1
+            self.save(update_fields=["auto_update_stories_limit_count"])
 
         return stories, saved_stories
 

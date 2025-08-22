@@ -23,6 +23,8 @@ class UserAdmin(SimpleHistoryAdmin, ModelAdmin):
         "updated_at_from_api",
         "allow_auto_update_stories",
         "allow_auto_update_profile",
+        "auto_update_stories_limit_count",
+        "auto_update_profile_limit_count",
     )
     list_filter = ("is_private", "is_verified", "allow_auto_update_stories")
     readonly_fields = (
@@ -79,7 +81,14 @@ class UserAdmin(SimpleHistoryAdmin, ModelAdmin):
         ),
         (
             "Settings",
-            {"fields": ("allow_auto_update_stories", "allow_auto_update_profile")},
+            {
+                "fields": (
+                    "allow_auto_update_stories",
+                    "allow_auto_update_profile",
+                    "auto_update_stories_limit_count",
+                    "auto_update_profile_limit_count",
+                )
+            },
         ),
         (
             "Timestamps",
