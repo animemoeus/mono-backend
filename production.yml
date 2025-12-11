@@ -33,7 +33,7 @@ services:
     env_file:
       - ./.envs/.production/.postgres
     ports:
-      - "54322:5432"
+      - "100.86.58.86:63001:5432"
 
   redis:
     restart: unless-stopped
@@ -70,15 +70,4 @@ services:
     volumes:
       - production_django_media:/usr/share/nginx/media:ro
     ports:
-      - 80:80
-
-  dozzle:
-    restart: unless-stopped
-    container_name: dozzle
-    image: amir20/dozzle:latest
-    command: agent
-    pull_policy: always
-    ports:
-      - 7007:7007
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - 100.86.58.86:63000:80
