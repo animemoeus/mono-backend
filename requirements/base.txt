@@ -18,7 +18,7 @@ django-model-utils==5.0.0  # https://github.com/jazzband/django-model-utils
 django-allauth==65.5.0  # https://github.com/pennersr/django-allauth
 django-crispy-forms==2.3  # https://github.com/django-crispy-forms/django-crispy-forms
 crispy-bootstrap5==2025.4  # https://github.com/django-crispy-forms/crispy-bootstrap5
-django-redis==5.4.0  # https://github.com/jazzband/django-redis
+django-redis==6.0.0  # https://github.com/jazzband/django-redis
 django-solo==2.4.0 # https://github.com/lazybird/django-solo
 django-simple-history==3.8.0  # https://github.com/jazzband/django-simple-history
 
