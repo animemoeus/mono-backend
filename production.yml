@@ -44,8 +44,8 @@ services:
     <<: *django
     image: backend_production_celeryworker
     command: /start-celeryworker
-    deploy:
-      replicas: 2
+    #deploy:
+      #replicas: 2
 
   celerybeat:
     restart: unless-stopped
