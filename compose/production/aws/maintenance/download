@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+
+### Download a specific database backup from AWS S3.
+###
+### Usage:
+###     $ docker compose -f docker-compose.production.yml run --rm awscli download <backup_filename>
+
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+
+working_dir="$(dirname ${0})"
+source "${working_dir}/_sourced/constants.sh"
+source "${working_dir}/_sourced/messages.sh"
+
+
+message_welcome "Downloading backup from AWS S3..."
+
+
+if [[ -z ${1:-} ]]; then
+    message_error "Backup filename is required as an argument."
+    exit 1
+fi
+
+# Use DJANGO_AWS_* variables if set, otherwise fall back to AWS_* variables
+export AWS_ACCESS_KEY_ID="${DJANGO_AWS_ACCESS_KEY_ID:-${AWS_S3_ACCESS_KEY_ID}}"
+export AWS_SECRET_ACCESS_KEY="${DJANGO_AWS_SECRET_ACCESS_KEY:-${AWS_S3_SECRET_ACCESS_KEY}}"
+export AWS_STORAGE_BUCKET_NAME="${DJANGO_AWS_STORAGE_BUCKET_NAME:-${AWS_STORAGE_BUCKET_NAME}}"
+
+# Optional region configuration
+if [[ -n "${DJANGO_AWS_S3_REGION_NAME:-}" ]]; then
+    export AWS_DEFAULT_REGION="${DJANGO_AWS_S3_REGION_NAME}"
+fi
+
+# Optional endpoint URL for S3-compatible storage (like Cloudflare R2)
+if [[ -n "${AWS_S3_ENDPOINT_URL:-}" ]]; then
+    ENDPOINT_ARG="--endpoint-url ${AWS_S3_ENDPOINT_URL}"
+else
+    ENDPOINT_ARG=""
+fi
+
+aws s3 cp s3://${AWS_STORAGE_BUCKET_NAME}${BACKUP_DIR_PATH}/${1} ${BACKUP_DIR_PATH}/${1} ${ENDPOINT_ARG}
+
+
+message_success "Backup '${1}' downloaded successfully to '${BACKUP_DIR_PATH}'."
