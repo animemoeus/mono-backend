@@ -110,7 +110,6 @@ LOCAL_APPS = [
     # Your stuff: custom apps go here
     "cinematch",
     "discord",
-    "instagram",
     "nz_store",
     "tiktok",
     "waifu",
