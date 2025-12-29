@@ -33,7 +33,7 @@ services:
     env_file:
       - ./.envs/.production/.postgres
     ports:
-      - "54322:5432"
+      - "100.86.58.86:63001:5432"
 
   redis:
     restart: unless-stopped
@@ -44,8 +44,8 @@ services:
     <<: *django
     image: backend_production_celeryworker
     command: /start-celeryworker
-    deploy:
-      replicas: 2
+    #deploy:
+    #replicas: 2
 
   celerybeat:
     restart: unless-stopped
@@ -59,6 +59,16 @@ services:
     image: backend_production_flower
     command: /start-flower
 
+  awscli:
+    build:
+      context: .
+      dockerfile: ./compose/production/aws/Dockerfile
+    image: backend_production_awscli
+    env_file:
+      - ./.envs/.production/.django
+    volumes:
+      - production_postgres_data_backups:/backups:z
+
   nginx:
     restart: unless-stopped
     build:
@@ -70,15 +80,4 @@ services:
     volumes:
       - production_django_media:/usr/share/nginx/media:ro
     ports:
-      - 80:80
-
-  dozzle:
-    restart: unless-stopped
-    container_name: dozzle
-    image: amir20/dozzle:latest
-    command: agent
-    pull_policy: always
-    ports:
-      - 7007:7007
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - 100.86.58.86:63000:80
