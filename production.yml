@@ -45,7 +45,7 @@ services:
     image: backend_production_celeryworker
     command: /start-celeryworker
     #deploy:
-      #replicas: 2
+    #replicas: 2
 
   celerybeat:
     restart: unless-stopped
@@ -58,6 +58,16 @@ services:
     <<: *django
     image: backend_production_flower
     command: /start-flower
+
+  awscli:
+    build:
+      context: .
+      dockerfile: ./compose/production/aws/Dockerfile
+    image: backend_production_awscli
+    env_file:
+      - ./.envs/.production/.django
+    volumes:
+      - production_postgres_data_backups:/backups:z
 
   nginx:
     restart: unless-stopped

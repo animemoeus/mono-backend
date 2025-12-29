@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+
+### Upload database backups to AWS S3.
+###
+### Usage:
+###     $ docker compose -f docker-compose.production.yml run --rm awscli upload
+
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+
+working_dir="$(dirname ${0})"
+source "${working_dir}/_sourced/constants.sh"
+source "${working_dir}/_sourced/messages.sh"
+
+
+message_welcome "Uploading backups to AWS S3..."
+
+
+# Use DJANGO_AWS_* variables if set, otherwise fall back to AWS_* variables
+export AWS_ACCESS_KEY_ID="${DJANGO_AWS_ACCESS_KEY_ID:-${AWS_S3_ACCESS_KEY_ID}}"
+export AWS_SECRET_ACCESS_KEY="${DJANGO_AWS_SECRET_ACCESS_KEY:-${AWS_S3_SECRET_ACCESS_KEY}}"
+export AWS_STORAGE_BUCKET_NAME="${DJANGO_AWS_STORAGE_BUCKET_NAME:-${AWS_STORAGE_BUCKET_NAME}}"
+
+# Optional region configuration
+if [[ -n "${DJANGO_AWS_S3_REGION_NAME:-}" ]]; then
+    export AWS_DEFAULT_REGION="${DJANGO_AWS_S3_REGION_NAME}"
+fi
+
+# Optional endpoint URL for S3-compatible storage (like Cloudflare R2)
+if [[ -n "${AWS_S3_ENDPOINT_URL:-}" ]]; then
+    ENDPOINT_ARG="--endpoint-url ${AWS_S3_ENDPOINT_URL}"
+else
+    ENDPOINT_ARG=""
+fi
+
+aws s3 cp ${BACKUP_DIR_PATH} s3://${AWS_STORAGE_BUCKET_NAME}${BACKUP_DIR_PATH} --recursive ${ENDPOINT_ARG}
+
+
+message_success "Backups uploaded successfully. Cleaning up local copies..."
+
+
+rm -rf ${BACKUP_DIR_PATH}/*
+
+
+message_success "Upload complete and local backups cleaned."
