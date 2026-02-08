@@ -14,7 +14,7 @@ from .models import DownloadedTweet
 from .models import Settings as TwitterDownloaderSettings
 from .models import TelegramUser
 from .serializers import ValidateTelegramMiniAppDataSerializer
-from .utils import TwitterDownloaderAPIV2, TwitterDownloaderAPIV4, get_tweet_url
+from .utils import TwitterDownloaderAPIV4
 
 
 class SafelinkView(View):
@@ -182,98 +182,6 @@ class TelegramWebhookView(APIView):
         telegram_user.send_message(
             "Haha, I'm just a bot.\n\nI can't understand everything.\n\nTry sending a different command!"
         )
-
-
-class TelegramWebhookV2View(APIView):
-    def post(self, request):
-        telegram_webhook = TelegramWebhookParser(request.body)
-
-        try:
-            webhook_user = telegram_webhook.get_user()
-        except Exception as e:
-            return self._response_with_message(
-                f"Oops! There was an error: {str(e)}. Please try again.",
-                status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Get or create Telegram User
-        telegram_user = self._get_or_create_telegram_user(webhook_user)
-        telegram_user.request_count += 1
-        telegram_user.save()
-
-        # Check for maintenance mode and return immediately if true
-        if self._is_maintenance_mode():
-            telegram_user.send_maintenance_message()
-            return self._response_with_message(
-                "Sorry! We're currently undergoing maintenance. Please check back later! 😝"
-            )
-
-        # Check if user is banned and return immediately if true
-        if telegram_user.is_banned:
-            telegram_user.send_banned_message()
-            return self._response_with_message(
-                "Uh-oh! Your account has been banned. Please contact support for assistance. ☠️"
-            )
-
-        # Handle text message if present
-        text_message = telegram_webhook.get_text_message()
-
-        if text_message:
-            self._handle_text_message(telegram_user, text_message)
-            return self._response_with_message(f"Got it! You've sent a text message: {text_message}")
-        else:
-            telegram_user.send_message("Hmmm 🤔")
-
-        return self._response_with_message("Hello from arter tendean! 😄")
-
-    def _get_or_create_telegram_user(self, webhook_user) -> TelegramUser:
-        # Helper method to get or create a Telegram user
-        telegram_user, _ = TelegramUser.objects.get_or_create(
-            user_id=webhook_user.get("id"),
-            defaults={
-                "first_name": webhook_user.get("first_name"),
-                "last_name": webhook_user.get("last_name"),
-                "username": webhook_user.get("username"),
-                "is_active": True,
-            },
-        )
-        return telegram_user
-
-    def _is_maintenance_mode(self) -> bool:
-        # Check if the system is in maintenance mode
-        return TwitterDownloaderSettings.get_solo().is_maintenance
-
-    def _handle_text_message(self, telegram_user: TelegramUser, message: str):
-        if message.startswith("/start"):
-            message = f"Hey <b>{telegram_user.first_name}</b>!\n\nWelcome to the <b>Twitter Video Downloader Bot</b>! 🎥📥\n\nI'm here to help you download videos from Twitter easily and quickly! 😄\n\n✨ Just send me a link to a Twitter video, and I’ll handle the rest! ✨"
-
-            telegram_user.send_message(message)
-
-        # Handle the text message that possibly contains tweet data
-        elif "https://x.com" in message.lower() or "https://twitter.com" in message.lower():
-            tweet_url = get_tweet_url(message.lower())
-            if not tweet_url:
-                telegram_user.send_message(
-                    "Hmm... I couldn't find a valid tweet URL in your message. Could you double-check it? 😊"
-                )
-
-            try:
-                twitter_downloader = TwitterDownloaderAPIV2(tweet_url=tweet_url)
-            except Exception as e:
-                telegram_user.send_message(str(e))
-                return
-
-            print(twitter_downloader)
-
-        else:
-            # Unknown text message
-            telegram_user.send_message(
-                "I'm not quite sure how to process that message. Can you try sending something different? 🤔"
-            )
-
-    def _response_with_message(self, message, status=status.HTTP_200_OK):
-        # Helper method to create a Response with a message
-        return Response({"message": message}, status=status)
 
 
 class ValidateTelegramMiniAppDataView(GenericAPIView):

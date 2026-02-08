@@ -37,7 +37,7 @@ class TestTelegramUserModel(TestCase):
         result = self.telegram_user.send_photo(
             {
                 "thumbnail": "https://avatars.githubusercontent.com/u/9919",
-                "videos": [{"url": "https://avatars.githubusercontent.com/u/9919", "size": 1337}],
+                "videos": [{"url": "https://avatars.githubusercontent.com/u/9919", "size": 1337, "quality": "HD"}],
             }
         )
         self.assertEqual(result, True, "Test send photo")
@@ -47,7 +47,7 @@ class TestTelegramUserModel(TestCase):
             {
                 "thumbnail": "https://avatars.githubusercontent.com/u/9919",
                 "description": "Test Send Video CI/CD",
-                "videos": [{"url": "https://link.testfile.org/aXCg7h", "size": 1337}],
+                "videos": [{"url": "https://link.testfile.org/aXCg7h", "size": 1337, "quality": "HD"}],
             }
         )
 
@@ -66,6 +66,7 @@ class TestTelegramUserModel(TestCase):
                     {
                         "url": "https://link.testfile.org/aYr11v",
                         "size": 1337,
+                        "quality": "HD",
                     }
                 ],
             }
@@ -97,16 +98,19 @@ class TestDownloadedTweet(TestCase):
                         "url": "https://video.twimg.com/ext_tw_video/1832089368489504771/pu/vid/avc1/576x1024/li7koJg-y38Gc__b.mp4?tag=12",
                         "size": "576x1024",
                         "bitrate": 2176000,
+                        "quality": "HD",
                     },
                     {
                         "url": "https://video.twimg.com/ext_tw_video/1832089368489504771/pu/vid/avc1/480x852/Fhx7X8Yz3m8dpOrs.mp4?tag=12",
                         "size": "480x852",
                         "bitrate": 950000,
+                        "quality": "SD",
                     },
                     {
                         "url": "https://video.twimg.com/ext_tw_video/1832089368489504771/pu/vid/avc1/320x568/56e7jjUqebophPbI.mp4?tag=12",
                         "size": "320x568",
                         "bitrate": 632000,
+                        "quality": "Low",
                     },
                 ],
                 "thumbnail": "https://pbs.twimg.com/ext_tw_video_thumb/1832089368489504771/pu/img/cGHHNJSF8wSp8Ygv.jpg",
