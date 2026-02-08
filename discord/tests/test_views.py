@@ -1,4 +1,5 @@
-import requests
+from unittest.mock import patch
+
 from django.test import TestCase
 
 
@@ -9,20 +10,19 @@ class TestDiscordRefreshURL(TestCase):
         )
         self.invalid_url = "https://google.com"
 
-    def test_refresh_expired_url(self):
-        # request using the default URL
-        response = requests.get(self.expired_url)
-        self.assertEqual(response.status_code, 404)
+    @patch("discord.ninja.DiscordAPI.refresh_url")
+    def test_refresh_expired_url(self, mock_refresh):
+        mock_refresh.return_value = "https://cdn.discordapp.com/attachments/refreshed-url.jpg"
 
         # request using the refresher API
         response = self.client.get(f"/discord/refresh/?url={self.expired_url}")
-        print(response.status_code)
         self.assertEqual(response.status_code, 302)
 
-        # request using the new url from refershed API
-        response = requests.get(response.url)
-        self.assertEqual(response.status_code, 200)
+        # verify redirect URL is the refreshed URL
+        self.assertEqual(response.url, "https://cdn.discordapp.com/attachments/refreshed-url.jpg")
 
-    def test_refresh_invalid_url(self):
+    @patch("discord.ninja.DiscordAPI.refresh_url")
+    def test_refresh_invalid_url(self, mock_refresh):
+        mock_refresh.return_value = None
         response = self.client.get(f"/discord/refresh/?url={self.invalid_url}")
         self.assertEqual(response.status_code, 444)

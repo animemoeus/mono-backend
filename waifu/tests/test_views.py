@@ -1,4 +1,5 @@
-import requests
+from unittest.mock import patch
+
 from django.test import TestCase
 from django.urls import reverse
 
@@ -33,43 +34,43 @@ def create_waifu_init_data():
     )
 
 
+@patch("waifu.views.refresh_serializer_data_urls", side_effect=lambda data: data)
 class TestWaifuListView(TestCase):
     def setUp(self):
         create_waifu_init_data()
 
-    def test_get_waifu_list(self):
+    def test_get_waifu_list(self, mock_refresh):
         self.assertEqual(Image.objects.all().count(), 2)
         response = self.client.get(reverse("waifu:index"))
         self.assertEqual(response.status_code, 200, "Should return 200 OK")
 
         data = response.json().get("results")[0]
-        response = requests.get(data.get("original_image"))
-        self.assertEqual(response.status_code, 200, "Should return 200 OK")
+        self.assertIn("original_image", data)
 
 
+@patch("waifu.views.refresh_serializer_data_urls", side_effect=lambda data: data)
 class TestWaifuDetailView(TestCase):
     def setUp(self):
         create_waifu_init_data()
 
-    def test_get_waifu_detail(self):
+    def test_get_waifu_detail(self, mock_refresh):
         self.assertEqual(Image.objects.all().count(), 2)
         response = self.client.get(reverse("waifu:detail", kwargs={"image_id": "1275631907933261897"}))
         self.assertEqual(response.status_code, 200, "Should return 200 OK")
 
         data = response.json()
-        response = requests.get(data.get("original_image"))
-        self.assertEqual(response.status_code, 200, "Should return 200 OK")
+        self.assertIn("original_image", data)
 
 
+@patch("waifu.views.refresh_serializer_data_urls", side_effect=lambda data: data)
 class TestRandomWaifuView(TestCase):
     def setUp(self):
         create_waifu_init_data()
 
-    def test_get_random_waifu(self):
+    def test_get_random_waifu(self, mock_refresh):
         self.assertEqual(Image.objects.all().count(), 2)
         response = self.client.get(reverse("waifu:random"))
         self.assertEqual(response.status_code, 200, "Should return 200 OK")
 
         data = response.json()
-        response = requests.get(data.get("original_image"))
-        self.assertEqual(response.status_code, 200, "Should return 200 OK")
+        self.assertIn("original_image", data)
