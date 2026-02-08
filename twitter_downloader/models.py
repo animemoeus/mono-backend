@@ -3,10 +3,14 @@ import uuid
 
 import requests
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils import timezone
 from solo.models import SingletonModel
 
 from models.base import BaseTelegramUserModel
+
+User = get_user_model()
 
 
 class TelegramUser(BaseTelegramUserModel):
@@ -184,6 +188,105 @@ class ExternalLink(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class BroadcastMessage(models.Model):
+    """Model for storing broadcast messages to be sent to all telegram users"""
+
+    class BroadcastStatus(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        SENDING = "sending", "Sending"
+        COMPLETED = "completed", "Completed"
+        FAILED = "failed", "Failed"
+
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    message = models.TextField(help_text="Message to be sent to all users")
+    status = models.CharField(
+        max_length=20,
+        choices=BroadcastStatus.choices,
+        default=BroadcastStatus.DRAFT,
+    )
+
+    # Statistics
+    total_users = models.PositiveIntegerField(default=0, help_text="Total users who will receive the broadcast")
+    sent_count = models.PositiveIntegerField(default=0, help_text="Number of messages successfully sent")
+    failed_count = models.PositiveIntegerField(default=0, help_text="Number of messages that failed to send")
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True, help_text="Broadcasting start time")
+    completed_at = models.DateTimeField(null=True, blank=True, help_text="Broadcasting completion time")
+
+    # Audit
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="User who created this broadcast",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Broadcast Message"
+        verbose_name_plural = "Broadcast Messages"
+
+    def __str__(self):
+        preview = self.message[:50] + "..." if len(self.message) > 50 else self.message
+        return f"{preview} ({self.status})"
+
+    def start_broadcast(self):
+        """Trigger celery task to start broadcasting"""
+        from .tasks import broadcast_message_to_all_users
+
+        # Update status and timestamp
+        self.status = self.BroadcastStatus.SENDING
+        self.started_at = timezone.now()
+
+        # Count total active users
+        self.total_users = TelegramUser.objects.filter(
+            is_active=True,
+            is_banned=False,
+        ).count()
+
+        self.save()
+
+        # Trigger celery task
+        broadcast_message_to_all_users.delay(str(self.uuid))
+
+
+class BroadcastLog(models.Model):
+    """Model for tracking individual message delivery in broadcasts"""
+
+    class LogStatus(models.TextChoices):
+        SUCCESS = "success", "Success"
+        FAILED = "failed", "Failed"
+
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    broadcast = models.ForeignKey(
+        BroadcastMessage,
+        on_delete=models.CASCADE,
+        related_name="logs",
+    )
+    telegram_user = models.ForeignKey(
+        TelegramUser,
+        on_delete=models.CASCADE,
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=LogStatus.choices,
+    )
+    error_message = models.TextField(blank=True, help_text="Error message if delivery failed")
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-sent_at"]
+        verbose_name = "Broadcast Log"
+        verbose_name_plural = "Broadcast Logs"
+        unique_together = [["broadcast", "telegram_user"]]
+
+    def __str__(self):
+        return f"{self.telegram_user.username or self.telegram_user.user_id} - {self.status}"
 
 
 class Settings(SingletonModel):
