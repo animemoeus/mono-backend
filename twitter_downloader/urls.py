@@ -5,7 +5,11 @@ from .views import SafelinkView, TelegramWebhookV2View, TelegramWebhookView, Val
 urlpatterns = [
     path("safelink/", SafelinkView.as_view(), name="safelink"),
     path("telegram-webhook/", TelegramWebhookView.as_view(), name="telegram-webhook"),
-    path("telegram-webhook-v2/", TelegramWebhookV2View.as_view(), name="telegram-webhook-v2"),
+    path(
+        "telegram-webhook-v2/",
+        TelegramWebhookV2View.as_view(),
+        name="telegram-webhook-v2",
+    ),
     path(
         "telegram-webhook/validate-mini-app-data/",
         ValidateTelegramMiniAppDataView.as_view(),

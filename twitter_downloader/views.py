@@ -14,7 +14,7 @@ from .models import DownloadedTweet
 from .models import Settings as TwitterDownloaderSettings
 from .models import TelegramUser
 from .serializers import ValidateTelegramMiniAppDataSerializer
-from .utils import TwitterDownloaderAPIV2, TwitterDownloaderAPIV3, get_tweet_id_from_url, get_tweet_url
+from .utils import TwitterDownloaderAPIV2, TwitterDownloaderAPIV4, get_tweet_url
 
 
 class SafelinkView(View):
@@ -95,7 +95,6 @@ class TelegramWebhookView(APIView):
             return Response(status=status.HTTP_200_OK)
 
         text_message = webhook.data.get("text_message")
-        print("text_message", text_message)
         if text_message:
             self.handle_text_message(telegram_user, text_message)
 
@@ -152,23 +151,23 @@ class TelegramWebhookView(APIView):
         urls = re.findall(r"https://\S+", message.lower())
         url = urls[0] if urls else None
 
-        try:
-            tweet_id = get_tweet_id_from_url(url)
-        except Exception:
+        if not url:
             telegram_user.send_message(
                 "Hmm... I couldn't find a valid tweet URL in your message. Could you double-check it? 😊"
             )
             return Response(status=status.HTTP_200_OK)
 
-        twitter_api = TwitterDownloaderAPIV3()
+        twitter_api = TwitterDownloaderAPIV4()
 
         try:
-            tweet_data = twitter_api.get_tweet_data(tweet_id)
+            tweet_data = twitter_api.get_tweet_data(url)
         except Exception:
             telegram_user.send_message("Sorry, I can't find any video in that tweet link.")
             return Response(status=status.HTTP_200_OK)
 
-        if not tweet_data:
+        print("tweet_data", tweet_data)
+
+        if not tweet_data or not tweet_data.get("success"):
             telegram_user.send_message("Sorry, I can't find any video in that tweet link.")
             return Response()
 
