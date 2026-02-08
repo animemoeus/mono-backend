@@ -21,7 +21,6 @@ urlpatterns = [
     path("discord/", include("discord.urls", namespace="discord")),
     path("tiktok/", include("tiktok.urls", namespace="tiktok")),
     path("waifu/", include("waifu.urls", namespace="waifu")),
-    path("nz-store/", include("nz_store.urls", namespace="nz-store")),
     path("cinematch/", include("cinematch.urls", namespace="cinematch")),
     path("health-check/", include("health_check.urls", namespace="health-check")),
     path(
