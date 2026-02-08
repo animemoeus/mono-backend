@@ -1,4 +1,5 @@
-import requests
+from unittest.mock import Mock, patch
+
 from django.test import TestCase
 
 from waifu.utils import refresh_expired_urls, refresh_serializer_data_urls
@@ -50,9 +51,19 @@ class TestRefreshExpiredURLS(TestCase):
             "https://media.discordapp.net/attachments/858938620425404426/1268536085483356193/animemoeus-waifu.jpg",
         ]
 
-    def test_refresh_expired_urls(self):
+    @patch("waifu.utils.requests.request")
+    def test_refresh_expired_urls(self, mock_request):
+        # Build a response that maps each URL to a refreshed version
+        refreshed_urls_response = [
+            {"original": url, "refreshed": url + "?refreshed=true"} for url in self.expired_urls_1
+        ]
+        mock_response = Mock()
+        mock_response.ok = True
+        mock_response.json.return_value = {"refreshed_urls": refreshed_urls_response}
+        mock_request.return_value = mock_response
+
         refreshed_urls = refresh_expired_urls(self.expired_urls_1)
-        self.assertEqual(len(refreshed_urls), 40, "Should return 40 refreshed URLs")
+        self.assertEqual(len(refreshed_urls), 41, "Should return 41 refreshed URLs")
 
 
 class TestRefreshSerializerDataURLS(TestCase):
@@ -85,11 +96,21 @@ class TestRefreshSerializerDataURLS(TestCase):
             },
         ]
 
-    def test_refresh_serializer_data_urls(self):
-        request = requests.get(self.serializer_data[0].get("original_image"), timeout=5)
-        self.assertEqual(request.status_code, 404, "Should return 404 Not Found")
+    @patch("waifu.utils.requests.request")
+    def test_refresh_serializer_data_urls(self, mock_request):
+        # Collect all URLs that will be passed to refresh_expired_urls
+        urls = []
+        for item in self.serializer_data:
+            urls.append(item["original_image"])
+            urls.append(item["thumbnail"])
+
+        refreshed_urls_response = [{"original": url, "refreshed": url + "?refreshed=true"} for url in urls]
+        mock_response = Mock()
+        mock_response.ok = True
+        mock_response.json.return_value = {"refreshed_urls": refreshed_urls_response}
+        mock_request.return_value = mock_response
 
         refreshed_serializer_data = refresh_serializer_data_urls(self.serializer_data)
 
-        request = requests.get(refreshed_serializer_data[0].get("original_image"), timeout=5)
-        self.assertEqual(request.status_code, 200, "Should return 200 OK")
+        # Verify URLs were refreshed (have ?refreshed=true appended)
+        self.assertIn("?refreshed=true", refreshed_serializer_data[0]["original_image"])
