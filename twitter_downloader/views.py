@@ -95,7 +95,6 @@ class TelegramWebhookView(APIView):
             return Response(status=status.HTTP_200_OK)
 
         text_message = webhook.data.get("text_message")
-        print("text_message", text_message)
         if text_message:
             self.handle_text_message(telegram_user, text_message)
 
