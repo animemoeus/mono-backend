@@ -4,7 +4,6 @@ import uuid
 import requests
 from django.conf import settings
 from django.db import models
-from django.urls import reverse
 from solo.models import SingletonModel
 
 from models.base import BaseTelegramUserModel
@@ -36,7 +35,10 @@ class TelegramUser(BaseTelegramUserModel):
                 "has_spoiler": message.get("is_nsfw", False),
                 "reply_markup": {
                     "inline_keyboard": [
-                        [{"text": f"🔗 {video['size']}", "url": video["url"]} for video in message.get("videos")[:3]],
+                        [
+                            {"text": f"🔗 {video['quality']}", "url": video["url"]}
+                            for video in message.get("videos", [])[:3]
+                        ],
                     ]
                 },
             }
@@ -73,8 +75,8 @@ class TelegramUser(BaseTelegramUserModel):
                 "reply_markup": {
                     "inline_keyboard": [
                         [
-                            {"text": f"🔗 {video['size']}", "url": video["url"]}
-                            for video in tweet_data.get("videos")[:3]
+                            {"text": f"🔗 {video['quality']}", "url": video["url"]}
+                            for video in tweet_data.get("videos", [])[:3]
                         ],
                     ]
                     + external_link
@@ -166,10 +168,7 @@ class DownloadedTweet(models.Model):
         return self.tweet_url
 
     def send_to_telegram_user(self) -> bool:
-        url = f"https://api.animemoe.us{reverse('twitter-downloader:safelink')}?key={str(self.uuid)}"
-        result = self.telegram_user.send_download_button_with_safelink("🔰 DOWNLOAD 🔰", url)
-
-        return result
+        return self.telegram_user.send_video(self.tweet_data)
 
 
 class ExternalLink(models.Model):
