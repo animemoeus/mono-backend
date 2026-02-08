@@ -1,4 +1,5 @@
 import logging
+import random
 import re
 
 import requests
@@ -375,3 +376,106 @@ def get_tweet_id_from_url(tweet_url: str) -> str:
     if match:
         return match.group(1)
     raise ValueError("Unable to extract tweet ID from the provided URL.")
+
+
+class TwitterDownloaderAPIV4:
+    """
+    Twitter API client for fetching tweet details using v4 API (Cloudflare Worker).
+
+    This class handles video extraction from Twitter/X tweets using a Cloudflare Worker endpoint.
+    Returns video URLs with different quality options (HD, SD, Low).
+
+    Attributes:
+        API_URL (str): Base URL for the Twitter downloader Cloudflare Worker.
+    """
+
+    API_URL = "https://twittervideodownloader-com.artertendean.workers.dev/"
+
+    USER_AGENTS = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0",
+    ]
+
+    def __init__(self):
+        """Initialize the TwitterDownloaderAPIV4 instance."""
+        pass
+
+    @tenacity.retry(
+        stop=(stop_after_attempt(3)),
+    )
+    def get_tweet_data(self, tweet_url: str) -> dict:
+        """
+        Fetch and process video data for a specific tweet.
+
+        Args:
+            tweet_url (str): The Twitter/X tweet URL to retrieve.
+
+        Returns:
+            dict: Response following the format:
+                {
+                    "success": bool,
+                    "tweet": str (original tweet URL),
+                    "videos": [
+                        {
+                            "url": str,
+                            "quality": str,
+                            "resolution": str,
+                            "format": str,
+                            "width": int,
+                            "height": int
+                        }
+                    ]
+                }
+                Or on error:
+                {
+                    "success": False,
+                    "error": str (error message)
+                }
+
+        Raises:
+            Exception: If the API request fails or no video is found.
+        """
+        logger.debug(f"Fetching tweet data from v4 API for URL: {tweet_url}")
+
+        headers = {"User-Agent": random.choice(self.USER_AGENTS)}
+
+        try:
+            response = requests.get(
+                self.API_URL,
+                params={"tweet": tweet_url},
+                headers=headers,
+                timeout=30,
+            )
+            print("++++++arter", response.status_code, response.text)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Network error when connecting to Twitter API v4: {str(e)}")
+            return {
+                "success": False,
+                "error": f"Network error when connecting to Twitter API: {str(e)}",
+            }
+
+        try:
+            response_data = response.json()
+        except ValueError:
+            logger.error("Failed to parse API v4 response to JSON")
+            return {
+                "success": False,
+                "error": "Failed to parse API response. Please try again later.",
+            }
+
+        # Check if the request was successful
+        if not response_data.get("success"):
+            error_message = response_data.get(
+                "error",
+                "No video links found. The tweet may not contain a video or the URL is invalid.",
+            )
+            logger.warning(f"API v4 returned error: {error_message}")
+            return {"success": False, "error": error_message}
+
+        logger.info(f"Successfully retrieved video data for tweet: {tweet_url}")
+        return response_data
