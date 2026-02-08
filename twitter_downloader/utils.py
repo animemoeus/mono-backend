@@ -450,7 +450,6 @@ class TwitterDownloaderAPIV4:
                 headers=headers,
                 timeout=30,
             )
-            print("++++++arter", response.status_code, response.text)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"Network error when connecting to Twitter API v4: {str(e)}")
