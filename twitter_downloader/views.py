@@ -32,12 +32,12 @@ class SafelinkView(View):
         tweet_data = tweet.tweet_data
 
         videos = tweet_data.get("videos", [])
-        for video in videos:
+        if videos:
             tweet.telegram_user.send_video(
                 {
                     "description": tweet_data.get("text", ""),
-                    "videos": video.get("variants", []),
-                    "thumbnail": video.get("thumbnail"),
+                    "videos": videos,
+                    "thumbnail": tweet_data.get("thumbnail"),
                     "is_nsfw": tweet_data.get("is_nsfw"),
                 }
             )

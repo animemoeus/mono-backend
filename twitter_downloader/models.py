@@ -36,7 +36,10 @@ class TelegramUser(BaseTelegramUserModel):
                 "has_spoiler": message.get("is_nsfw", False),
                 "reply_markup": {
                     "inline_keyboard": [
-                        [{"text": f"🔗 {video['size']}", "url": video["url"]} for video in message.get("videos")[:3]],
+                        [
+                            {"text": f"🔗 {video['quality']}", "url": video["url"]}
+                            for video in message.get("videos", [])[:3]
+                        ],
                     ]
                 },
             }
@@ -73,8 +76,8 @@ class TelegramUser(BaseTelegramUserModel):
                 "reply_markup": {
                     "inline_keyboard": [
                         [
-                            {"text": f"🔗 {video['size']}", "url": video["url"]}
-                            for video in tweet_data.get("videos")[:3]
+                            {"text": f"🔗 {video['quality']}", "url": video["url"]}
+                            for video in tweet_data.get("videos", [])[:3]
                         ],
                     ]
                     + external_link
