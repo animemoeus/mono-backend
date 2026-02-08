@@ -33,7 +33,7 @@ services:
     env_file:
       - ./.envs/.production/.postgres
     ports:
-      - "100.86.58.86:63001:5432"
+      - "100.73.60.108:63001:5432"
 
   redis:
     restart: unless-stopped
@@ -80,4 +80,4 @@ services:
     volumes:
       - production_django_media:/usr/share/nginx/media:ro
     ports:
-      - 100.86.58.86:63000:80
+      - 100.73.60.108:63000:80
