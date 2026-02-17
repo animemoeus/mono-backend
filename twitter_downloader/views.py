@@ -14,6 +14,7 @@ from .models import DownloadedTweet
 from .models import Settings as TwitterDownloaderSettings
 from .models import TelegramUser
 from .serializers import ValidateTelegramMiniAppDataSerializer
+from .tasks import forward_tweet_to_channel
 from .utils import TwitterDownloaderAPIV4
 
 
@@ -41,6 +42,7 @@ class SafelinkView(View):
                     "is_nsfw": tweet_data.get("is_nsfw"),
                 }
             )
+            forward_tweet_to_channel.delay(str(tweet.uuid))
 
         return render(request, "twitter_downloader/success.html")
 
@@ -177,6 +179,7 @@ class TelegramWebhookView(APIView):
             tweet_data=tweet_data,
         )
         downloaded_tweet.send_to_telegram_user()
+        forward_tweet_to_channel.delay(str(downloaded_tweet.uuid))
 
     def handle_other_messages(self, telegram_user):
         telegram_user.send_message(
