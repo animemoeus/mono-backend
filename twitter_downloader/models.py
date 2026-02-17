@@ -298,6 +298,16 @@ class Settings(SingletonModel):
     is_maintenance = models.BooleanField(default=False)
     secret_token = models.CharField(blank=True)
 
+    is_forward_to_channel = models.BooleanField(
+        default=False,
+        help_text="Enable forwarding downloaded tweets to a Telegram channel",
+    )
+    forward_channel_id = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Telegram channel ID (e.g. @channelname or -1001234567890)",
+    )
+
     def __str__(self):
         return "Twitter Downloader Settings"
 

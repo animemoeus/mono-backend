@@ -1,11 +1,17 @@
+import json
+import logging
 from datetime import timedelta
 
+import requests
 from celery import shared_task
+from django.conf import settings
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 
-from .models import BroadcastLog, BroadcastMessage, DownloadedTweet, TelegramUser
+from .models import BroadcastLog, BroadcastMessage, DownloadedTweet, ExternalLink, Settings, TelegramUser
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task
@@ -103,6 +109,84 @@ def send_broadcast_to_user(broadcast_id: str, telegram_user_id: str):
         _check_broadcast_completion(broadcast_id)
 
         return f"Failed to send to {telegram_user_id}: {error_message}"
+
+
+@shared_task(
+    autoretry_for=(Exception,),
+    max_retries=3,
+    retry_backoff=True,
+)
+def forward_tweet_to_channel(downloaded_tweet_id: str):
+    """Forward a downloaded tweet's video to a Telegram channel."""
+    config = Settings.get_solo()
+    if not config.is_forward_to_channel or not config.forward_channel_id:
+        return "Forwarding to channel is disabled"
+
+    try:
+        tweet = DownloadedTweet.objects.get(uuid=downloaded_tweet_id)
+    except DownloadedTweet.DoesNotExist:
+        return f"DownloadedTweet {downloaded_tweet_id} not found"
+
+    tweet_data = tweet.tweet_data
+    videos = tweet_data.get("videos", [])
+    if not videos:
+        return "No videos found in tweet data"
+
+    bot_token = settings.TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN
+    headers = {"Content-Type": "application/json"}
+
+    # Build inline keyboard with video quality links
+    external_links = ExternalLink.objects.filter(is_active=True).order_by("-updated_at")
+    external_link_buttons = [
+        [{"text": link.title, "web_app": {"url": link.url}}]
+        if link.is_web_app
+        else [{"text": link.title, "url": link.url}]
+        for link in external_links
+    ]
+
+    inline_keyboard = [
+        [{"text": f"\U0001f517 {video['quality']}", "url": video["url"]} for video in videos[:3]],
+    ] + external_link_buttons
+
+    # Try sendPaidMedia first (same as user-facing send_video)
+    url = f"https://api.telegram.org/bot{bot_token}/sendPaidMedia"
+    payload = json.dumps(
+        {
+            "chat_id": config.forward_channel_id,
+            "star_count": 1,
+            "media": [{"type": "video", "media": videos[0]["url"]}],
+            "caption": tweet_data.get("description", ""),
+            "parse_mode": "HTML",
+            "disable_notification": True,
+            "reply_markup": {"inline_keyboard": inline_keyboard},
+        }
+    )
+    response = requests.post(url, headers=headers, data=payload)
+
+    if response.ok:
+        return f"Forwarded tweet {downloaded_tweet_id} to channel"
+
+    # Fallback to sendPhoto with thumbnail + inline keyboard
+    thumbnail = tweet_data.get("thumbnail")
+    if thumbnail:
+        url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
+        payload = json.dumps(
+            {
+                "chat_id": config.forward_channel_id,
+                "photo": thumbnail,
+                "parse_mode": "HTML",
+                "disable_notification": True,
+                "has_spoiler": tweet_data.get("is_nsfw", False),
+                "reply_markup": {"inline_keyboard": inline_keyboard},
+            }
+        )
+        response = requests.post(url, headers=headers, data=payload)
+
+        if response.ok:
+            return f"Forwarded tweet {downloaded_tweet_id} to channel (as photo)"
+
+    logger.error("Failed to forward tweet %s to channel: %s", downloaded_tweet_id, response.text)
+    raise Exception(f"Failed to forward tweet to channel: {response.text}")
 
 
 def _check_broadcast_completion(broadcast_id: str):
