@@ -2,6 +2,7 @@ from urllib.parse import urljoin
 
 import requests
 from django.db import models, transaction
+from pgvector.django import VectorField
 from solo.models import SingletonModel
 
 
@@ -50,9 +51,35 @@ class Product(models.Model):
     monthly_price = models.DecimalField(max_digits=10, decimal_places=2)
     monthly_discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     setup_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    embedding = VectorField(dimensions=1536, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def get_embedding_text(self):
+        tag_names = ", ".join(self.tags.order_by("name").values_list("name", flat=True))
+        parts = [
+            self.name,
+            self.short_description,
+            self.description,
+            self.category.name if self.category_id else "",
+            tag_names,
+        ]
+        return "\n".join(part for part in parts if part).strip()
+
+    def generate_embedding(self, force=False):
+        if self.embedding is not None and not force:
+            return self.embedding
+
+        text = self.get_embedding_text()
+        if not text:
+            raise ValueError("Product has no text content for embedding.")
+
+        from backend.utils.openai import get_embedding
+
+        self.embedding = get_embedding(text)
+        self.save(update_fields=["embedding", "updated_at"])
+        return self.embedding
 
     def __str__(self):
         return self.name

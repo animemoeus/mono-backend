@@ -25,6 +25,7 @@ class ProductTagAdmin(ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(ModelAdmin):
+    actions_detail = ["generate_embedding_detail"]
     list_display = (
         "name",
         "category",
@@ -37,7 +38,50 @@ class ProductAdmin(ModelAdmin):
     list_filter = ("show_product_in_store", "category")
     search_fields = ("name", "slug", "original_document_id", "stripe_product_id")
     readonly_fields = ("created_at", "updated_at")
+    exclude = ("embedding",)
     filter_horizontal = ("tags", "addons")
+
+    @action(
+        description="Generate embedding",
+        url_path="generate-embedding",
+        permissions=["generate_embedding_detail"],
+    )
+    def generate_embedding_detail(self, request: HttpRequest, object_id: int):
+        product = self.get_object(request, object_id)
+        if not product:
+            self.message_user(request, "Product not found.", level=messages.ERROR)
+            return redirect(reverse_lazy("admin:rent_ai_product_changelist"))
+
+        try:
+            product.generate_embedding(force=True)
+            self.message_user(request, f"Embedding generated for {product.name}.", level=messages.SUCCESS)
+        except Exception as exc:
+            self.message_user(request, f"Failed to generate embedding: {exc}", level=messages.ERROR)
+
+        return redirect(reverse_lazy("admin:rent_ai_product_change", args=(object_id,)))
+
+    def has_generate_embedding_detail_permission(self, request: HttpRequest, object_id):
+        return request.user.is_staff
+
+    @action(description="Generate embedding for selected products")
+    def generate_embedding_selected(self, request, queryset):
+        success_count = 0
+        fail_count = 0
+        for product in queryset:
+            try:
+                product.generate_embedding(force=True)
+                success_count += 1
+            except Exception:
+                fail_count += 1
+
+        if success_count:
+            self.message_user(request, f"Generated embedding for {success_count} product(s).", level=messages.SUCCESS)
+        if fail_count:
+            self.message_user(
+                request, f"Failed generating embedding for {fail_count} product(s).", level=messages.ERROR
+            )
+
+    actions = ["generate_embedding_selected"]
 
 
 @admin.register(ProductImage)
