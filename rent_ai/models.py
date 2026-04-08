@@ -78,7 +78,7 @@ class Product(models.Model):
         from backend.utils.openai import get_embedding
 
         self.embedding = get_embedding(text)
-        self.save(update_fields=["embedding", "updated_at"])
+        self.save(update_fields=["embedding"])
         return self.embedding
 
     def __str__(self):

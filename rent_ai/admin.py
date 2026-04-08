@@ -7,6 +7,7 @@ from unfold.admin import ModelAdmin
 from unfold.decorators import action
 
 from .models import Product, ProductCategory, ProductImage, ProductTag, Setting
+from .tasks import generate_product_embedding_task, generate_product_embeddings_task
 
 
 @admin.register(ProductCategory)
@@ -53,10 +54,10 @@ class ProductAdmin(ModelAdmin):
             return redirect(reverse_lazy("admin:rent_ai_product_changelist"))
 
         try:
-            product.generate_embedding(force=True)
-            self.message_user(request, f"Embedding generated for {product.name}.", level=messages.SUCCESS)
+            generate_product_embedding_task.delay(product.id, True)
+            self.message_user(request, f"Embedding queued for {product.name}.", level=messages.SUCCESS)
         except Exception as exc:
-            self.message_user(request, f"Failed to generate embedding: {exc}", level=messages.ERROR)
+            self.message_user(request, f"Failed to queue embedding: {exc}", level=messages.ERROR)
 
         return redirect(reverse_lazy("admin:rent_ai_product_change", args=(object_id,)))
 
@@ -65,21 +66,20 @@ class ProductAdmin(ModelAdmin):
 
     @action(description="Generate embedding for selected products")
     def generate_embedding_selected(self, request, queryset):
-        success_count = 0
-        fail_count = 0
-        for product in queryset:
-            try:
-                product.generate_embedding(force=True)
-                success_count += 1
-            except Exception:
-                fail_count += 1
+        product_ids = list(queryset.values_list("id", flat=True))
+        if not product_ids:
+            self.message_user(request, "No product selected.", level=messages.WARNING)
+            return
 
-        if success_count:
-            self.message_user(request, f"Generated embedding for {success_count} product(s).", level=messages.SUCCESS)
-        if fail_count:
+        try:
+            generate_product_embeddings_task.delay(product_ids, True)
             self.message_user(
-                request, f"Failed generating embedding for {fail_count} product(s).", level=messages.ERROR
+                request,
+                f"Embedding queued for {len(product_ids)} product(s).",
+                level=messages.SUCCESS,
             )
+        except Exception as exc:
+            self.message_user(request, f"Failed to queue embedding batch: {exc}", level=messages.ERROR)
 
     actions = ["generate_embedding_selected"]
 
