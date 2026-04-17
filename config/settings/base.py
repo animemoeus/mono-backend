@@ -111,6 +111,7 @@ LOCAL_APPS = [
     "cinematch",
     "discord",
     "tiktok",
+    "rent_ai",
     "waifu",
     "twitter_downloader",
 ]
