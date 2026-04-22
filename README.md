@@ -1,6 +1,7 @@
 # AnimeMoeUs Backend
 
-[![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
+> A personal monorepo for testing, prototyping, and somehow also running things in production. Nobody planned this. Here we are.
+
 [![codecov](https://codecov.io/gh/animemoeus/mono-backend/branch/master/graph/badge.svg?token=8UHQY5ZZSE)](https://codecov.io/gh/animemoeus/mono-backend)
 [![Black code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![Deployment](https://github.com/animemoeus/backend/actions/workflows/deployment.yml/badge.svg)](https://github.com/animemoeus/backend/actions/workflows/deployment.yml)
@@ -10,11 +11,13 @@
 
 ---
 
-- [📈 Uptime Robot](https://stats.uptimerobot.com/GKy6liBGw7)
-- [🧑‍⚕️ Health Check](https://api.animemoe.us/health-check/)
-- [👀 Admin Panel](https://api.animemoe.us/admin/)
-- [🌸 Django Flower](https://flower.animemoe.us/)
-- [📊 Docker Logs](https://dozzle.unklab.id/)
+Links you will bookmark, never revisit, and forget existed:
+
+- [📈 Uptime Robot](https://stats.uptimerobot.com/GKy6liBGw7) - for the thrill of watching a green dot that could turn red at any moment
+- [🧑‍⚕️ Health Check](https://api.animemoe.us/health-check/) - it says healthy. we choose to believe it
+- [👀 Admin Panel](https://api.animemoe.us/admin/) - where you go to fix things you broke from here
+- [🌸 Django Flower](https://flower.animemoe.us/) - a flower that monitors your task queue. very zen. very broken sometimes
+- [📊 Docker Logs](https://dozzle.unklab.id/) - a beautiful UI for reading errors you will not fix today
 
 ---
 
@@ -24,93 +27,104 @@
 
 [![Uptime Robot status](https://img.shields.io/uptimerobot/status/m797080158-bcfd7f8a26110828783eff90)](https://stats.uptimerobot.com/GKy6liBGw7/797080158) [![Uptime Robot ratio (30 days)](https://img.shields.io/uptimerobot/ratio/m797080158-bcfd7f8a26110828783eff90)](https://stats.uptimerobot.com/GKy6liBGw7/797080158)
 
+Discord expires CDN URLs after a while because apparently permanent links were too convenient. This service exists solely to work around that decision.
+
 #### https://docs.api.animemoe.us/discord/refresh-url
 
 ---
 
 ## Twitter Downloader
 
-### Docs: https://docs.api.animemoe.us/twitter-downloader/twitter-video-downloader-bot
+Twitter/X decided downloading your own content should cost money. Respectfully, no.
 
+### Docs: <https://docs.api.animemoe.us/twitter-downloader/twitter-video-downloader-bot>
 
 ---
 
-## Settings
-
-Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings.html).
-
 ## Basic Commands
+
+Everything runs inside Docker. If you are trying to run these commands directly on your OS, close the terminal, take a breath, and come back.
+
+### Start the Stack
+
+```bash
+docker compose -f local.yml up
+```
+
+Or in the background, if you have better things to watch than container logs scrolling forever:
+
+```bash
+docker compose -f local.yml up -d
+```
 
 ### Setting Up Your Users
 
-- To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
+To create a superuser account and feel a brief moment of power:
 
-- To create a **superuser account**, use this command:
+```bash
+docker compose -f local.yml exec django python manage.py createsuperuser
+```
 
-      $ python manage.py createsuperuser
+### Django Shell
 
-For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
+For when you need to poke the database and pretend you know what you are doing:
 
-### Type checks
+```bash
+docker compose -f local.yml exec django python manage.py shell
+```
 
-Running type checks with mypy:
+### Migrations
 
-    $ mypy backend
+Made changes to a model? Great. Now do this:
 
-### Test coverage
+```bash
+docker compose -f local.yml exec django python manage.py makemigrations
+docker compose -f local.yml exec django python manage.py migrate
+```
 
-To run the tests, check your test coverage, and generate an HTML coverage report:
+### Type Checks
 
-    $ coverage run -m pytest
-    $ coverage html
-    $ open htmlcov/index.html
+Running mypy because we like to pretend we write typed Python:
 
-#### Running tests with pytest
+```bash
+docker compose -f local.yml exec django mypy backend
+```
 
-    $ pytest
+### Test Coverage
 
-### Live reloading and Sass CSS compilation
+Run the tests, generate a coverage report, open it once, feel good about yourself, never open it again:
 
-Moved to [Live reloading and SASS compilation](https://cookiecutter-django.readthedocs.io/en/latest/developing-locally.html#sass-compilation-live-reloading).
+```bash
+docker compose -f local.yml exec django coverage run -m pytest
+docker compose -f local.yml exec django coverage html
+open htmlcov/index.html
+```
+
+Just pytest, no ceremony:
+
+```bash
+docker compose -f local.yml exec django pytest
+```
+
+Make sure all tests pass before pushing. Or push anyway and deal with it in CI like everyone else.
 
 ### Celery
 
-This app comes with Celery.
-
-To run a celery worker:
+Celery runs as its own containers (`celeryworker`, `celerybeat`) and starts automatically with the stack. You do not need to do anything unless something is broken, at which point you will be reading these logs and questioning your choices:
 
 ```bash
-cd backend
-celery -A config.celery_app worker -l info
-```
-
-Please note: For Celery's import magic to work, it is important _where_ the celery commands are run. If you are in the same folder with _manage.py_, you should be right.
-
-To run [periodic tasks](https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html), you'll need to start the celery beat scheduler service. You can start it as a standalone process:
-
-```bash
-cd backend
-celery -A config.celery_app beat
-```
-
-or you can embed the beat service inside a worker with the `-B` option (not recommended for production use):
-
-```bash
-cd backend
-celery -A config.celery_app worker -B -l info
+docker compose -f local.yml logs -f celeryworker
+docker compose -f local.yml logs -f celerybeat
 ```
 
 ### Sentry
 
-Sentry is an error logging aggregator service. You can sign up for a free account at <https://sentry.io/signup/?code=cookiecutter> or download and host it yourself.
-The system is set up with reasonable defaults, including 404 logging and integration with the WSGI application.
+Sentry catches errors so you do not have to find out about them from users. Sign up at <https://sentry.io/signup/> or self-host if you enjoy managing one more service that can go down.
 
-You must set the DSN url in production.
+Set the DSN URL in production. You will only forget once.
 
 ## Deployment
 
-The following details how to deploy this application.
-
 ### Docker
 
-See detailed [cookiecutter-django Docker documentation](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html).
+It is Docker. You know what to do. If you do not, maybe start there.
