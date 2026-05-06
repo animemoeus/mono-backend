@@ -6,6 +6,7 @@ volumes:
 services:
   django: &django
     restart: unless-stopped
+    mem_limit: 1g
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
@@ -44,6 +45,7 @@ services:
     <<: *django
     image: backend_production_celeryworker
     command: /start-celeryworker
+    mem_limit: 500m
     #deploy:
     #replicas: 2
 
