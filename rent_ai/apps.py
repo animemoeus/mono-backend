@@ -6,4 +6,4 @@ class RentAiConfig(AppConfig):
     name = "rent_ai"
 
     def ready(self):
-        import rent_ai.signals  # noqa: F401
+        import rent_ai.signals  # noqa: F401, PLC0415

@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model  # noqa: INP001
 from rest_framework import serializers
 
 from core.users.models import User as UserType

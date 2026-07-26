@@ -27,7 +27,7 @@ sys.path.append(str(BASE_DIR / "core"))
 # We defer to a DJANGO_SETTINGS_MODULE already in the environment. This breaks
 # if running multiple sites in the same mod_wsgi process. To fix this, use
 # mod_wsgi daemon mode with each site in its own daemon process, or use
-# os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.production"
+# os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.production"  # noqa: ERA001
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production")
 
 django_application = get_asgi_application()
@@ -35,7 +35,7 @@ django_application = get_asgi_application()
 
 async def application(scope, receive, send):
     if scope["type"] == "websocket":
-        from config.websocket import websocket_application
+        from config.websocket import websocket_application  # noqa: PLC0415
 
         await websocket_application(scope, receive, send)
     else:

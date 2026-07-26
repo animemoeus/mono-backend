@@ -26,7 +26,7 @@ class TestUserViewSet:
 
         view.request = request
 
-        response = view.me(request)  # type: ignore
+        response = view.me(request)  # type: ignore  # noqa: PGH003
 
         assert response.data == {
             "username": user.username,

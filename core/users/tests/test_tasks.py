@@ -13,4 +13,4 @@ def test_user_count(settings):
     settings.CELERY_TASK_ALWAYS_EAGER = True
     task_result = get_users_count.delay()
     assert isinstance(task_result, EagerResult)
-    assert task_result.result == 3
+    assert task_result.result == 3  # noqa: PLR2004

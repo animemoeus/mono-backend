@@ -26,11 +26,13 @@ def get_embedding(text: str, model: str = "text-embedding-3-small") -> list[floa
         response = openai_client.embeddings.create(input=text, model=model)
         return response.data[0].embedding
     except Exception as e:
-        logger.error(f"Failed to get embedding for text: {e}")
+        logger.error(f"Failed to get embedding for text: {e}")  # noqa: G004, TRY400
         raise
 
 
-def get_embeddings_batch(texts: list[str], model: str = "text-embedding-3-small") -> list[list[float]]:
+def get_embeddings_batch(
+    texts: list[str], model: str = "text-embedding-3-small"
+) -> list[list[float]]:
     """
     Get embeddings for multiple texts in a single API call.
 
@@ -48,5 +50,5 @@ def get_embeddings_batch(texts: list[str], model: str = "text-embedding-3-small"
         response = openai_client.embeddings.create(input=texts, model=model)
         return [data.embedding for data in response.data]
     except Exception as e:
-        logger.error(f"Failed to get batch embeddings: {e}")
+        logger.error(f"Failed to get batch embeddings: {e}")  # noqa: G004, TRY400
         raise

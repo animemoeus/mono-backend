@@ -12,10 +12,12 @@ class ValidateTelegramMiniAppDataSerializer(Serializer):
 
     def validate_init_data(self, value):
         try:
-            mini_app_data = validate_telegram_mini_app_data(value, settings.TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN)
+            mini_app_data = validate_telegram_mini_app_data(
+                value, settings.TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN
+            )
             self.create_or_update_telegram_user(mini_app_data)
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
+        except Exception as e:  # noqa: BLE001
+            raise serializers.ValidationError(str(e))  # noqa: B904
 
         return value
 

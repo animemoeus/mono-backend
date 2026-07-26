@@ -7,7 +7,7 @@ class UsersConfig(AppConfig):
     verbose_name = _("Users")
 
     def ready(self):
-        try:
-            import core.users.signals  # noqa: F401
+        try:  # noqa: SIM105
+            import core.users.signals  # noqa: F401, PLC0415
         except ImportError:
             pass

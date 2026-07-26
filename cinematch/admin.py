@@ -2,7 +2,9 @@ from django.contrib import admin
 from unfold.admin import ModelAdmin
 from unfold.contrib.filters.admin import AutocompleteSelectFilter
 
-from .models import Genre, Movie, Talent
+from .models import Genre
+from .models import Movie
+from .models import Talent
 
 
 @admin.register(Genre)
@@ -54,7 +56,7 @@ class MovieAdmin(ModelAdmin):
                     "release_date",
                     "rating",
                     "original_language",
-                )
+                ),
             },
         ),
         (

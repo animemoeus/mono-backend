@@ -32,22 +32,13 @@
                 "[python]": {
                     "analysis.autoImportCompletions": true,
                     "analysis.typeCheckingMode": "basic",
-                    "defaultInterpreterPath": "/usr/local/bin/python",
+                    "defaultInterpreterPath": "/venv/bin/python",
                     "editor.codeActionsOnSave": {
-                        "source.organizeImports": true
+                        "source.organizeImports": "explicit",
+                        "source.fixAll": "explicit"
                     },
-                    "editor.defaultFormatter": "ms-python.black-formatter",
-                    "formatting.blackPath": "/usr/local/bin/black",
-                    "formatting.provider": "black",
-                    "languageServer": "Pylance",
-                    "linting.enabled": true,
-                    "linting.flake8Enabled": true,
-                    "linting.flake8Path": "/usr/local/bin/flake8",
-                    "linting.mypyEnabled": true,
-                    "linting.mypyPath": "/usr/local/bin/mypy",
-                    "linting.pycodestylePath": "/usr/local/bin/pycodestyle",
-                    "linting.pylintEnabled": true,
-                    "linting.pylintPath": "/usr/local/bin/pylint"
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "languageServer": "Pylance"
                 }
             },
             "extensions": [
@@ -57,8 +48,7 @@
                 "visualstudioexptteam.intellicode-api-usage-examples",
                 "ms-python.python",
                 "ms-python.vscode-pylance",
-                "ms-python.isort",
-                "ms-python.black-formatter",
+                "charliermarsh.ruff",
                 "batisteo.vscode-django"
             ]
         }

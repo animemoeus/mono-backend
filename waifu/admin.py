@@ -1,9 +1,11 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from .models import DiscordWebhook, Image, TelegramUser
+from .models import DiscordWebhook
+from .models import Image
+from .models import TelegramUser
 
-# from import_export.admin import ImportExportModelAdmin
+# from import_export.admin import ImportExportModelAdmin  # noqa: ERA001
 
 
 @admin.register(Image)

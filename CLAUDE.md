@@ -54,14 +54,11 @@ pytest instagram/tests/
 
 ### Code Quality
 ```bash
-# Format code with black
-black .
+# Format code with ruff
+ruff format .
 
-# Check imports with isort
-isort .
-
-# Lint with flake8
-flake8
+# Lint (and auto-fix) with ruff
+ruff check --fix .
 
 # Type checking with mypy
 mypy core
@@ -117,8 +114,7 @@ celery -A config.celery_app worker -B -l info
 ### Key Configuration Files
 - `config/settings/base.py`: Core Django settings
 - `config/settings/local.py`: Development-specific settings
-- `pyproject.toml`: Tool configurations (pytest, black, isort, mypy)
-- `setup.cfg`: flake8 and pycodestyle configuration
+- `pyproject.toml`: Tool configurations (pytest, ruff, mypy)
 - `.pre-commit-config.yaml`: Pre-commit hooks configuration
 
 ### Database Architecture

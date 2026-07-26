@@ -30,7 +30,7 @@ class TelegramWebhookParser:
     def data(self) -> dict | None:
         try:
             data = json.loads(self.request_data)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return None
 
         # Reject if not first message (eg. edited or deleted message)
@@ -51,20 +51,22 @@ class TelegramWebhookParser:
 
         try:
             payload = json.loads(self.request_data)
-        except Exception:
-            raise Exception("Failed to parse JSON payload ☠️")
+        except Exception:  # noqa: BLE001
+            raise Exception("Failed to parse JSON payload ☠️")  # noqa: B904, EM101, TRY002, TRY003
 
         message = payload.get("message", None)
         edited_message = payload.get("edited_message", None)
 
         if not message and not edited_message:
-            raise Exception("Unable to find `message` and `edited_message` data 😿")
+            raise Exception("Unable to find `message` and `edited_message` data 😿")  # noqa: EM101, TRY002, TRY003
 
         user_data = message.get("from") or edited_message.get("from")
 
         for key in required_keys:
             if not user_data.get(key):
-                raise Exception(f"Unable to get the user information because `{key}` is missing 😾")
+                raise Exception(  # noqa: TRY002, TRY003
+                    f"Unable to get the user information because `{key}` is missing 😾"  # noqa: EM102
+                )
 
         return {
             "id": user_data.get("id"),
@@ -76,20 +78,22 @@ class TelegramWebhookParser:
     def get_text_message(self) -> str:
         try:
             payload = json.loads(self.request_data)
-        except Exception:
-            raise Exception("Failed to parse JSON payload ☠️")
+        except Exception:  # noqa: BLE001
+            raise Exception("Failed to parse JSON payload ☠️")  # noqa: B904, EM101, TRY002, TRY003
 
         message = payload.get("message", None)
 
         if not message:
-            raise Exception("Message is not available 😿")
+            raise Exception("Message is not available 😿")  # noqa: EM101, TRY002, TRY003
 
         text = message.get("text")
-        return text
+        return text  # noqa: RET504
 
 
 def validate_telegram_mini_app_data(
-    query_string: str, bot_token: str, constant_str: str = "WebAppData"
+    query_string: str,
+    bot_token: str,
+    constant_str: str = "WebAppData",
 ) -> TelegramMiniAppData:
     """
     Validates the data received from the Telegram web app, using the
@@ -110,15 +114,19 @@ def validate_telegram_mini_app_data(
     data_string = "\n".join([f"{key}={value}" for key, value in sorted_data])
 
     # Generate the secret key using the constant string and bot token
-    secret_key = hmac.new(constant_str.encode(), bot_token.encode(), hashlib.sha256).digest()
+    secret_key = hmac.new(
+        constant_str.encode(), bot_token.encode(), hashlib.sha256
+    ).digest()
 
     # Generate the data check hash using the secret key and sorted data string
-    calculated_hash = hmac.new(secret_key, data_string.encode(), hashlib.sha256).hexdigest()
+    calculated_hash = hmac.new(
+        secret_key, data_string.encode(), hashlib.sha256
+    ).hexdigest()
 
     # Validate the received hash with the calculated hash
     if not calculated_hash == received_hash:
-        raise Exception(
-            f"The given data hash is not valid! Received hash: {received_hash}, Calculated hash: {calculated_hash}"
+        raise Exception(  # noqa: TRY002, TRY003
+            f"The given data hash is not valid! Received hash: {received_hash}, Calculated hash: {calculated_hash}",  # noqa: E501, EM102
         )
 
     user_data = json.loads(parsed_data["user"])

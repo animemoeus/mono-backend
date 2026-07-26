@@ -3,17 +3,23 @@ import re
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
-from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.filters import OrderingFilter
+from rest_framework.filters import SearchFilter
+from rest_framework.generics import GenericAPIView
+from rest_framework.generics import ListAPIView
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.utils.telegram import TelegramWebhookParser
 
-from .models import Image, TelegramUser
+from .models import Image
+from .models import TelegramUser
 from .pagination import WaifuListPagination
-from .serializers import WaifuDetailSerializer, WaifuListSerialzer
-from .utils import PixivIllust, refresh_serializer_data_urls
+from .serializers import WaifuDetailSerializer
+from .serializers import WaifuListSerialzer
+from .utils import PixivIllust
+from .utils import refresh_serializer_data_urls
 
 
 class WaifuListView(ListAPIView):
@@ -22,7 +28,13 @@ class WaifuListView(ListAPIView):
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     ordering = ["-id"]
-    ordering_fields = ["created_at", "updated_at", "creator_name", "creator_username", "id"]
+    ordering_fields = [
+        "created_at",
+        "updated_at",
+        "creator_name",
+        "creator_username",
+        "id",
+    ]
     search_fields = ["caption", "creator_name", "creator_username"]
     filterset_fields = [
         "is_nsfw",
@@ -35,9 +47,13 @@ class WaifuListView(ListAPIView):
 
     def get_queryset(self):
         nsfw = self.request.query_params.get("nsfw")
-        queryset = Image.objects.all().order_by("-id") if nsfw else Image.objects.filter(is_nsfw=False).order_by("-id")
+        queryset = (
+            Image.objects.all().order_by("-id")
+            if nsfw
+            else Image.objects.filter(is_nsfw=False).order_by("-id")
+        )
 
-        return queryset
+        return queryset  # noqa: RET504
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -69,7 +85,7 @@ class RandomWaifuView(GenericAPIView):
         total_records = Image.objects.count()
 
         # Generate a random index within the range of total_records
-        random_index = random.randint(0, total_records - 1)
+        random_index = random.randint(0, total_records - 1)  # noqa: S311
 
         # Retrieve a single random record using the generated index
         return Image.objects.order_by("id")[random_index]
@@ -92,7 +108,9 @@ class TelegramUserWebhook(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            telegram_user = TelegramUser.objects.get(user_id=webhook.data.get("user").get("id"))
+            telegram_user = TelegramUser.objects.get(
+                user_id=webhook.data.get("user").get("id")
+            )
         except TelegramUser.DoesNotExist:
             telegram_user = TelegramUser.objects.create(
                 user_id=webhook.data.get("user").get("id"),
@@ -110,7 +128,7 @@ class TelegramUserWebhook(APIView):
             return Response(TelegramUserWebhook.INACTIVE_ACCOUNT_MESSAGE)
 
         if webhook.data.get("text_message") == "/start":
-            telegram_user.send_message("(～￣▽￣)～")
+            telegram_user.send_message("(～￣▽￣)～")  # noqa: RUF001
 
         if "https://www.pixiv.net/" in webhook.data.get("text_message"):
             url_pattern = re.compile(r"https://www.pixiv.net/\S+")
@@ -120,7 +138,9 @@ class TelegramUserWebhook(APIView):
             if match:
                 illust_link = match.group()
             else:
-                telegram_user.send_message("Can't get the Pixiv illustation URL from the message 🥲")
+                telegram_user.send_message(
+                    "Can't get the Pixiv illustation URL from the message 🥲"
+                )
 
             pixiv_illust = PixivIllust(illust_link)
             pixiv_illust.save()

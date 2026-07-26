@@ -24,7 +24,9 @@ class SafelinkView(View):
     def get(self, request):
         uuid = request.GET.get("key", None)
 
-        return render(request, "twitter_downloader/download.html", context={"uuid": uuid})
+        return render(
+            request, "twitter_downloader/download.html", context={"uuid": uuid}
+        )
 
     def post(self, request):
         uuid = request.POST.get("uuid")
@@ -40,7 +42,7 @@ class SafelinkView(View):
                     "videos": videos,
                     "thumbnail": tweet_data.get("thumbnail"),
                     "is_nsfw": tweet_data.get("is_nsfw"),
-                }
+                },
             )
             forward_tweet_to_channel.delay(str(tweet.uuid))
 
@@ -63,7 +65,7 @@ class TelegramWebhookView(APIView):
 
         webhook = TelegramWebhookParser(request.body)
         if not webhook.data:
-            # Telegram webhook mechanism will try to retry sending the request if it fails
+            # Telegram webhook mechanism will try to retry sending the request if it fails  # noqa: E501
             # So we need to return 200 OK to avoid Telegram from retrying
             return Response(status=status.HTTP_200_OK)
 
@@ -126,7 +128,10 @@ class TelegramWebhookView(APIView):
             self.handle_about_command(telegram_user)
 
         # Handle tweet link
-        elif "https://x.com" in message.lower() or "https://twitter.com" in message.lower():
+        elif (
+            "https://x.com" in message.lower()
+            or "https://twitter.com" in message.lower()
+        ):
             telegram_user.send_chat_action("typing")
             self.handle_tweet_link(telegram_user, message)
 
@@ -135,27 +140,37 @@ class TelegramWebhookView(APIView):
             self.handle_other_messages(telegram_user)
 
     def handle_start_command(self, telegram_user):
-        telegram_user.send_message("Welcome to Twitter Video Downloader Bot!\n\no(*￣▽￣*)ブ")
-        telegram_user.send_message("Send me a tweet link and I will send you the video and download link!")
+        telegram_user.send_message(
+            "Welcome to Twitter Video Downloader Bot!\n\no(*￣▽￣*)ブ"
+        )
+        telegram_user.send_message(
+            "Send me a tweet link and I will send you the video and download link!"
+        )
 
     def handle_contact_command(self, telegram_user):
-        telegram_user.send_message("Please contact me at arter@animemoe.us for any inquiries.")
+        telegram_user.send_message(
+            "Please contact me at arter@animemoe.us for any inquiries."
+        )
 
     def handle_about_command(self, telegram_user):
         about_message = "This is the Twitter Video Downloader Bot.\n\n"
-        about_message += "It allows you to download videos from Twitter by sending a tweet link.\n\n"
+        about_message += (
+            "It allows you to download videos from Twitter by sending a tweet link.\n\n"
+        )
         about_message += "Developed by Arter Tendean.\n\n"
-        about_message += "For more information, visit our website at https://animemoe.us"
+        about_message += (
+            "For more information, visit our website at https://animemoe.us"
+        )
         telegram_user.send_message(about_message)
 
-    def handle_tweet_link(self, telegram_user, message):
+    def handle_tweet_link(self, telegram_user, message):  # noqa: RET503
         # Extract all strings starting with "https"
         urls = re.findall(r"https://\S+", message.lower())
         url = urls[0] if urls else None
 
         if not url:
             telegram_user.send_message(
-                "Hmm... I couldn't find a valid tweet URL in your message. Could you double-check it? 😊"
+                "Hmm... I couldn't find a valid tweet URL in your message. Could you double-check it? 😊",  # noqa: E501
             )
             return Response(status=status.HTTP_200_OK)
 
@@ -163,14 +178,18 @@ class TelegramWebhookView(APIView):
 
         try:
             tweet_data = twitter_api.get_tweet_data(url)
-        except Exception:
-            telegram_user.send_message("Sorry, I can't find any video in that tweet link.")
+        except Exception:  # noqa: BLE001
+            telegram_user.send_message(
+                "Sorry, I can't find any video in that tweet link."
+            )
             return Response(status=status.HTTP_200_OK)
 
-        print("tweet_data", tweet_data)
+        print("tweet_data", tweet_data)  # noqa: T201
 
         if not tweet_data or not tweet_data.get("success"):
-            telegram_user.send_message("Sorry, I can't find any video in that tweet link.")
+            telegram_user.send_message(
+                "Sorry, I can't find any video in that tweet link."
+            )
             return Response()
 
         downloaded_tweet = DownloadedTweet.objects.create(
@@ -183,7 +202,7 @@ class TelegramWebhookView(APIView):
 
     def handle_other_messages(self, telegram_user):
         telegram_user.send_message(
-            "Haha, I'm just a bot.\n\nI can't understand everything.\n\nTry sending a different command!"
+            "Haha, I'm just a bot.\n\nI can't understand everything.\n\nTry sending a different command!",  # noqa: E501
         )
 
 
