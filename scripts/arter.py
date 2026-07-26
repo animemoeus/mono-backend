@@ -1,5 +1,5 @@
-from backend.utils import openai
 from cinematch.models import Movie
+from core.utils import openai
 
 
 def run():

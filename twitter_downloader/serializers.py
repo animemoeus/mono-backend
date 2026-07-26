@@ -2,7 +2,7 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.serializers import Serializer
 
-from backend.utils.telegram import validate_telegram_mini_app_data
+from core.utils.telegram import validate_telegram_mini_app_data
 
 from .models import TelegramUser
 

@@ -87,7 +87,7 @@ docker compose -f local.yml exec django python manage.py migrate
 Running mypy because we like to pretend we write typed Python:
 
 ```bash
-docker compose -f local.yml exec django mypy backend
+docker compose -f local.yml exec django mypy core
 ```
 
 ### Test Coverage

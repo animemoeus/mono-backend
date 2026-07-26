@@ -8,7 +8,7 @@ from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from backend.utils.telegram import TelegramWebhookParser
+from core.utils.telegram import TelegramWebhookParser
 
 from .models import Image, TelegramUser
 from .pagination import WaifuListPagination

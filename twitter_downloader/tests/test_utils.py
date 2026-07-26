@@ -1,7 +1,7 @@
 # from django.conf import settings
 # from django.test import TestCase
 
-# from backend.utils.telegram import validate_telegram_mini_app_data
+# from core.utils.telegram import validate_telegram_mini_app_data
 # from twitter_downloader.utils import TwitterDownloaderAPIV3, get_tweet_id_from_url
 
 # class TestTwitterDownloader(TestCase):

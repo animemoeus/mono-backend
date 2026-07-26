@@ -27,7 +27,7 @@ django.setup()
 
 # -- Project information -----------------------------------------------------
 
-project = "backend"
+project = "core"
 copyright = """2023, Arter Tendean"""
 author = "Arter Tendean"
 

@@ -75,7 +75,7 @@ class Product(models.Model):
         if not text:
             raise ValueError("Product has no text content for embedding.")
 
-        from backend.utils.openai import get_embedding
+        from core.utils.openai import get_embedding
 
         self.embedding = get_embedding(text)
         self.save(update_fields=["embedding"])

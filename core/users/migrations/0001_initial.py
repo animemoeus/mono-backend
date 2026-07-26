@@ -3,7 +3,7 @@ import django.contrib.auth.validators
 from django.db import migrations, models
 import django.utils.timezone
 
-import backend.users.models
+import core.users.models
 
 
 class Migration(migrations.Migration):

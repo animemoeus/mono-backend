@@ -2,7 +2,7 @@ from pgvector.django import CosineDistance
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView
 
-from backend.utils.openai import get_embedding
+from core.utils.openai import get_embedding
 
 from .models import Movie
 from .pagination import MovieRecommendationPagination
