@@ -1,5 +1,4 @@
-from unittest.mock import Mock
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.test import TestCase
 
@@ -18,9 +17,7 @@ class TestTikTokUser(TestCase):
         # First call: get_user_id (fetch_user_profile)
         mock_response_1 = Mock()
         mock_response_1.ok = True
-        mock_response_1.json.return_value = {
-            "data": {"userInfo": {"user": {"secUid": expected_sec_uid}}}
-        }
+        mock_response_1.json.return_value = {"data": {"userInfo": {"user": {"secUid": expected_sec_uid}}}}
 
         # Second call: get_user_info (handler_user_profile)
         mock_response_2 = Mock()
@@ -34,8 +31,8 @@ class TestTikTokUser(TestCase):
                     "follower_count": 100,
                     "following_count": 50,
                     "visible_videos_count": 10,
-                },
-            },
+                }
+            }
         }
 
         mock_request.side_effect = [mock_response_1, mock_response_2]
@@ -46,5 +43,5 @@ class TestTikTokUser(TestCase):
         mock_get.return_value = mock_avatar_response
 
         self.user.update_data_from_api()
-        self.assertNotEqual(self.user.user_id, "")  # noqa: PT009
-        self.assertNotEqual(self.user.avatar_url, "")  # noqa: PT009
+        self.assertNotEqual(self.user.user_id, "")
+        self.assertNotEqual(self.user.avatar_url, "")

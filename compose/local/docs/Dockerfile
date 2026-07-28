@@ -1,34 +1,28 @@
 # define an alias for the specific python version used in this file.
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim as python
+FROM python:3.11.13-slim-bullseye as python
 
 
 # Python build stage
 FROM python as python-build-stage
 
 ENV PYTHONDONTWRITEBYTECODE 1
-ENV UV_COMPILE_BYTECODE=1
-ENV UV_LINK_MODE=copy
-# Keep the venv outside of /app: the (optional) docs service bind-mounts
-# ./config and ./core over their /app counterparts, which would otherwise
-# shadow a venv built at the default /app/.venv.
-ENV UV_PROJECT_ENVIRONMENT=/venv
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
-  # psycopg dependencies
+  # psycopg2 dependencies
   libpq-dev \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Requirements are installed here to ensure they will be cached.
+COPY ./requirements /requirements
 
-# Dependency manifests are copied first to keep this layer cached.
-COPY pyproject.toml uv.lock ./
-
-# Resolve and install dependencies (including the dev group, for Sphinx) into /venv.
-RUN uv sync --frozen
+# create python dependency wheels
+RUN pip wheel --no-cache-dir --wheel-dir /usr/src/app/wheels  \
+  -r /requirements/local.txt -r /requirements/production.txt \
+  && rm -rf /requirements
 
 
 # Python 'run' stage
@@ -41,7 +35,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # To run the Makefile
   make \
-  # psycopg dependencies
+  # psycopg2 dependencies
   libpq-dev \
   # Translations dependencies
   gettext \
@@ -54,9 +48,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
 
-# copy the virtualenv built in python-build-stage
-COPY --from=python-build-stage /venv /venv
-ENV PATH="/venv/bin:$PATH"
+# copy python dependency wheels from python-build-stage
+COPY --from=python-build-stage /usr/src/app/wheels /wheels
+
+# use wheels to install python dependencies
+RUN pip install --no-cache /wheels/* \
+  && rm -rf /wheels
 
 COPY ./compose/local/docs/start /start-docs
 RUN sed -i 's/\r$//g' /start-docs

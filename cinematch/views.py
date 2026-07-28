@@ -2,7 +2,7 @@ from pgvector.django import CosineDistance
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView
 
-from core.utils.openai import get_embedding
+from backend.utils.openai import get_embedding
 
 from .models import Movie
 from .pagination import MovieRecommendationPagination
@@ -21,7 +21,7 @@ class MovieRecommendationAPIView(ListAPIView):
         query = self.request.query_params.get("query")
 
         if not query:
-            raise ValidationError("Query parameter is required")  # noqa: EM101, TRY003
+            raise ValidationError("Query parameter is required")
 
         try:
             # Generate embedding for the search query
@@ -30,14 +30,12 @@ class MovieRecommendationAPIView(ListAPIView):
             # Find movies with similar embeddings using cosine distance
             similar_movies = (
                 Movie.objects.filter(embedding__isnull=False)
-                .annotate(
-                    similarity_score=1 - CosineDistance("embedding", query_embedding)
-                )
+                .annotate(similarity_score=1 - CosineDistance("embedding", query_embedding))
                 .order_by("-similarity_score")
                 .prefetch_related("genre", "talent")
             )
 
-            return similar_movies  # noqa: RET504, TRY300
+            return similar_movies
 
-        except Exception as e:  # noqa: BLE001
-            raise ValidationError(f"Failed to generate recommendations: {e!s}")  # noqa: B904, EM102, TRY003
+        except Exception as e:
+            raise ValidationError(f"Failed to generate recommendations: {str(e)}")

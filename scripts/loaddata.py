@@ -2,33 +2,28 @@
 Django runscript to load movie data from CSV into cinematch models.
 
 Usage: python manage.py runscript loaddata
-"""  # noqa: INP001
+"""
 
 import csv
 import os
 from datetime import datetime
-from decimal import Decimal
-from decimal import InvalidOperation
+from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
 from django.db import transaction
 
-from cinematch.models import Genre
-from cinematch.models import Movie
-from cinematch.models import Talent
+from cinematch.models import Genre, Movie, Talent
 
 
 def run():
     """Main function executed by django-extensions runscript."""
-    csv_path = os.path.join(  # noqa: PTH118
-        settings.BASE_DIR, "scripts", "cinematch", "imdb_movies.csv"
-    )
+    csv_path = os.path.join(settings.BASE_DIR, "scripts", "cinematch", "imdb_movies.csv")
 
-    if not os.path.exists(csv_path):  # noqa: PTH110
-        print(f"Error: CSV file not found at {csv_path}")  # noqa: T201
+    if not os.path.exists(csv_path):
+        print(f"Error: CSV file not found at {csv_path}")
         return
 
-    print(f"Loading movie data from: {csv_path}")  # noqa: T201
+    print(f"Loading movie data from: {csv_path}")
 
     # Statistics counters
     stats = {
@@ -41,7 +36,7 @@ def run():
         "errors": [],
     }
 
-    with open(csv_path, encoding="utf-8") as csvfile:  # noqa: PTH123
+    with open(csv_path, encoding="utf-8") as csvfile:
         # Detect delimiter and read CSV
         sample = csvfile.read(1024)
         csvfile.seek(0)
@@ -58,36 +53,36 @@ def run():
 
                     # Progress indicator
                     if stats["rows_processed"] % 50 == 0:
-                        print(f"Processed {stats['rows_processed']} movies...")  # noqa: T201
+                        print(f"Processed {stats['rows_processed']} movies...")
 
-                except Exception as e:  # noqa: BLE001
+                except Exception as e:
                     stats["rows_skipped"] += 1
-                    stats["errors"].append(f"Row {row_num}: {e!s}")
-                    print(f"Skipping row {row_num}: {e!s}")  # noqa: T201
+                    stats["errors"].append(f"Row {row_num}: {str(e)}")
+                    print(f"Skipping row {row_num}: {str(e)}")
                     continue
 
     # Print final statistics
     print_statistics(stats)
 
 
-def process_movie_row(row, stats):  # noqa: C901, PLR0912, PLR0915
+def process_movie_row(row, stats):
     """Process a single CSV row and create/update movie data."""
 
     # Extract and validate basic movie data
     title = row.get("names", "").strip()
     if not title:
-        raise ValueError("Missing movie title")  # noqa: EM101, TRY003
+        raise ValueError("Missing movie title")
 
     # Parse release date
     date_str = row.get("date_x", "").strip()
     if not date_str:
-        raise ValueError("Missing release date")  # noqa: EM101, TRY003
+        raise ValueError("Missing release date")
 
     try:
         # Parse MM/dd/yyyy format
-        release_date = datetime.strptime(date_str, "%m/%d/%Y").date()  # noqa: DTZ007
+        release_date = datetime.strptime(date_str, "%m/%d/%Y").date()
     except ValueError:
-        raise ValueError(f"Invalid date format: {date_str}")  # noqa: B904, EM102, TRY003
+        raise ValueError(f"Invalid date format: {date_str}")
 
     # Parse rating
     score_str = row.get("score", "").strip()
@@ -95,7 +90,7 @@ def process_movie_row(row, stats):  # noqa: C901, PLR0912, PLR0915
         try:
             rating = Decimal(str(score_str))
             # Ensure rating is within reasonable bounds
-            if rating < 0 or rating > 10:  # noqa: PLR2004
+            if rating < 0 or rating > 10:
                 rating = None
         except (InvalidOperation, ValueError):
             rating = None
@@ -150,7 +145,7 @@ def process_movie_row(row, stats):  # noqa: C901, PLR0912, PLR0915
     crew_str = row.get("crew", "").strip()
     if crew_str:
         # Parse crew field which contains actor names separated by commas
-        # Format appears to be: "Actor Name, Character Name, Actor Name, Character Name, ..."  # noqa: E501
+        # Format appears to be: "Actor Name, Character Name, Actor Name, Character Name, ..."
         crew_parts = [part.strip() for part in crew_str.split(",") if part.strip()]
 
         # Extract actor names using simple heuristics
@@ -158,17 +153,14 @@ def process_movie_row(row, stats):  # noqa: C901, PLR0912, PLR0915
         actor_names = []
         for part in crew_parts:
             # Skip parts that look like character names (contain certain patterns)
-            if not any(
-                pattern in part.lower()
-                for pattern in ["(voice)", "voice)", "(", "character"]
-            ):
+            if not any(pattern in part.lower() for pattern in ["(voice)", "voice)", "(", "character"]):
                 # Take names that look like person names (contain spaces or are short)
                 if " " in part or len(part.split()) == 1:
                     actor_names.append(part)
 
         # Limit to first 10 actors to avoid too much noise
         for actor_name in actor_names[:10]:
-            if len(actor_name) > 2:  # Basic validation  # noqa: PLR2004
+            if len(actor_name) > 2:  # Basic validation
                 talent, created = Talent.objects.get_or_create(name=actor_name)
                 if created:
                     stats["talents_created"] += 1
@@ -177,23 +169,23 @@ def process_movie_row(row, stats):  # noqa: C901, PLR0912, PLR0915
 
 def print_statistics(stats):
     """Print final loading statistics."""
-    print("\n" + "=" * 50)  # noqa: T201
-    print("MOVIE DATA LOADING COMPLETE")  # noqa: T201
-    print("=" * 50)  # noqa: T201
-    print(f"Rows processed: {stats['rows_processed']}")  # noqa: T201
-    print(f"Rows skipped: {stats['rows_skipped']}")  # noqa: T201
-    print(f"Movies created: {stats['movies_created']}")  # noqa: T201
-    print(f"Movies updated: {stats['movies_updated']}")  # noqa: T201
-    print(f"Genres created: {stats['genres_created']}")  # noqa: T201
-    print(f"Talents created: {stats['talents_created']}")  # noqa: T201
+    print("\n" + "=" * 50)
+    print("MOVIE DATA LOADING COMPLETE")
+    print("=" * 50)
+    print(f"Rows processed: {stats['rows_processed']}")
+    print(f"Rows skipped: {stats['rows_skipped']}")
+    print(f"Movies created: {stats['movies_created']}")
+    print(f"Movies updated: {stats['movies_updated']}")
+    print(f"Genres created: {stats['genres_created']}")
+    print(f"Talents created: {stats['talents_created']}")
 
     if stats["errors"]:
-        print(f"\nErrors encountered: {len(stats['errors'])}")  # noqa: T201
-        print("First 5 errors:")  # noqa: T201
+        print(f"\nErrors encountered: {len(stats['errors'])}")
+        print("First 5 errors:")
         for error in stats["errors"][:5]:
-            print(f"  - {error}")  # noqa: T201
+            print(f"  - {error}")
 
-        if len(stats["errors"]) > 5:  # noqa: PLR2004
-            print(f"  ... and {len(stats['errors']) - 5} more errors")  # noqa: T201
+        if len(stats["errors"]) > 5:
+            print(f"  ... and {len(stats['errors']) - 5} more errors")
 
-    print("=" * 50)  # noqa: T201
+    print("=" * 50)

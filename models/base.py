@@ -4,8 +4,7 @@ from typing import Literal
 import requests
 import tenacity
 from django.db import models
-from tenacity import stop_after_attempt
-from tenacity import stop_after_delay
+from tenacity import stop_after_attempt, stop_after_delay
 
 
 class BaseTelegramUserModel(models.Model):
@@ -14,7 +13,7 @@ class BaseTelegramUserModel(models.Model):
 
     BOT_TOKEN = None
 
-    user_id = models.CharField(max_length=25, unique=True)  # noqa: DJ012
+    user_id = models.CharField(max_length=25, unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255, blank=True, default="")
     username = models.CharField(max_length=255, blank=True, default="")
@@ -34,7 +33,7 @@ class BaseTelegramUserModel(models.Model):
         payload = json.dumps({"chat_id": self.user_id, "action": action})
         headers = {"Content-Type": "application/json"}
 
-        response = requests.request("POST", url, headers=headers, data=payload)  # noqa: S113
+        response = requests.request("POST", url, headers=headers, data=payload)
         return response.ok
 
     @tenacity.retry(stop=(stop_after_delay(10) | stop_after_attempt(5)))
@@ -42,27 +41,18 @@ class BaseTelegramUserModel(models.Model):
         self.send_chat_action("typing")
 
         url = f"https://api.telegram.org/bot{self.BOT_TOKEN}/sendMessage"
-        payload = json.dumps(
-            {"chat_id": self.user_id, "text": message, "parse_mode": "HTML"}
-        )
+        payload = json.dumps({"chat_id": self.user_id, "text": message, "parse_mode": "HTML"})
         headers = {"Content-Type": "application/json"}
 
-        response = requests.request("POST", url, headers=headers, data=payload)  # noqa: S113
+        response = requests.request("POST", url, headers=headers, data=payload)
         return response.ok
 
     def send_document(self, document, caption="") -> bool:
         self.send_chat_action("upload_document")
 
         url = f"https://api.telegram.org/bot{self.BOT_TOKEN}/sendDocument"
-        payload = json.dumps(
-            {
-                "chat_id": self.user_id,
-                "document": document,
-                "caption": caption,
-                "parse_mode": "HTML",
-            }
-        )
+        payload = json.dumps({"chat_id": self.user_id, "document": document, "caption": caption, "parse_mode": "HTML"})
         headers = {"Content-Type": "application/json"}
 
-        response = requests.request("POST", url, headers=headers, data=payload)  # noqa: S113
+        response = requests.request("POST", url, headers=headers, data=payload)
         return response.ok

@@ -39,18 +39,16 @@ def refresh_expired_urls(urls: list[str]) -> dict:
     }
     payload = json.dumps({"attachment_urls": urls})
 
-    response = requests.request("POST", api_url, headers=headers, data=payload)  # noqa: S113
+    response = requests.request("POST", api_url, headers=headers, data=payload)
     if not response.ok:
-        raise Exception(  # noqa: TRY002, TRY003
-            "Oh no! Failed to refresh URLs. Discord API isn’t playing nice right now."  # noqa: EM101, RUF001
-        )
+        raise Exception("Oh no! Failed to refresh URLs. Discord API isn’t playing nice right now.")
 
     result = {
         data.get("original"): data.get("refreshed")
         for data in response.json().get("refreshed_urls")
         if data.get("refreshed")
     }
-    return result  # noqa: RET504
+    return result
 
 
 def refresh_serializer_data_urls(data: list[dict]) -> list[dict]:
@@ -77,12 +75,8 @@ def refresh_serializer_data_urls(data: list[dict]) -> list[dict]:
     refreshed_urls = refresh_expired_urls(urls)
 
     for item in data:
-        item["original_image"] = refreshed_urls.get(
-            item.get("original_image"), item.get("original_image")
-        )
-        item["thumbnail"] = refreshed_urls.get(
-            item.get("thumbnail"), item.get("thumbnail")
-        )
+        item["original_image"] = refreshed_urls.get(item.get("original_image"), item.get("original_image"))
+        item["thumbnail"] = refreshed_urls.get(item.get("thumbnail"), item.get("thumbnail"))
 
     return data
 
@@ -97,7 +91,7 @@ class PixivIllust:
 
     @property
     def illust_detail(self) -> IllustDetail:
-        """Return a dictionary that contains information about pixiv illustraion details"""  # noqa: E501
+        """Return a dictionary that contains information about pixiv illustraion details"""
 
         illust_id = self.__illust_link.split("/")[-1]
         json_result = self.__api.illust_detail(illust_id)
@@ -105,10 +99,7 @@ class PixivIllust:
 
         # handle multiple images
         if json_result.get("meta_pages"):
-            images = [
-                image.get("image_urls").get("original")
-                for image in json_result.get("meta_pages")
-            ]
+            images = [image.get("image_urls").get("original") for image in json_result.get("meta_pages")]
 
         # handle single image
         if json_result.get("meta_single_page"):
@@ -124,7 +115,7 @@ class PixivIllust:
             "source": self.__illust_link,
         }
 
-        return formated_result  # noqa: RET504
+        return formated_result
 
     def save(self) -> None:
         update_pixiv_image_url_and_save_to_db.delay(self.illust_detail)

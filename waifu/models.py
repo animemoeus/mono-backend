@@ -49,18 +49,16 @@ class Image(models.Model):
             IOError: If there's an error processing the image
         """
 
-        print("Generating blur data URL for image:", self.image_id)  # noqa: T201
-        from waifu.utils import refresh_expired_urls  # noqa: PLC0415
+        print("Generating blur data URL for image:", self.image_id)
+        from waifu.utils import refresh_expired_urls
 
         # Get the image URL
         image_url = self.original_image
         if refresh_expired_urls([self.original_image]).get(self.original_image):
-            image_url = refresh_expired_urls([self.original_image]).get(
-                self.original_image
-            )
+            image_url = refresh_expired_urls([self.original_image]).get(self.original_image)
 
         # Fetch the image from URL using requests
-        response = requests.get(image_url)  # noqa: S113
+        response = requests.get(image_url)
         response.raise_for_status()  # Raise exception for HTTP errors
 
         # Open the image from the response content
@@ -90,7 +88,7 @@ class Image(models.Model):
         This method calls the generate_blur_data_url method as a Celery task.
         """
 
-        from waifu.tasks import waifu_generate_blur_data_url  # noqa: PLC0415
+        from waifu.tasks import waifu_generate_blur_data_url
 
         waifu_generate_blur_data_url.delay(self.image_id)
 
@@ -111,7 +109,7 @@ class DiscordWebhook(models.Model):
     def __str__(self):
         return f"{self.server_name}"
 
-    def send_image(self, image_url: str, is_nsfw: bool, creator_name: str):  # noqa: FBT001
+    def send_image(self, image_url: str, is_nsfw: bool, creator_name: str):
         """Send image to discord server"""
 
         # read image as file object
@@ -121,20 +119,18 @@ class DiscordWebhook(models.Model):
             timeout=5,
         ).raw
 
-        files = {
-            "NKS2D-waifu.jpg" if is_nsfw is False else "SPOILER_NKS2D-waifu.jpg": file
-        }
+        files = {"NKS2D-waifu.jpg" if is_nsfw is False else "SPOILER_NKS2D-waifu.jpg": file}
         payload = {
             "content": f"{'Artist: ' + creator_name if creator_name != '' else ''}",
-            "username": random.choice(  # noqa: S311
+            "username": random.choice(
                 [
                     "Random Waifu",
-                ],
+                ]
             ),
             "avatar_url": image_url,
         }
 
-        requests.post(  # noqa: S113
+        requests.post(
             self.webhook_url,
             data=payload,
             files=files,

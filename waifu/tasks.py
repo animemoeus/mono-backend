@@ -3,8 +3,7 @@ import random
 import pyscord_storage
 from celery import shared_task
 
-from .models import DiscordWebhook
-from .models import Image
+from .models import DiscordWebhook, Image
 
 
 @shared_task()
@@ -20,13 +19,13 @@ def waifu_generate_blur_data_url(image_id: str) -> None:
 
 @shared_task()
 def send_waifu():
-    from waifu.utils import refresh_expired_urls  # noqa: PLC0415
+    from waifu.utils import refresh_expired_urls
 
     webhooks = DiscordWebhook.objects.filter(is_enabled=True)
 
     # get random waifu from database
     total_records = Image.objects.count()
-    random_index = random.randint(0, total_records - 1)  # noqa: S311
+    random_index = random.randint(0, total_records - 1)
     waifu = Image.objects.order_by("id")[random_index]
     new_urls = refresh_expired_urls([waifu.original_image])
     new_url = new_urls.get(waifu.original_image)
@@ -68,8 +67,8 @@ def send_pixiv_image_url_to_pyscord_storage(illust_data: dict, image_url: str) -
     """Change original Pixiv image url to Discord image url"""
 
     response = pyscord_storage.upload_from_url("animemoeus-waifu.jpg", image_url)
-    if response.get("status") != 200:  # noqa: PLR2004
-        raise Exception(response)  # noqa: TRY002
+    if response.get("status") != 200:
+        raise Exception(response)
 
     pyscord_data = response.get("data")
     save_pixiv_illust(illust_data, pyscord_data)
