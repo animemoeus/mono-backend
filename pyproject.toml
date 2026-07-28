@@ -27,7 +27,7 @@ dependencies = [
   "django-filter==25.1",          # https://github.com/carltongibson/django-filter
   "django-health-check==3.18.3",  # https://github.com/revsys/django-health-check
   "django-hosts==6.0",            # https://github.com/jazzband/django-hosts
-  "django-import-export==4.3.7",  # https://github.com/django-import-export/django-import-export
+  "django-import-export==4.4.1",  # https://github.com/django-import-export/django-import-export
   "django-model-utils==5.0.0",    # https://github.com/jazzband/django-model-utils
 
   # discord
