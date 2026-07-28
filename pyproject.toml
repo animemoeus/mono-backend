@@ -78,7 +78,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-  "coverage==7.8.2",                                    # https://github.com/nedbat/coveragepy
+  "coverage==7.15.2",                                    # https://github.com/nedbat/coveragepy
   "django-coverage-plugin==3.2.0",                      # https://github.com/nedbat/django_coverage_plugin
   "django-debug-toolbar==6.1.0",                        # https://github.com/jazzband/django-debug-toolbar
   "django-stubs[compatible-mypy]==4.2.6",               # https://github.com/typeddjango/django-stubs
