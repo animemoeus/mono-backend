@@ -9,12 +9,7 @@ from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 
-from .models import BroadcastLog
-from .models import BroadcastMessage
-from .models import DownloadedTweet
-from .models import ExternalLink
-from .models import Settings
-from .models import TelegramUser
+from .models import BroadcastLog, BroadcastMessage, DownloadedTweet, ExternalLink, Settings, TelegramUser
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +18,7 @@ logger = logging.getLogger(__name__)
 def delete_old_data():
     now = timezone.now()
     one_month_ago = now - timedelta(days=30)
-    DownloadedTweet.objects.order_by("-created_at").filter(
-        created_at__lt=one_month_ago
-    ).delete()
+    DownloadedTweet.objects.order_by("-created_at").filter(created_at__lt=one_month_ago).delete()
 
 
 @shared_task
@@ -67,7 +60,7 @@ def send_broadcast_to_user(broadcast_id: str, telegram_user_id: str):
         broadcast = BroadcastMessage.objects.get(uuid=broadcast_id)
         telegram_user = TelegramUser.objects.get(user_id=telegram_user_id)
     except (BroadcastMessage.DoesNotExist, TelegramUser.DoesNotExist) as e:
-        return f"Error: {e!s}"
+        return f"Error: {str(e)}"
 
     # Skip if already sent to this user
     if BroadcastLog.objects.filter(
@@ -89,17 +82,16 @@ def send_broadcast_to_user(broadcast_id: str, telegram_user_id: str):
             )
 
             # Increment sent count atomically
-            BroadcastMessage.objects.filter(uuid=broadcast_id).update(
-                sent_count=F("sent_count") + 1
-            )
+            BroadcastMessage.objects.filter(uuid=broadcast_id).update(sent_count=F("sent_count") + 1)
 
             # Check completion
             _check_broadcast_completion(broadcast_id)
 
             return f"Successfully sent to {telegram_user_id}"
-        raise Exception("Failed to send message (API returned False)")  # noqa: EM101, TRY002, TRY003, TRY301
+        else:
+            raise Exception("Failed to send message (API returned False)")
 
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         error_message = str(e)
 
         # Create failure log
@@ -111,9 +103,7 @@ def send_broadcast_to_user(broadcast_id: str, telegram_user_id: str):
         )
 
         # Increment failed count atomically
-        BroadcastMessage.objects.filter(uuid=broadcast_id).update(
-            failed_count=F("failed_count") + 1
-        )
+        BroadcastMessage.objects.filter(uuid=broadcast_id).update(failed_count=F("failed_count") + 1)
 
         # Check completion
         _check_broadcast_completion(broadcast_id)
@@ -154,15 +144,9 @@ def forward_tweet_to_channel(downloaded_tweet_id: str):
         for link in external_links
     ]
 
-    inline_keyboard = (
-        [  # noqa: RUF005
-            [
-                {"text": f"\U0001f517 {video['quality']}", "url": video["url"]}
-                for video in videos[:3]
-            ],
-        ]
-        + external_link_buttons
-    )
+    inline_keyboard = [
+        [{"text": f"\U0001f517 {video['quality']}", "url": video["url"]} for video in videos[:3]],
+    ] + external_link_buttons
 
     # Try sendPaidMedia first (same as user-facing send_video)
     url = f"https://api.telegram.org/bot{bot_token}/sendPaidMedia"
@@ -175,9 +159,9 @@ def forward_tweet_to_channel(downloaded_tweet_id: str):
             "parse_mode": "HTML",
             "disable_notification": True,
             "reply_markup": {"inline_keyboard": inline_keyboard},
-        },
+        }
     )
-    response = requests.post(url, headers=headers, data=payload)  # noqa: S113
+    response = requests.post(url, headers=headers, data=payload)
 
     if response.ok:
         return f"Forwarded tweet {downloaded_tweet_id} to channel"
@@ -194,17 +178,15 @@ def forward_tweet_to_channel(downloaded_tweet_id: str):
                 "disable_notification": True,
                 "has_spoiler": tweet_data.get("is_nsfw", False),
                 "reply_markup": {"inline_keyboard": inline_keyboard},
-            },
+            }
         )
-        response = requests.post(url, headers=headers, data=payload)  # noqa: S113
+        response = requests.post(url, headers=headers, data=payload)
 
         if response.ok:
             return f"Forwarded tweet {downloaded_tweet_id} to channel (as photo)"
 
-    logger.error(
-        "Failed to forward tweet %s to channel: %s", downloaded_tweet_id, response.text
-    )
-    raise Exception(f"Failed to forward tweet to channel: {response.text}")  # noqa: EM102, TRY002, TRY003
+    logger.error("Failed to forward tweet %s to channel: %s", downloaded_tweet_id, response.text)
+    raise Exception(f"Failed to forward tweet to channel: {response.text}")
 
 
 def _check_broadcast_completion(broadcast_id: str):
@@ -218,10 +200,7 @@ def _check_broadcast_completion(broadcast_id: str):
         total_processed = broadcast.sent_count + broadcast.failed_count
 
         # Mark as completed if all messages processed
-        if (
-            total_processed >= broadcast.total_users
-            and broadcast.status == BroadcastMessage.BroadcastStatus.SENDING
-        ):
+        if total_processed >= broadcast.total_users and broadcast.status == BroadcastMessage.BroadcastStatus.SENDING:
             broadcast.status = BroadcastMessage.BroadcastStatus.COMPLETED
             broadcast.completed_at = timezone.now()
             broadcast.save(update_fields=["status", "completed_at"])

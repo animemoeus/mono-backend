@@ -1,9 +1,6 @@
 from django.urls import path
 
-from .views import RandomWaifuView
-from .views import TelegramUserWebhook
-from .views import WaifuDetailView
-from .views import WaifuListView
+from .views import RandomWaifuView, TelegramUserWebhook, WaifuDetailView, WaifuListView
 
 urlpatterns = [
     path("", WaifuListView.as_view(), name="index"),

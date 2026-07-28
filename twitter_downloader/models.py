@@ -43,26 +43,22 @@ class TelegramUser(BaseTelegramUserModel):
                             {"text": f"🔗 {video['quality']}", "url": video["url"]}
                             for video in message.get("videos", [])[:3]
                         ],
-                    ],
+                    ]
                 },
-            },
+            }
         )
         headers = {"Content-Type": "application/json"}
 
-        response = requests.request("POST", url, headers=headers, data=payload)  # noqa: S113
+        response = requests.request("POST", url, headers=headers, data=payload)
         return response.ok
 
-    def send_video(self, tweet_data):  # noqa: RET503
+    def send_video(self, tweet_data):
         self.send_chat_action("upload_video")
 
-        external_link = ExternalLink.objects.filter(is_active=True).order_by(
-            "-updated_at"
-        )
+        external_link = ExternalLink.objects.filter(is_active=True).order_by("-updated_at")
         external_link = (
             [
-                [{"text": i.title, "web_app": {"url": i.url}}]
-                if i.is_web_app
-                else [{"text": i.title, "url": i.url}]
+                [{"text": i.title, "web_app": {"url": i.url}}] if i.is_web_app else [{"text": i.title, "url": i.url}]
                 for i in external_link
             ]
             if external_link
@@ -74,34 +70,32 @@ class TelegramUser(BaseTelegramUserModel):
             {
                 "chat_id": self.user_id,
                 "star_count": 1,
-                # "video": tweet_data.get("videos")[0]["url"],  # noqa: ERA001
-                "media": [
-                    {"type": "video", "media": tweet_data.get("videos")[0]["url"]}
-                ],
+                # "video": tweet_data.get("videos")[0]["url"],
+                "media": [{"type": "video", "media": tweet_data.get("videos")[0]["url"]}],
                 "caption": tweet_data.get("description"),
                 "parse_mode": "HTML",
                 "has_spoiler": tweet_data.get("is_nsfw", False),
                 "reply_to_message_id": "",
                 "reply_markup": {
-                    "inline_keyboard": [  # noqa: RUF005
+                    "inline_keyboard": [
                         [
                             {"text": f"🔗 {video['quality']}", "url": video["url"]}
                             for video in tweet_data.get("videos", [])[:3]
                         ],
                     ]
-                    + external_link,
+                    + external_link
                 },
-            },
+            }
         )
 
         headers = {"Content-Type": "application/json"}
 
-        response = requests.request("POST", url, headers=headers, data=payload)  # noqa: S113
+        response = requests.request("POST", url, headers=headers, data=payload)
 
         if response.ok:
             return response.ok
 
-        if response.status_code != 200:  # noqa: PLR2004
+        if response.status_code != 200:
             return self.send_photo(tweet_data)
 
     def send_image_with_inline_keyboard(
@@ -125,14 +119,14 @@ class TelegramUser(BaseTelegramUserModel):
                             {
                                 "text": inline_text,
                                 "web_app": {"url": inline_url},
-                            },
+                            }
                         ],
-                    ],
+                    ]
                 },
-            },
+            }
         )
 
-        response = requests.request("POST", url, headers=headers, data=payload)  # noqa: S113
+        response = requests.request("POST", url, headers=headers, data=payload)
         return response.ok
 
     def send_download_button_with_safelink(
@@ -146,7 +140,7 @@ class TelegramUser(BaseTelegramUserModel):
         payload = json.dumps(
             {
                 "chat_id": self.user_id,
-                "text": "Click the button below to continue! 😉\n\nAnd hey, don’t forget to click the ads to support this bot!\nYour clicks help keep things running smoothly! 💡",  # noqa: E501, RUF001
+                "text": "Click the button below to continue! 😉\n\nAnd hey, don’t forget to click the ads to support this bot!\nYour clicks help keep things running smoothly! 💡",
                 "parse_mode": "HTML",
                 "disable_web_page_preview": "True",
                 "reply_markup": {
@@ -155,14 +149,14 @@ class TelegramUser(BaseTelegramUserModel):
                             {
                                 "text": inline_text,
                                 "web_app": {"url": inline_url},
-                            },
+                            }
                         ],
-                    ],
+                    ]
                 },
-            },
+            }
         )
 
-        response = requests.request("POST", url, headers=headers, data=payload)  # noqa: S113
+        response = requests.request("POST", url, headers=headers, data=payload)
         return response.ok
 
 
@@ -214,24 +208,14 @@ class BroadcastMessage(models.Model):
     )
 
     # Statistics
-    total_users = models.PositiveIntegerField(
-        default=0, help_text="Total users who will receive the broadcast"
-    )
-    sent_count = models.PositiveIntegerField(
-        default=0, help_text="Number of messages successfully sent"
-    )
-    failed_count = models.PositiveIntegerField(
-        default=0, help_text="Number of messages that failed to send"
-    )
+    total_users = models.PositiveIntegerField(default=0, help_text="Total users who will receive the broadcast")
+    sent_count = models.PositiveIntegerField(default=0, help_text="Number of messages successfully sent")
+    failed_count = models.PositiveIntegerField(default=0, help_text="Number of messages that failed to send")
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
-    started_at = models.DateTimeField(
-        null=True, blank=True, help_text="Broadcasting start time"
-    )
-    completed_at = models.DateTimeField(
-        null=True, blank=True, help_text="Broadcasting completion time"
-    )
+    started_at = models.DateTimeField(null=True, blank=True, help_text="Broadcasting start time")
+    completed_at = models.DateTimeField(null=True, blank=True, help_text="Broadcasting completion time")
 
     # Audit
     created_by = models.ForeignKey(
@@ -248,12 +232,12 @@ class BroadcastMessage(models.Model):
         verbose_name_plural = "Broadcast Messages"
 
     def __str__(self):
-        preview = self.message[:50] + "..." if len(self.message) > 50 else self.message  # noqa: PLR2004
+        preview = self.message[:50] + "..." if len(self.message) > 50 else self.message
         return f"{preview} ({self.status})"
 
     def start_broadcast(self):
         """Trigger celery task to start broadcasting"""
-        from .tasks import broadcast_message_to_all_users  # noqa: PLC0415
+        from .tasks import broadcast_message_to_all_users
 
         # Update status and timestamp
         self.status = self.BroadcastStatus.SENDING
@@ -292,9 +276,7 @@ class BroadcastLog(models.Model):
         max_length=20,
         choices=LogStatus.choices,
     )
-    error_message = models.TextField(
-        blank=True, help_text="Error message if delivery failed"
-    )
+    error_message = models.TextField(blank=True, help_text="Error message if delivery failed")
     sent_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -304,7 +286,7 @@ class BroadcastLog(models.Model):
         unique_together = [["broadcast", "telegram_user"]]
 
     def __str__(self):
-        return f"{self.telegram_user.username or self.telegram_user.user_id} - {self.status}"  # noqa: E501
+        return f"{self.telegram_user.username or self.telegram_user.user_id} - {self.status}"
 
 
 class Settings(SingletonModel):
@@ -343,5 +325,5 @@ class Settings(SingletonModel):
             "secret_token": self.secret_token,
         }
 
-        response = requests.request("POST", url, data=payload)  # noqa: S113
+        response = requests.request("POST", url, data=payload)
         return response.ok

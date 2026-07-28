@@ -40,12 +40,12 @@ class TestWaifuListView(TestCase):
         create_waifu_init_data()
 
     def test_get_waifu_list(self, mock_refresh):
-        self.assertEqual(Image.objects.all().count(), 2)  # noqa: PT009
+        self.assertEqual(Image.objects.all().count(), 2)
         response = self.client.get(reverse("waifu:index"))
-        self.assertEqual(response.status_code, 200, "Should return 200 OK")  # noqa: PT009
+        self.assertEqual(response.status_code, 200, "Should return 200 OK")
 
         data = response.json().get("results")[0]
-        self.assertIn("original_image", data)  # noqa: PT009
+        self.assertIn("original_image", data)
 
 
 @patch("waifu.views.refresh_serializer_data_urls", side_effect=lambda data: data)
@@ -54,14 +54,12 @@ class TestWaifuDetailView(TestCase):
         create_waifu_init_data()
 
     def test_get_waifu_detail(self, mock_refresh):
-        self.assertEqual(Image.objects.all().count(), 2)  # noqa: PT009
-        response = self.client.get(
-            reverse("waifu:detail", kwargs={"image_id": "1275631907933261897"})
-        )
-        self.assertEqual(response.status_code, 200, "Should return 200 OK")  # noqa: PT009
+        self.assertEqual(Image.objects.all().count(), 2)
+        response = self.client.get(reverse("waifu:detail", kwargs={"image_id": "1275631907933261897"}))
+        self.assertEqual(response.status_code, 200, "Should return 200 OK")
 
         data = response.json()
-        self.assertIn("original_image", data)  # noqa: PT009
+        self.assertIn("original_image", data)
 
 
 @patch("waifu.views.refresh_serializer_data_urls", side_effect=lambda data: data)
@@ -70,9 +68,9 @@ class TestRandomWaifuView(TestCase):
         create_waifu_init_data()
 
     def test_get_random_waifu(self, mock_refresh):
-        self.assertEqual(Image.objects.all().count(), 2)  # noqa: PT009
+        self.assertEqual(Image.objects.all().count(), 2)
         response = self.client.get(reverse("waifu:random"))
-        self.assertEqual(response.status_code, 200, "Should return 200 OK")  # noqa: PT009
+        self.assertEqual(response.status_code, 200, "Should return 200 OK")
 
         data = response.json()
-        self.assertIn("original_image", data)  # noqa: PT009
+        self.assertIn("original_image", data)

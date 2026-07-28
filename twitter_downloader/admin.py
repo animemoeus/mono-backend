@@ -4,10 +4,7 @@ from solo.admin import SingletonModelAdmin
 from unfold.admin import ModelAdmin
 from unfold.decorators import action
 
-from .models import BroadcastLog
-from .models import BroadcastMessage
-from .models import DownloadedTweet
-from .models import ExternalLink
+from .models import BroadcastLog, BroadcastMessage, DownloadedTweet, ExternalLink
 from .models import Settings as TwitterDownloaderSettings
 from .models import TelegramUser
 
@@ -91,7 +88,7 @@ class BroadcastMessageAdmin(ModelAdmin):
                     "total_users",
                     "sent_count",
                     "failed_count",
-                ),
+                )
             },
         ),
         (
@@ -101,7 +98,7 @@ class BroadcastMessageAdmin(ModelAdmin):
                     "created_at",
                     "started_at",
                     "completed_at",
-                ),
+                )
             },
         ),
         ("Audit", {"fields": ("created_by",)}),
@@ -110,8 +107,8 @@ class BroadcastMessageAdmin(ModelAdmin):
     @admin.display(description="Message")
     def message_preview(self, obj):
         """Show first 50 characters of message"""
-        preview = obj.message[:50] + "..." if len(obj.message) > 50 else obj.message  # noqa: PLR2004
-        return preview  # noqa: RET504
+        preview = obj.message[:50] + "..." if len(obj.message) > 50 else obj.message
+        return preview
 
     @admin.display(description="Status")
     def status_badge(self, obj):
@@ -124,7 +121,7 @@ class BroadcastMessageAdmin(ModelAdmin):
         }
         color = colors.get(obj.status, "gray")
         return format_html(
-            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px;">{}</span>',  # noqa: E501
+            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px;">{}</span>',
             color,
             obj.get_status_display(),
         )
@@ -136,19 +133,15 @@ class BroadcastMessageAdmin(ModelAdmin):
             return "-"
 
         _ = (obj.sent_count + obj.failed_count) / obj.total_users * 100
-        success_percent = (
-            obj.sent_count / obj.total_users * 100 if obj.total_users > 0 else 0
-        )
-        failed_percent = (
-            obj.failed_count / obj.total_users * 100 if obj.total_users > 0 else 0
-        )
+        success_percent = obj.sent_count / obj.total_users * 100 if obj.total_users > 0 else 0
+        failed_percent = obj.failed_count / obj.total_users * 100 if obj.total_users > 0 else 0
 
         return format_html(
-            '<div style="width: 200px; background-color: #e0e0e0; border-radius: 3px; overflow: hidden;">'  # noqa: E501
-            '<div style="width: {}%; background-color: #4caf50; height: 20px; float: left;"></div>'  # noqa: E501
-            '<div style="width: {}%; background-color: #f44336; height: 20px; float: left;"></div>'  # noqa: E501
+            '<div style="width: 200px; background-color: #e0e0e0; border-radius: 3px; overflow: hidden;">'
+            '<div style="width: {}%; background-color: #4caf50; height: 20px; float: left;"></div>'
+            '<div style="width: {}%; background-color: #f44336; height: 20px; float: left;"></div>'
             "</div>"
-            '<div style="clear: both; font-size: 11px; margin-top: 2px;">{}% sent, {}% failed</div>',  # noqa: E501
+            '<div style="clear: both; font-size: 11px; margin-top: 2px;">{}% sent, {}% failed</div>',
             success_percent,
             failed_percent,
             f"{success_percent:.1f}",
@@ -205,28 +198,21 @@ class BroadcastLogAdmin(ModelAdmin):
     @admin.display(description="Telegram User")
     def telegram_user_info(self, obj):
         """Display telegram user information"""
-        name = (
-            obj.telegram_user.username
-            or f"{obj.telegram_user.first_name} {obj.telegram_user.last_name}".strip()
-        )
+        name = obj.telegram_user.username or f"{obj.telegram_user.first_name} {obj.telegram_user.last_name}".strip()
         return f"{name} ({obj.telegram_user.user_id})"
 
     @admin.display(description="Broadcast Message")
     def broadcast_preview(self, obj):
         """Show preview of broadcast message"""
-        preview = (
-            obj.broadcast.message[:40] + "..."
-            if len(obj.broadcast.message) > 40  # noqa: PLR2004
-            else obj.broadcast.message
-        )
-        return preview  # noqa: RET504
+        preview = obj.broadcast.message[:40] + "..." if len(obj.broadcast.message) > 40 else obj.broadcast.message
+        return preview
 
     @admin.display(description="Status")
     def status_badge(self, obj):
         """Display status with color badge"""
         color = "green" if obj.status == "success" else "red"
         return format_html(
-            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px;">{}</span>',  # noqa: E501
+            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px;">{}</span>',
             color,
             obj.get_status_display(),
         )

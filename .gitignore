@@ -272,7 +272,7 @@ tags
 dump.rdb
 
 ### Project template
-core/media/
+backend/media/
 
 .pytest_cache/
 .ipython/

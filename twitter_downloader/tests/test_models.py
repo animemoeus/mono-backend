@@ -1,13 +1,9 @@
 import time
-from unittest.mock import Mock
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.test import TestCase
 
-from twitter_downloader.models import DownloadedTweet
-from twitter_downloader.models import ExternalLink
-from twitter_downloader.models import Settings
-from twitter_downloader.models import TelegramUser
+from twitter_downloader.models import DownloadedTweet, ExternalLink, Settings, TelegramUser
 
 
 def _mock_ok_response(*args, **kwargs):
@@ -23,74 +19,54 @@ def _mock_ok_response(*args, **kwargs):
 class TestTelegramUserModel(TestCase):
     def setUp(self):
         self.telegram_user = TelegramUser.objects.create(
-            user_id="939376599",
-            first_name="Arter",
-            last_name="Tendean",
-            username="artertendean",
+            user_id="939376599", first_name="Arter", last_name="Tendean", username="artertendean"
         )
 
     def test_send_chat_action(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_chat_action("typing")
-        self.assertEqual(result, True, "Test send chat action")  # noqa: PT009
+        self.assertEqual(result, True, "Test send chat action")
 
     def test_send_message(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_message("Test Telegram user model")
-        self.assertEqual(result, True)  # noqa: PT009
+        self.assertEqual(result, True)
 
     def test_send_document(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_document(
-            "https://avatars.githubusercontent.com/u/9919",
-            caption="Test document caption",
+            "https://avatars.githubusercontent.com/u/9919", caption="Test document caption"
         )
-        self.assertEqual(result, True)  # noqa: PT009
+        self.assertEqual(result, True)
 
     def test_send_maintenance_message(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_maintenance_message()
-        self.assertEqual(result, True, "Test maintenance message")  # noqa: PT009
+        self.assertEqual(result, True, "Test maintenance message")
 
     def test_send_banned_message(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_banned_message()
-        self.assertEqual(result, True, "Test banned message")  # noqa: PT009
+        self.assertEqual(result, True, "Test banned message")
 
     def test_send_photo(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_photo(
             {
                 "thumbnail": "https://avatars.githubusercontent.com/u/9919",
-                "videos": [
-                    {
-                        "url": "https://avatars.githubusercontent.com/u/9919",
-                        "size": 1337,
-                        "quality": "HD",
-                    }
-                ],
-            },
+                "videos": [{"url": "https://avatars.githubusercontent.com/u/9919", "size": 1337, "quality": "HD"}],
+            }
         )
-        self.assertEqual(result, True, "Test send photo")  # noqa: PT009
+        self.assertEqual(result, True, "Test send photo")
 
     def test_send_video(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_video(
             {
                 "thumbnail": "https://avatars.githubusercontent.com/u/9919",
                 "description": "Test Send Video CI/CD",
-                "videos": [
-                    {
-                        "url": "https://link.testfile.org/aXCg7h",
-                        "size": 1337,
-                        "quality": "HD",
-                    }
-                ],
-            },
+                "videos": [{"url": "https://link.testfile.org/aXCg7h", "size": 1337, "quality": "HD"}],
+            }
         )
 
-        self.assertEqual(result, True, "Test send video")  # noqa: PT009
+        self.assertEqual(result, True, "Test send video")
 
-    def test_send_download_button_with_safelink(
-        self, mock_tw_request, mock_base_request
-    ):
-        result = self.telegram_user.send_download_button_with_safelink(
-            "Arter Tendean", "https://animemoe.us"
-        )
-        self.assertEqual(result, True, "Sould return 200 OK (True)")  # noqa: PT009
+    def test_send_download_button_with_safelink(self, mock_tw_request, mock_base_request):
+        result = self.telegram_user.send_download_button_with_safelink("Arter Tendean", "https://animemoe.us")
+        self.assertEqual(result, True, "Sould return 200 OK (True)")
 
     def test_send_big_video(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_video(
@@ -102,12 +78,12 @@ class TestTelegramUserModel(TestCase):
                         "url": "https://link.testfile.org/aYr11v",
                         "size": 1337,
                         "quality": "HD",
-                    },
+                    }
                 ],
-            },
+            }
         )
 
-        self.assertEqual(result, True, "Test send video with big file size")  # noqa: PT009
+        self.assertEqual(result, True, "Test send video with big file size")
 
     def test_image_with_inline_url(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_image_with_inline_keyboard(
@@ -115,7 +91,7 @@ class TestTelegramUserModel(TestCase):
             inline_text="Arter Tendean",
             inline_url="https://avatars.githubusercontent.com/u/9919",
         )
-        self.assertEqual(result, True, "Test send image with inline url")  # noqa: PT009
+        self.assertEqual(result, True, "Test send image with inline url")
 
 
 @patch("models.base.requests.request", side_effect=_mock_ok_response)
@@ -123,10 +99,7 @@ class TestTelegramUserModel(TestCase):
 class TestDownloadedTweet(TestCase):
     def setUp(self):
         self.telegram_user = TelegramUser.objects.create(
-            user_id="939376599",
-            first_name="Arter",
-            last_name="Tendean",
-            username="artertendean",
+            user_id="939376599", first_name="Arter", last_name="Tendean", username="artertendean"
         )
         self.downloaded_tweet = DownloadedTweet.objects.create(
             telegram_user=self.telegram_user,
@@ -160,20 +133,16 @@ class TestDownloadedTweet(TestCase):
 
     def test_sent_to_telegram_user(self, mock_tw_request, mock_base_request):
         result = self.downloaded_tweet.send_to_telegram_user()
-        self.assertEqual(result, True, "Should be able to send message")  # noqa: PT009
+        self.assertEqual(result, True, "Should be able to send message")
 
 
 class TestExternalLink(TestCase):
     def setUp(self):
-        self.external_link_1 = ExternalLink.objects.create(
-            title="Test External Link", url="https://api.animemoe.us"
-        )
+        self.external_link_1 = ExternalLink.objects.create(title="Test External Link", url="https://api.animemoe.us")
 
     def test_get_external_link(self):
         queryset = ExternalLink.objects.all()
-        self.assertEqual(  # noqa: PT009
-            queryset.count(), 1, "Should be able to get the external link data"
-        )
+        self.assertEqual(queryset.count(), 1, "Should be able to get the external link data")
 
 
 @patch("twitter_downloader.models.requests.request", side_effect=_mock_ok_response)
@@ -185,6 +154,4 @@ class TestSettings(TestCase):
 
         time.sleep(1)
 
-        self.assertEqual(  # noqa: PT009
-            settings.set_webhook(), True, "Should set the webhook url successfully"
-        )
+        self.assertEqual(settings.set_webhook(), True, "Should set the webhook url successfully")

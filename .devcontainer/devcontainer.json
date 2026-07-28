@@ -1,5 +1,5 @@
 {
-    "name": "core_dev",
+    "name": "backend_dev",
     "dockerComposeFile": [
         "../local.yml"
     ],
@@ -32,13 +32,22 @@
                 "[python]": {
                     "analysis.autoImportCompletions": true,
                     "analysis.typeCheckingMode": "basic",
-                    "defaultInterpreterPath": "/venv/bin/python",
+                    "defaultInterpreterPath": "/usr/local/bin/python",
                     "editor.codeActionsOnSave": {
-                        "source.organizeImports": "explicit",
-                        "source.fixAll": "explicit"
+                        "source.organizeImports": true
                     },
-                    "editor.defaultFormatter": "charliermarsh.ruff",
-                    "languageServer": "Pylance"
+                    "editor.defaultFormatter": "ms-python.black-formatter",
+                    "formatting.blackPath": "/usr/local/bin/black",
+                    "formatting.provider": "black",
+                    "languageServer": "Pylance",
+                    "linting.enabled": true,
+                    "linting.flake8Enabled": true,
+                    "linting.flake8Path": "/usr/local/bin/flake8",
+                    "linting.mypyEnabled": true,
+                    "linting.mypyPath": "/usr/local/bin/mypy",
+                    "linting.pycodestylePath": "/usr/local/bin/pycodestyle",
+                    "linting.pylintEnabled": true,
+                    "linting.pylintPath": "/usr/local/bin/pylint"
                 }
             },
             "extensions": [
@@ -48,7 +57,8 @@
                 "visualstudioexptteam.intellicode-api-usage-examples",
                 "ms-python.python",
                 "ms-python.vscode-pylance",
-                "charliermarsh.ruff",
+                "ms-python.isort",
+                "ms-python.black-formatter",
                 "batisteo.vscode-django"
             ]
         }

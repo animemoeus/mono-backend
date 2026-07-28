@@ -1,5 +1,4 @@
-from django.contrib import admin
-from django.contrib import messages
+from django.contrib import admin, messages
 from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -7,13 +6,8 @@ from solo.admin import SingletonModelAdmin
 from unfold.admin import ModelAdmin
 from unfold.decorators import action
 
-from .models import Product
-from .models import ProductCategory
-from .models import ProductImage
-from .models import ProductTag
-from .models import Setting
-from .tasks import generate_product_embedding_task
-from .tasks import generate_product_embeddings_task
+from .models import Product, ProductCategory, ProductImage, ProductTag, Setting
+from .tasks import generate_product_embedding_task, generate_product_embeddings_task
 
 
 @admin.register(ProductCategory)
@@ -60,14 +54,10 @@ class ProductAdmin(ModelAdmin):
             return redirect(reverse_lazy("admin:rent_ai_product_changelist"))
 
         try:
-            generate_product_embedding_task.delay(product.id, True)  # noqa: FBT003
-            self.message_user(
-                request, f"Embedding queued for {product.name}.", level=messages.SUCCESS
-            )
-        except Exception as exc:  # noqa: BLE001
-            self.message_user(
-                request, f"Failed to queue embedding: {exc}", level=messages.ERROR
-            )
+            generate_product_embedding_task.delay(product.id, True)
+            self.message_user(request, f"Embedding queued for {product.name}.", level=messages.SUCCESS)
+        except Exception as exc:
+            self.message_user(request, f"Failed to queue embedding: {exc}", level=messages.ERROR)
 
         return redirect(reverse_lazy("admin:rent_ai_product_change", args=(object_id,)))
 
@@ -82,16 +72,14 @@ class ProductAdmin(ModelAdmin):
             return
 
         try:
-            generate_product_embeddings_task.delay(product_ids, True)  # noqa: FBT003
+            generate_product_embeddings_task.delay(product_ids, True)
             self.message_user(
                 request,
                 f"Embedding queued for {len(product_ids)} product(s).",
                 level=messages.SUCCESS,
             )
-        except Exception as exc:  # noqa: BLE001
-            self.message_user(
-                request, f"Failed to queue embedding batch: {exc}", level=messages.ERROR
-            )
+        except Exception as exc:
+            self.message_user(request, f"Failed to queue embedding batch: {exc}", level=messages.ERROR)
 
     actions = ["generate_embedding_selected"]
 
@@ -117,16 +105,10 @@ class SettingAdmin(SingletonModelAdmin, ModelAdmin):
         setting = Setting.get_solo()
         try:
             result = setting.update_from_external_source()
-            level = (
-                messages.ERROR
-                if result.startswith("Failed") or result.startswith("Invalid")  # noqa: PIE810
-                else messages.SUCCESS
-            )
+            level = messages.ERROR if result.startswith("Failed") or result.startswith("Invalid") else messages.SUCCESS
             self.message_user(request, result, level=level)
-        except Exception as exc:  # noqa: BLE001
-            self.message_user(
-                request, f"Failed to sync data: {exc}", level=messages.ERROR
-            )
+        except Exception as exc:
+            self.message_user(request, f"Failed to sync data: {exc}", level=messages.ERROR)
 
         return redirect(reverse_lazy("admin:rent_ai_setting_change", args=(object_id,)))
 

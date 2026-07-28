@@ -1,31 +1,24 @@
 # define an alias for the specific python version used in this file.
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS python
+FROM python:3.11.13-slim-bullseye AS python
 
 # Python build stage
 FROM python AS python-build-stage
 
 ARG BUILD_ENVIRONMENT=local
 
-ENV UV_COMPILE_BYTECODE=1
-ENV UV_LINK_MODE=copy
-# Keep the venv outside of /app: local.yml bind-mounts the whole repo over
-# /app, which would otherwise shadow a venv built at the default /app/.venv.
-ENV UV_PROJECT_ENVIRONMENT=/venv
-
 # Install apt packages
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
-  # psycopg dependencies
+  # psycopg2 dependencies
   libpq-dev
 
-WORKDIR /app
+# Requirements are installed here to ensure they will be cached.
+COPY ./requirements .
 
-# Dependency manifests are copied first to keep this layer cached.
-COPY pyproject.toml uv.lock ./
-
-# Resolve and install dependencies (including the dev group) into /venv.
-RUN uv sync --frozen
+# Create Python Dependency and Sub-Dependency Wheels.
+RUN pip wheel --wheel-dir /usr/src/app/wheels  \
+  -r ${BUILD_ENVIRONMENT}.txt
 
 
 # Python 'run' stage
@@ -53,7 +46,7 @@ RUN groupadd --gid 1000 dev-user \
 
 # Install required system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
-  # psycopg dependencies
+  # psycopg2 dependencies
   libpq-dev \
   # Translations dependencies
   gettext \
@@ -61,9 +54,13 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
 
-# copy the virtualenv built in python-build-stage
-COPY --from=python-build-stage /venv /venv
-ENV PATH="/venv/bin:$PATH"
+# All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
+# copy python dependency wheels from python-build-stage
+COPY --from=python-build-stage /usr/src/app/wheels  /wheels/
+
+# use wheels to install python dependencies
+RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
+  && rm -rf /wheels/
 
 COPY ./compose/production/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint

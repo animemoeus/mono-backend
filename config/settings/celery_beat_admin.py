@@ -2,16 +2,10 @@ from django.contrib import admin
 from django_celery_beat.admin import ClockedScheduleAdmin as BaseClockedScheduleAdmin
 from django_celery_beat.admin import CrontabScheduleAdmin as BaseCrontabScheduleAdmin
 from django_celery_beat.admin import PeriodicTaskAdmin as BasePeriodicTaskAdmin
-from django_celery_beat.admin import PeriodicTaskForm
-from django_celery_beat.admin import TaskSelectWidget
-from django_celery_beat.models import ClockedSchedule
-from django_celery_beat.models import CrontabSchedule
-from django_celery_beat.models import IntervalSchedule
-from django_celery_beat.models import PeriodicTask
-from django_celery_beat.models import SolarSchedule
+from django_celery_beat.admin import PeriodicTaskForm, TaskSelectWidget
+from django_celery_beat.models import ClockedSchedule, CrontabSchedule, IntervalSchedule, PeriodicTask, SolarSchedule
 from unfold.admin import ModelAdmin
-from unfold.widgets import UnfoldAdminSelectWidget
-from unfold.widgets import UnfoldAdminTextInputWidget
+from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
 
 admin.site.unregister(PeriodicTask)
 admin.site.unregister(IntervalSchedule)
