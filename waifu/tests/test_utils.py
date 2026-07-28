@@ -1,8 +1,10 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+from unittest.mock import patch
 
 from django.test import TestCase
 
-from waifu.utils import refresh_expired_urls, refresh_serializer_data_urls
+from waifu.utils import refresh_expired_urls
+from waifu.utils import refresh_serializer_data_urls
 
 
 class TestRefreshExpiredURLS(TestCase):
@@ -55,7 +57,8 @@ class TestRefreshExpiredURLS(TestCase):
     def test_refresh_expired_urls(self, mock_request):
         # Build a response that maps each URL to a refreshed version
         refreshed_urls_response = [
-            {"original": url, "refreshed": url + "?refreshed=true"} for url in self.expired_urls_1
+            {"original": url, "refreshed": url + "?refreshed=true"}
+            for url in self.expired_urls_1
         ]
         mock_response = Mock()
         mock_response.ok = True
@@ -63,7 +66,7 @@ class TestRefreshExpiredURLS(TestCase):
         mock_request.return_value = mock_response
 
         refreshed_urls = refresh_expired_urls(self.expired_urls_1)
-        self.assertEqual(len(refreshed_urls), 41, "Should return 41 refreshed URLs")
+        self.assertEqual(len(refreshed_urls), 41, "Should return 41 refreshed URLs")  # noqa: PT009
 
 
 class TestRefreshSerializerDataURLS(TestCase):
@@ -104,7 +107,9 @@ class TestRefreshSerializerDataURLS(TestCase):
             urls.append(item["original_image"])
             urls.append(item["thumbnail"])
 
-        refreshed_urls_response = [{"original": url, "refreshed": url + "?refreshed=true"} for url in urls]
+        refreshed_urls_response = [
+            {"original": url, "refreshed": url + "?refreshed=true"} for url in urls
+        ]
         mock_response = Mock()
         mock_response.ok = True
         mock_response.json.return_value = {"refreshed_urls": refreshed_urls_response}
@@ -113,4 +118,4 @@ class TestRefreshSerializerDataURLS(TestCase):
         refreshed_serializer_data = refresh_serializer_data_urls(self.serializer_data)
 
         # Verify URLs were refreshed (have ?refreshed=true appended)
-        self.assertIn("?refreshed=true", refreshed_serializer_data[0]["original_image"])
+        self.assertIn("?refreshed=true", refreshed_serializer_data[0]["original_image"])  # noqa: PT009

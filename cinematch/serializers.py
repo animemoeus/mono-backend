@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from .models import Genre, Movie, Talent
+from .models import Genre
+from .models import Movie
+from .models import Talent
 
 
 class GenreSerializer(ModelSerializer):

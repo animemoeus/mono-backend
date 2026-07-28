@@ -1,8 +1,11 @@
-from django.contrib import admin, messages
+from django.contrib import admin
+from django.contrib import messages
 from django.http import HttpResponseRedirect
 from unfold.admin import ModelAdmin
 
-from .models import SavedTiktokVideo, TiktokMonitor, User
+from .models import SavedTiktokVideo
+from .models import TiktokMonitor
+from .models import User
 
 
 @admin.register(User)
@@ -41,7 +44,7 @@ class UserAdmin(ModelAdmin):
 
     def response_change(self, request, obj):
         if "_update-information-from-api" in request.POST:
-            print("Updating data from API")
+            print("Updating data from API")  # noqa: T201
             self.handle_update_data_from_api(request, obj)
             return HttpResponseRedirect(".")
 
@@ -51,8 +54,7 @@ class UserAdmin(ModelAdmin):
         try:
             obj.update_data_from_api()
             self.message_user(request, "Successfully updated user data from API.")
-        except Exception as e:
-            pass
+        except Exception as e:  # noqa: BLE001
             self.message_user(
                 request,
                 "Failed to update user data from the API.",

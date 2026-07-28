@@ -1,7 +1,8 @@
 from urllib.parse import urljoin
 
 import requests
-from django.db import models, transaction
+from django.db import models
+from django.db import transaction
 from pgvector.django import VectorField
 from solo.models import SingletonModel
 
@@ -32,10 +33,14 @@ class ProductTag(models.Model):
 
 
 class Product(models.Model):
-    category = models.ForeignKey(ProductCategory, related_name="products", on_delete=models.CASCADE)
+    category = models.ForeignKey(
+        ProductCategory, related_name="products", on_delete=models.CASCADE
+    )
     tags = models.ManyToManyField(ProductTag, related_name="products", blank=True)
 
-    addons = models.ManyToManyField("self", symmetrical=False, related_name="parent_products", blank=True)
+    addons = models.ManyToManyField(
+        "self", symmetrical=False, related_name="parent_products", blank=True
+    )
 
     original_id = models.IntegerField(unique=True)
     original_document_id = models.CharField(max_length=255, unique=True)
@@ -49,7 +54,9 @@ class Product(models.Model):
 
     weekly_price = models.DecimalField(max_digits=10, decimal_places=2)
     monthly_price = models.DecimalField(max_digits=10, decimal_places=2)
-    monthly_discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    monthly_discount_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0
+    )
     setup_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     embedding = VectorField(dimensions=1536, blank=True, null=True)
 
@@ -67,26 +74,28 @@ class Product(models.Model):
         ]
         return "\n".join(part for part in parts if part).strip()
 
-    def generate_embedding(self, force=False):
+    def generate_embedding(self, force=False):  # noqa: FBT002
         if self.embedding is not None and not force:
             return self.embedding
 
         text = self.get_embedding_text()
         if not text:
-            raise ValueError("Product has no text content for embedding.")
+            raise ValueError("Product has no text content for embedding.")  # noqa: EM101, TRY003
 
-        from backend.utils.openai import get_embedding
+        from core.utils.openai import get_embedding  # noqa: PLC0415
 
         self.embedding = get_embedding(text)
         self.save(update_fields=["embedding"])
         return self.embedding
 
-    def __str__(self):
+    def __str__(self):  # noqa: DJ012
         return self.name
 
 
 class ProductImage(models.Model):
-    product = models.ForeignKey(Product, related_name="images", on_delete=models.CASCADE)
+    product = models.ForeignKey(
+        Product, related_name="images", on_delete=models.CASCADE
+    )
     image_url = models.URLField()
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -160,7 +169,9 @@ class Setting(SingletonModel):
             )
 
         if desired_urls:
-            ProductImage.objects.filter(product=product_obj).exclude(image_url__in=desired_urls).delete()
+            ProductImage.objects.filter(product=product_obj).exclude(
+                image_url__in=desired_urls
+            ).delete()
 
     @staticmethod
     def _extract_product_addon_ids(product_payload):
@@ -208,19 +219,32 @@ class Setting(SingletonModel):
                             "slug": attributes.get("slug", ""),
                             "name": attributes.get("name", ""),
                             "description": attributes.get("description") or "",
-                            "short_description": attributes.get("short_description") or "",
-                            "stripe_product_id": attributes.get("stripe_product_id") or "",
-                            "security_deposit": self._to_decimal(attributes.get("security_deposit"), 0),
-                            "show_product_in_store": attributes.get("show_product_in_store", False),
-                            "weekly_price": self._to_decimal(attributes.get("weekly_price"), 0),
-                            "monthly_price": self._to_decimal(attributes.get("monthly_price"), 0),
+                            "short_description": attributes.get("short_description")
+                            or "",
+                            "stripe_product_id": attributes.get("stripe_product_id")
+                            or "",
+                            "security_deposit": self._to_decimal(
+                                attributes.get("security_deposit"), 0
+                            ),
+                            "show_product_in_store": attributes.get(
+                                "show_product_in_store", False
+                            ),
+                            "weekly_price": self._to_decimal(
+                                attributes.get("weekly_price"), 0
+                            ),
+                            "monthly_price": self._to_decimal(
+                                attributes.get("monthly_price"), 0
+                            ),
                             "monthly_discount_percentage": self._to_decimal(
                                 attributes.get(
-                                    "monthly_discount_percentage", attributes.get("monthly_discount_percent")
+                                    "monthly_discount_percentage",
+                                    attributes.get("monthly_discount_percent"),
                                 ),
                                 0,
                             ),
-                            "setup_cost": self._to_decimal(attributes.get("setup_cost"), 0),
+                            "setup_cost": self._to_decimal(
+                                attributes.get("setup_cost"), 0
+                            ),
                         },
                     )
 
@@ -228,12 +252,16 @@ class Setting(SingletonModel):
                     product_obj.tags.set(tags)
                     self._sync_product_images(product_obj, attributes)
 
-                    pending_addons[product_obj.original_id] = self._extract_product_addon_ids(attributes)
+                    pending_addons[product_obj.original_id] = (
+                        self._extract_product_addon_ids(attributes)
+                    )
                     synced_products.append(product_obj)
 
                 for product_obj in synced_products:
                     addon_original_ids = pending_addons.get(product_obj.original_id, [])
-                    addon_qs = Product.objects.filter(original_id__in=addon_original_ids)
+                    addon_qs = Product.objects.filter(
+                        original_id__in=addon_original_ids
+                    )
                     product_obj.addons.set(addon_qs)
 
             return f"Data updated successfully. Synced {len(synced_products)} products."

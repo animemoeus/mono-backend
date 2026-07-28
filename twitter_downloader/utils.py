@@ -11,7 +11,7 @@ from tenacity import stop_after_attempt
 logger = logging.getLogger(__name__)
 
 
-class TooManyRequestException(Exception):
+class TooManyRequestException(Exception):  # noqa: N818
     pass
 
 
@@ -35,10 +35,10 @@ class TwitterDownloader:
             "Cookie": cls.COOKIE,
         }
 
-        response = requests.get(cls.URL, headers=cls.HEADERS, params=querystring)
+        response = requests.get(cls.URL, headers=cls.HEADERS, params=querystring)  # noqa: S113
 
         # Raise too many request exception to trigger auto retry
-        if response.status_code == 429:
+        if response.status_code == 429:  # noqa: PLR2004
             raise TooManyRequestException
 
         try:
@@ -55,12 +55,12 @@ class TwitterDownloader:
         _videos = []
         for data in response.get("data")[0].get("video_info"):
             if data.get("bitrate"):
-                _videos.append(
+                _videos.append(  # noqa: PERF401
                     {
                         "bitrate": data.get("bitrate"),
                         "size": re.findall(r"[0-9]+x[0-9]+", data.get("url"))[0],
                         "url": data.get("url"),
-                    }
+                    },
                 )
 
         _videos = sorted(_videos, key=lambda d: d["bitrate"])[::-1]
@@ -83,12 +83,12 @@ class TwitterDownloader:
         Returns:
             str: The extracted tweet ID
         """
-        import re
+        import re  # noqa: PLC0415
 
         match = re.search(r"/status/(\d+)", tweet_url)
         if match:
             return match.group(1)
-        raise ValueError("Invalid Twitter URL format")
+        raise ValueError("Invalid Twitter URL format")  # noqa: EM101, TRY003
 
 
 class TwitterDownloaderAPIV2:
@@ -143,22 +143,28 @@ class TwitterDownloaderAPIV2:
             "Cookie": self.COOKIE,
         }
 
-        response = requests.get(self.URL, headers=self.HEADERS, params=querystring, timeout=5)
+        response = requests.get(
+            self.URL, headers=self.HEADERS, params=querystring, timeout=5
+        )
 
         # Handle rate-limiting error
-        if response.status_code == 429:
-            raise TooManyRequestException("Woah, too many requests! Maybe take a little break? I'll keep trying... 🔄😜")
+        if response.status_code == 429:  # noqa: PLR2004
+            raise TooManyRequestException(  # noqa: TRY003
+                "Woah, too many requests! Maybe take a little break? I'll keep trying... 🔄😜"  # noqa: E501, EM101
+            )
 
         # Attempt to parse JSON response
         try:
             response_data = response.json()
         except ValueError:
-            raise Exception("Hmm, the response doesn't look right. Are you sure it's JSON? 🧐🛑")
+            raise Exception(  # noqa: B904, TRY002, TRY003
+                "Hmm, the response doesn't look right. Are you sure it's JSON? 🧐🛑"  # noqa: EM101
+            )
 
         # Check if the required data is in the response
         if not response_data.get("data"):
-            raise Exception(
-                "Looks like I can't find that tweet... Are you sure it's still there? Or maybe it's deleted? 🤷‍♀️🚫"
+            raise Exception(  # noqa: TRY002, TRY003
+                "Looks like I can't find that tweet... Are you sure it's still there? Or maybe it's deleted? 🤷‍♀️🚫",  # noqa: E501, EM101
             )
 
         return response_data
@@ -206,7 +212,7 @@ class TwitterDownloaderAPIV3:
             Exception: If the API request fails, response validation fails,
                       or network connectivity issues occur.
         """
-        logger.debug(f"Fetching tweet data for ID: {tweet_id}")
+        logger.debug(f"Fetching tweet data for ID: {tweet_id}")  # noqa: G004
 
         headers = {
             "Content-Type": "application/json",
@@ -214,7 +220,7 @@ class TwitterDownloaderAPIV3:
             **self.AUTHORIZATION,
         }
         base_url = self.API_URL.rstrip("/")  # Remove trailing slash if exists
-        path = "/".join(["api", "v1", "twitter", "web", "fetch_tweet_detail"])
+        path = "/".join(["api", "v1", "twitter", "web", "fetch_tweet_detail"])  # noqa: FLY002
         url = f"{base_url}/{path}"
 
         try:
@@ -225,11 +231,13 @@ class TwitterDownloaderAPIV3:
                 params={"tweet_id": tweet_id},
             )
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Network error when connecting to Twitter API: {str(e)}")
+            raise Exception(f"Network error when connecting to Twitter API: {e!s}")  # noqa: B904, EM102, TRY002, TRY003
 
         response_data = self.get_response_data()
         if not response_data:
-            raise Exception("Unable to find the tweet data in the API response. Please check the response structure.")
+            raise Exception(  # noqa: TRY002, TRY003
+                "Unable to find the tweet data in the API response. Please check the response structure."  # noqa: E501, EM101
+            )
 
         entities = response_data.get("entities", {})
 
@@ -250,23 +258,27 @@ class TwitterDownloaderAPIV3:
 
                 if video_info:
                     video_variants = video_info.get("variants", [])
-                    tweet_video_variants = []  # Separate list for variants of current video
+                    tweet_video_variants = []  # Separate list for variants of current video  # noqa: E501
 
                     for variant in video_variants:
                         if variant.get("content_type") == "video/mp4":
-                            tweet_video_variants.append(
+                            tweet_video_variants.append(  # noqa: PERF401
                                 {
                                     "url": variant.get("url"),
                                     "thumbnail": media.get("media_url_https"),
                                     "bitrate": variant.get("bitrate"),
-                                    "size": re.findall(r"[0-9]+x[0-9]+", variant.get("url"))[0]
+                                    "size": re.findall(
+                                        r"[0-9]+x[0-9]+", variant.get("url")
+                                    )[0]
                                     if re.findall(r"[0-9]+x[0-9]+", variant.get("url"))
-                                    else "0x0",  # Default to "0x0" if no size found (e.g., gif variant does not have size)
-                                }
+                                    else "0x0",  # Default to "0x0" if no size found (e.g., gif variant does not have size)  # noqa: E501
+                                },
                             )
 
                     # Sort variants by bitrate in descending order
-                    tweet_video_variants = sorted(tweet_video_variants, key=lambda d: d["bitrate"])[::-1]
+                    tweet_video_variants = sorted(
+                        tweet_video_variants, key=lambda d: d["bitrate"]
+                    )[::-1]
 
                     # Add the video with all its variants as a separate entry
                     if tweet_video_variants:
@@ -276,7 +288,7 @@ class TwitterDownloaderAPIV3:
                                 "type": media.get("type", "video"),
                                 "thumbnail": media.get("media_url_https"),
                                 "variants": tweet_video_variants,
-                            }
+                            },
                         )
 
         tweet_data["tweet_id"] = response_data.get("id")
@@ -284,9 +296,9 @@ class TwitterDownloaderAPIV3:
         tweet_data["photos"] = tweet_data_photos
         tweet_data["videos"] = tweet_data_videos
         tweet_data["is_nsfw"] = response_data.get("sensitive", False)
-        # tweet_data["raw"] = response_data
+        # tweet_data["raw"] = response_data  # noqa: ERA001
 
-        logger.info(f"Successfully retrieved data for tweet ID: {tweet_id}")
+        logger.info(f"Successfully retrieved data for tweet ID: {tweet_id}")  # noqa: G004
         return tweet_data
 
     def _validate_response_status(self) -> None:
@@ -303,7 +315,9 @@ class TwitterDownloaderAPIV3:
         """
 
         if not self.response.ok:
-            raise Exception(f"Failed to fetch tweet data from API. Status code: {self.response.status_code}")
+            raise Exception(  # noqa: TRY002, TRY003
+                f"Failed to fetch tweet data from API. Status code: {self.response.status_code}"  # noqa: E501, EM102
+            )
 
     def _validate_response_json(self) -> None:
         """
@@ -318,7 +332,9 @@ class TwitterDownloaderAPIV3:
         try:
             self.response.json()
         except ValueError:
-            raise Exception("Failed to parse API response to JSON. Please check the response format.")
+            raise Exception(  # noqa: B904, TRY002, TRY003
+                "Failed to parse API response to JSON. Please check the response format."  # noqa: E501, EM101
+            )
 
     def _validate_response_data(self) -> None:
         """
@@ -332,7 +348,9 @@ class TwitterDownloaderAPIV3:
         """
         response_data = self.response.json()
         if not response_data.get("data"):
-            raise Exception("Unable to find the tweet data in the API response. Please check the response structure.")
+            raise Exception(  # noqa: TRY002, TRY003
+                "Unable to find the tweet data in the API response. Please check the response structure."  # noqa: E501, EM101
+            )
 
     def get_response_data(self) -> dict:
         """
@@ -343,7 +361,7 @@ class TwitterDownloaderAPIV3:
             dict: The response data from the Twitter API request.
         Raises:
             Exception: If the response data is not available or not in the expected format.
-        """
+        """  # noqa: E501
 
         self._validate_response_status()
         self._validate_response_json()
@@ -359,7 +377,7 @@ def get_tweet_url(text: str) -> str:
     urls = re.findall(r"https://\S+", text.lower())
     url = urls[0] if urls else ""
 
-    return url
+    return url  # noqa: RET504
 
 
 def get_tweet_id_from_url(tweet_url: str) -> str:
@@ -375,7 +393,7 @@ def get_tweet_id_from_url(tweet_url: str) -> str:
     match = re.search(r"/status/(\d+)", tweet_url)
     if match:
         return match.group(1)
-    raise ValueError("Unable to extract tweet ID from the provided URL.")
+    raise ValueError("Unable to extract tweet ID from the provided URL.")  # noqa: EM101, TRY003
 
 
 class TwitterDownloaderAPIV4:
@@ -387,22 +405,21 @@ class TwitterDownloaderAPIV4:
 
     Attributes:
         API_URL (str): Base URL for the Twitter downloader Cloudflare Worker.
-    """
+    """  # noqa: E501
 
     API_URL = "https://twittervideodownloader-com.artertendean.workers.dev/"
 
     USER_AGENTS = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",  # noqa: E501
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",  # noqa: E501
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",  # noqa: E501
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",  # noqa: E501
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",  # noqa: E501
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0",  # noqa: E501
     ]
 
     def __init__(self):
         """Initialize the TwitterDownloaderAPIV4 instance."""
-        pass
 
     @tenacity.retry(
         stop=(stop_after_attempt(3)),
@@ -439,9 +456,9 @@ class TwitterDownloaderAPIV4:
         Raises:
             Exception: If the API request fails or no video is found.
         """
-        logger.debug(f"Fetching tweet data from v4 API for URL: {tweet_url}")
+        logger.debug(f"Fetching tweet data from v4 API for URL: {tweet_url}")  # noqa: G004
 
-        headers = {"User-Agent": random.choice(self.USER_AGENTS)}
+        headers = {"User-Agent": random.choice(self.USER_AGENTS)}  # noqa: S311
 
         try:
             response = requests.get(
@@ -452,16 +469,16 @@ class TwitterDownloaderAPIV4:
             )
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            logger.error(f"Network error when connecting to Twitter API v4: {str(e)}")
+            logger.error(f"Network error when connecting to Twitter API v4: {e!s}")  # noqa: G004, TRY400
             return {
                 "success": False,
-                "error": f"Network error when connecting to Twitter API: {str(e)}",
+                "error": f"Network error when connecting to Twitter API: {e!s}",
             }
 
         try:
             response_data = response.json()
         except ValueError:
-            logger.error("Failed to parse API v4 response to JSON")
+            logger.error("Failed to parse API v4 response to JSON")  # noqa: TRY400
             return {
                 "success": False,
                 "error": "Failed to parse API response. Please try again later.",
@@ -471,10 +488,10 @@ class TwitterDownloaderAPIV4:
         if not response_data.get("success"):
             error_message = response_data.get(
                 "error",
-                "No video links found. The tweet may not contain a video or the URL is invalid.",
+                "No video links found. The tweet may not contain a video or the URL is invalid.",  # noqa: E501
             )
-            logger.warning(f"API v4 returned error: {error_message}")
+            logger.warning(f"API v4 returned error: {error_message}")  # noqa: G004
             return {"success": False, "error": error_message}
 
-        logger.info(f"Successfully retrieved video data for tweet: {tweet_url}")
+        logger.info(f"Successfully retrieved video data for tweet: {tweet_url}")  # noqa: G004
         return response_data

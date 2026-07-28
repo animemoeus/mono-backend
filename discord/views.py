@@ -9,7 +9,7 @@ def index(request):
 
 def refresh_url_health_check(request):
     refreshed_url = DiscordAPI.refresh_url(
-        "https://cdn.discordapp.com/attachments/858938620425404426/1248453128991412224/animemoeus-waifu.jpg"
+        "https://cdn.discordapp.com/attachments/858938620425404426/1248453128991412224/animemoeus-waifu.jpg",
     )
 
     if refreshed_url:

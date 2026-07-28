@@ -1,6 +1,8 @@
 from django.urls import path
 
-from .views import SafelinkView, TelegramWebhookView, ValidateTelegramMiniAppDataView
+from .views import SafelinkView
+from .views import TelegramWebhookView
+from .views import ValidateTelegramMiniAppDataView
 
 urlpatterns = [
     path("safelink/", SafelinkView.as_view(), name="safelink"),

@@ -22,7 +22,9 @@ class User(models.Model):
     following = models.PositiveIntegerField(default=0)
     visible_content_count = models.PositiveIntegerField(default=0)
     avatar_url = models.URLField(max_length=555)
-    avatar_file = models.ImageField(upload_to=tiktok_profile_picture_upload_location, null=True, blank=True)
+    avatar_file = models.ImageField(
+        upload_to=tiktok_profile_picture_upload_location, null=True, blank=True
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -32,19 +34,23 @@ class User(models.Model):
 
     def clean(self):
         if self.username.startswith("@"):
-            raise ValidationError("Username should not have `@` prefix")
+            raise ValidationError("Username should not have `@` prefix")  # noqa: EM101, TRY003
 
-    def save_from_url_to_file_field(self, field_name: str, file_format: str, file_url: str):
+    def save_from_url_to_file_field(
+        self, field_name: str, file_format: str, file_url: str
+    ):
         response = requests.get(file_url, timeout=5)
 
         if not response.ok:
             return
 
         if hasattr(self, field_name):
-            getattr(self, field_name).save(f"{uuid.uuid4()}.{file_format}", ContentFile(response.content))
+            getattr(self, field_name).save(
+                f"{uuid.uuid4()}.{file_format}", ContentFile(response.content)
+            )
 
     def update_data_from_api(self):
-        from tiktok.utils import TikHubAPI
+        from tiktok.utils import TikHubAPI  # noqa: PLC0415
 
         tikhub = TikHubAPI()
         user_info = tikhub.get_user_info(self.username)
@@ -74,7 +80,7 @@ class TiktokMonitor(models.Model):
         return self.username
 
 
-class SavedTiktokVideo(models.Model):
+class SavedTiktokVideo(models.Model):  # noqa: DJ008
     id = models.CharField(max_length=25, primary_key=True)
     tiktok_user = models.ForeignKey(TiktokMonitor, on_delete=models.CASCADE, null=True)
 

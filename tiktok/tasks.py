@@ -4,7 +4,9 @@ from .models import TiktokMonitor
 from .utils import TiktokVideoNoWatermark
 
 
-@shared_task(autoretry_for=(Exception,), max_retries=25, retry_backoff=True, soft_time_limit=3600)
+@shared_task(
+    autoretry_for=(Exception,), max_retries=25, retry_backoff=True, soft_time_limit=3600
+)
 def get_user_feed(tiktok_username: str) -> None:
     tiktok_user = TiktokVideoNoWatermark(tiktok_username)
     tiktok_user.save_videos()

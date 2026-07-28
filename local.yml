@@ -1,16 +1,16 @@
 version: "3"
 
 volumes:
-  animemoeus_mono_backend_local_postgres_data: {}
-  animemoeus_mono_backend_local_postgres_data_backups: {}
+  animemoeus_mono_core_local_postgres_data: {}
+  animemoeus_mono_core_local_postgres_data_backups: {}
 
 services:
   django: &django
     build:
       context: .
       dockerfile: ./compose/local/django/Dockerfile
-    image: animemoeus_mono_backend_local_django
-    container_name: animemoeus_mono_backend_local_django
+    image: animemoeus_mono_core_local_django
+    container_name: animemoeus_mono_core_local_django
     depends_on:
       - postgres
       - redis
@@ -27,17 +27,17 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/postgres/Dockerfile
-    image: animemoeus_mono_backend_production_postgres
-    container_name: animemoeus_mono_backend_local_postgres
+    image: animemoeus_mono_core_production_postgres
+    container_name: animemoeus_mono_core_local_postgres
     volumes:
-      - animemoeus_mono_backend_local_postgres_data:/var/lib/postgresql/data
-      - animemoeus_mono_backend_local_postgres_data_backups:/backups
+      - animemoeus_mono_core_local_postgres_data:/var/lib/postgresql/data
+      - animemoeus_mono_core_local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres
 
   # docs:
-  #   image: animemoeus_mono_backend_local_docs
-  #   container_name: animemoeus_mono_backend_local_docs
+  #   image: animemoeus_mono_core_local_docs
+  #   container_name: animemoeus_mono_core_local_docs
   #   build:
   #     context: .
   #     dockerfile: ./compose/local/docs/Dockerfile
@@ -46,19 +46,19 @@ services:
   #   volumes:
   #     - ./docs:/docs:z
   #     - ./config:/app/config:z
-  #     - ./backend:/app/backend:z
+  #     - ./core:/app/core:z
   #   ports:
   #     - '9000:9000'
   #   command: /start-docs
 
   redis:
     image: redis:6
-    container_name: animemoeus_mono_backend_local_redis
+    container_name: animemoeus_mono_core_local_redis
 
   celeryworker:
     <<: *django
-    image: animemoeus_mono_backend_local_celeryworker
-    container_name: animemoeus_mono_backend_local_celeryworker
+    image: animemoeus_mono_core_local_celeryworker
+    container_name: animemoeus_mono_core_local_celeryworker
     depends_on:
       - redis
       - postgres
@@ -67,8 +67,8 @@ services:
 
   celerybeat:
     <<: *django
-    image: animemoeus_mono_backend_local_celerybeat
-    container_name: animemoeus_mono_backend_local_celerybeat
+    image: animemoeus_mono_core_local_celerybeat
+    container_name: animemoeus_mono_core_local_celerybeat
     depends_on:
       - redis
       - postgres
@@ -77,8 +77,8 @@ services:
 
   flower:
     <<: *django
-    image: animemoeus_mono_backend_local_flower
-    container_name: animemoeus_mono_backend_local_flower
+    image: animemoeus_mono_core_local_flower
+    container_name: animemoeus_mono_core_local_flower
     ports:
       - "5555:5555"
     command: /start-flower

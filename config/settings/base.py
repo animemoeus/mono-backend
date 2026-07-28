@@ -7,8 +7,8 @@ from pathlib import Path
 import environ
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
-# backend/
-APPS_DIR = BASE_DIR / "backend"
+# core/
+APPS_DIR = BASE_DIR / "core"
 env = environ.Env()
 
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
@@ -28,12 +28,12 @@ TIME_ZONE = "Asia/Jakarta"
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
 LANGUAGE_CODE = "en-us"
 # https://docs.djangoproject.com/en/dev/ref/settings/#languages
-# from django.utils.translation import gettext_lazy as _
-# LANGUAGES = [
-#     ('en', _('English')),
-#     ('fr-fr', _('French')),
-#     ('pt-br', _('Portuguese')),
-# ]
+# from django.utils.translation import gettext_lazy as _  # noqa: ERA001
+# LANGUAGES = [  # noqa: ERA001
+#     ('en', _('English')),  # noqa: ERA001
+#     ('fr-fr', _('French')),  # noqa: ERA001
+#     ('pt-br', _('Portuguese')),  # noqa: ERA001
+# ]  # noqa: ERA001
 # https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
@@ -62,6 +62,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 ROOT_URLCONF = "config.urls"
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = "config.wsgi.application"
+# https://docs.djangoproject.com/en/dev/ref/settings/#asgi-application
+ASGI_APPLICATION = "config.asgi.application"
 
 # APPS
 # ------------------------------------------------------------------------------
@@ -106,7 +108,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "backend.users",
+    "core.users",
     # Your stuff: custom apps go here
     "cinematch",
     "discord",
@@ -121,7 +123,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIGRATIONS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
-MIGRATION_MODULES = {"sites": "backend.contrib.sites.migrations"}
+MIGRATION_MODULES = {"sites": "core.contrib.sites.migrations"}
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
@@ -149,7 +151,9 @@ PASSWORD_HASHERS = [
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -224,10 +228,10 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "backend.users.context_processors.allauth_settings",
+                "core.users.context_processors.allauth_settings",
             ],
         },
-    }
+    },
 ]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#form-renderer
@@ -289,7 +293,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",
+            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",  # noqa: E501
         },
     },
     "handlers": {
@@ -297,7 +301,7 @@ LOGGING = {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
             "formatter": "verbose",
-        }
+        },
     },
     "root": {"level": "INFO", "handlers": ["console"]},
 }
@@ -346,13 +350,13 @@ ACCOUNT_EMAIL_REQUIRED = True
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_ADAPTER = "backend.users.adapters.AccountAdapter"
+ACCOUNT_ADAPTER = "core.users.adapters.AccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
-ACCOUNT_FORMS = {"signup": "backend.users.forms.UserSignupForm"}
+ACCOUNT_FORMS = {"signup": "core.users.forms.UserSignupForm"}
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-SOCIALACCOUNT_ADAPTER = "backend.users.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "core.users.adapters.SocialAccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
-SOCIALACCOUNT_FORMS = {"signup": "backend.users.forms.UserSocialSignupForm"}
+SOCIALACCOUNT_FORMS = {"signup": "core.users.forms.UserSocialSignupForm"}
 
 # django-rest-framework
 # -------------------------------------------------------------------------------
@@ -362,38 +366,48 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ),
-    # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),  # noqa: E501, ERA001
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
-# CORS_URLS_REGEX = r"^/api/.*$"
+# CORS_URLS_REGEX = r"^/api/.*$"  # noqa: ERA001
 CORS_ALLOW_ALL_ORIGINS = True  # Update this to specific domains later
-# CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOW_CREDENTIALS = True  # noqa: ERA001
 
-# CORS_ALLOW_ALL_ORIGINS = True
-# By Default swagger ui is available only to admin user(s). You can change permission classes to change that
+# CORS_ALLOW_ALL_ORIGINS = True  # noqa: ERA001
+# By Default swagger ui is available only to admin user(s). You can change permission classes to change that  # noqa: E501
 # See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
 SPECTACULAR_SETTINGS = {
-    "TITLE": "backend API",
-    "DESCRIPTION": "Documentation of API endpoints of backend",
+    "TITLE": "core API",
+    "DESCRIPTION": "Documentation of API endpoints of core",
     "VERSION": "1.0.0",
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
 }
 # Your stuff...
 # ------------------------------------------------------------------------------
 DISCORD_FILE_SIZE_LIMIT = env.int("DISCORD_FILE_SIZE_LIMIT", default=25)
-DISCORD_STORAGE_UPLOAD_FROM_URL_WEBHOOK = env.str("DISCORD_STORAGE_UPLOAD_FROM_URL_WEBHOOK", default="")
-DISCORD_STORAGE_UPLOAD_FROM_FILE_WEBHOOK = env.str("DISCORD_STORAGE_UPLOAD_FROM_FILE_WEBHOOK", default="")
+DISCORD_STORAGE_UPLOAD_FROM_URL_WEBHOOK = env.str(
+    "DISCORD_STORAGE_UPLOAD_FROM_URL_WEBHOOK", default=""
+)
+DISCORD_STORAGE_UPLOAD_FROM_FILE_WEBHOOK = env.str(
+    "DISCORD_STORAGE_UPLOAD_FROM_FILE_WEBHOOK", default=""
+)
 
 # Tiktok
-TIKTOK_MONITOR_TELEGRAM_BOT_SECRET = env.str("TIKTOK_MONITOR_TELEGRAM_BOT_SECRET", default="")
-TIKTOK_MONITOR_TELEGRAM_PRIVATE_CHANNEL_ID = env.str("TIKTOK_MONITOR_TELEGRAM_PRIVATE_CHANNEL_ID", default="")
+TIKTOK_MONITOR_TELEGRAM_BOT_SECRET = env.str(
+    "TIKTOK_MONITOR_TELEGRAM_BOT_SECRET", default=""
+)
+TIKTOK_MONITOR_TELEGRAM_PRIVATE_CHANNEL_ID = env.str(
+    "TIKTOK_MONITOR_TELEGRAM_PRIVATE_CHANNEL_ID", default=""
+)
 
 # Waifu
 PIXIVPY_3_REFRESH_TOKEN = env.str("PIXIVPY_3_REFRESH_TOKEN", default="")
 WAIFU_TELEGRAM_BOT_TOKEN = env.str("WAIFU_TELEGRAM_BOT_TOKEN", default="")
-WAIFU_DISCORD_REFRESH_URL_BOT_TOKEN = env.str("WAIFU_DISCORD_REFRESH_URL_BOT_TOKEN", default="")
+WAIFU_DISCORD_REFRESH_URL_BOT_TOKEN = env.str(
+    "WAIFU_DISCORD_REFRESH_URL_BOT_TOKEN", default=""
+)
 
 # twitter_video_downloader
 TWITTER_DOWNLOADER_KEY = env.str("TWITTER_DOWNLOADER_KEY", default="")
@@ -402,7 +416,9 @@ TWITTER_DOWNLOADER_COOKIE = env.str("TWITTER_DOWNLOADER_COOKIE", default="")
 
 TWITTER_DOWNLOADER_API_URL = env.str("TWITTER_DOWNLOADER_API_URL", default="")
 TWITTER_DOWNLOADER_API_KEY = env.str("TWITTER_DOWNLOADER_API_KEY", default="")
-TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN = env.str("TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN", default="")
+TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN = env.str(
+    "TWITTER_VIDEO_DOWNLOADER_BOT_TOKEN", default=""
+)
 
 # discord
 DISCORD_REFRESH_URL = env.str("DISCORD_REFRESH_URL", default="")

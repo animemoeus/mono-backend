@@ -1,9 +1,10 @@
 from django.conf import settings
-from rest_framework.routers import DefaultRouter, SimpleRouter
+from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 
-from backend.users.api.views import UserViewSet
+from core.users.api.views import UserViewSet
 
-if settings.DEBUG:
+if settings.DEBUG:  # noqa: SIM108
     router = DefaultRouter()
 else:
     router = SimpleRouter()

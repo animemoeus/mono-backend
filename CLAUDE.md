@@ -46,7 +46,7 @@ coverage run -m pytest
 coverage html
 
 # Run specific test file
-pytest backend/users/tests/test_models.py
+pytest core/users/tests/test_models.py
 
 # Run tests for specific app
 pytest instagram/tests/
@@ -54,17 +54,14 @@ pytest instagram/tests/
 
 ### Code Quality
 ```bash
-# Format code with black
-black .
+# Format code with ruff
+ruff format .
 
-# Check imports with isort
-isort .
-
-# Lint with flake8
-flake8
+# Lint (and auto-fix) with ruff
+ruff check --fix .
 
 # Type checking with mypy
-mypy backend
+mypy core
 
 # Run all pre-commit hooks
 pre-commit run --all-files
@@ -91,8 +88,8 @@ python manage.py runscript scripts.arter
 
 ### Celery Operations
 ```bash
-# Start celery worker (from backend/ directory)
-cd backend
+# Start celery worker (from core/ directory)
+cd core
 celery -A config.celery_app worker -l info
 
 # Start celery beat scheduler
@@ -108,17 +105,16 @@ celery -A config.celery_app worker -B -l info
 ## Architecture Overview
 
 ### Project Structure
-- `backend/`: Core Django app with users, authentication, utilities
+- `core/`: Core Django app with users, authentication, utilities
 - `config/`: Django settings, URL routing, Celery configuration
-- `requirements/`: Separated requirements files (base, local, production)
+- `pyproject.toml` / `uv.lock`: Dependency management via `uv` (`[project.dependencies]` for runtime, `[dependency-groups.dev]` for local/test/lint tooling)
 - `compose/`: Docker configurations for local and production
 - `scripts/`: Custom management scripts for data processing
 
 ### Key Configuration Files
 - `config/settings/base.py`: Core Django settings
 - `config/settings/local.py`: Development-specific settings
-- `pyproject.toml`: Tool configurations (pytest, black, isort, mypy)
-- `setup.cfg`: flake8 and pycodestyle configuration
+- `pyproject.toml`: Tool configurations (pytest, ruff, mypy)
 - `.pre-commit-config.yaml`: Pre-commit hooks configuration
 
 ### Database Architecture

@@ -13,16 +13,22 @@ class TikHubAPI:
         if cache.get(f"tiktok_user_id_{username}"):
             return cache.get(f"tiktok_user_id_{username}")
 
-        response = self.request(f"/api/v1/tiktok/web/fetch_user_profile?uniqueId={username}")
+        response = self.request(
+            f"/api/v1/tiktok/web/fetch_user_profile?uniqueId={username}"
+        )
 
         if not response.ok:
-            raise Exception(f"{self.__class__.__name__}: Request failed with status code {response.status_code}.")
+            raise Exception(  # noqa: TRY002, TRY003
+                f"{self.__class__.__name__}: Request failed with status code {response.status_code}."  # noqa: E501, EM102
+            )
 
         response_data = response.json().get("data")
         user_info = response_data.get("userInfo")
 
         if not user_info:
-            raise Exception(f"{self.__class__.__name__}: There is no user with username {username}.")
+            raise Exception(  # noqa: TRY002, TRY003
+                f"{self.__class__.__name__}: There is no user with username {username}."  # noqa: EM102
+            )
 
         user = user_info.get("user")
         user_id = user.get("secUid")
@@ -34,7 +40,9 @@ class TikHubAPI:
 
     def get_user_info(self, username: str):
         user_id = self.get_user_id(username)
-        response = self.request(f"/api/v1/tiktok/app/v3/handler_user_profile?sec_user_id={user_id}")
+        response = self.request(
+            f"/api/v1/tiktok/app/v3/handler_user_profile?sec_user_id={user_id}"
+        )
 
         response_data = response.json().get("data")
         raw_user_info = response_data.get("user")
@@ -45,7 +53,8 @@ class TikHubAPI:
             "user_id": user_id,
             "avatar": (
                 raw_user_info.get("avatar_larger")["url_list"][-1]
-                if raw_user_info.get("avatar_larger") and raw_user_info.get("avatar_larger")["url_list"]
+                if raw_user_info.get("avatar_larger")
+                and raw_user_info.get("avatar_larger")["url_list"]
                 else ""
             ),
             "followers": raw_user_info.get("follower_count"),
@@ -53,7 +62,7 @@ class TikHubAPI:
             "visible_content_count": raw_user_info.get("visible_videos_count"),
         }
 
-        return user_info
+        return user_info  # noqa: RET504
 
     @staticmethod
     def request(url: str, method: str = "GET") -> Response:
@@ -68,8 +77,10 @@ class TikHubAPI:
         base_url = settings.TIKHUB_API_URL
         headers = {"Authorization": f"Bearer {settings.TIKHUB_API_KEY}"}
 
-        response = requests.request(method, f"{base_url}/{url}", headers=headers, timeout=10)
-        return response
+        response = requests.request(
+            method, f"{base_url}/{url}", headers=headers, timeout=10
+        )
+        return response  # noqa: RET504
 
 
 class TiktokVideoNoWatermark:
@@ -86,26 +97,26 @@ class TiktokVideoNoWatermark:
         # Because of the API limitations, we only get the first page of the feed data.
         # TODO: Use the cursor data to get more information
         url = f"https://www.tikwm.com/api/user/posts?unique_id={self.username}&count=33"
-        response = requests.request("GET", url)
+        response = requests.request("GET", url)  # noqa: S113
 
         tiktok_videos = response.json().get("data").get("videos")
-        return tiktok_videos
+        return tiktok_videos  # noqa: RET504
 
     @retry(tries=10, delay=10)
     def get_post_data_once(self):
         url = f"https://www.tikwm.com/api/user/posts?unique_id={self.username}&count=50"
-        response = requests.request("GET", url)
+        response = requests.request("GET", url)  # noqa: S113
 
         data = response.json().get("data")
-        return data
+        return data  # noqa: RET504
 
     @retry(tries=10, delay=10)
     def get_post_data_with_cursor(self, cursor=0):
         url = f"https://www.tikwm.com/api/user/posts?unique_id={self.username}&count=50&cursor={cursor}"
-        response = requests.request("GET", url)
+        response = requests.request("GET", url)  # noqa: S113
 
         data = response.json().get("data")
-        return data
+        return data  # noqa: RET504
 
     @retry(tries=10, delay=10)
     def get_all_post(self):
@@ -145,5 +156,5 @@ def send_to_private_telegram_channel(video_url: str, caption: str = "") -> None:
         "disable_notification": True,
     }
 
-    response = requests.request("POST", url, data=payload)
+    response = requests.request("POST", url, data=payload)  # noqa: S113
     return response.status_code

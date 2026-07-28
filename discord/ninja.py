@@ -13,5 +13,4 @@ def refresh(request, url: str):
 
     if refreshed_url:
         return redirect(refreshed_url)
-    else:
-        return HttpResponse(status=444)
+    return HttpResponse(status=444)

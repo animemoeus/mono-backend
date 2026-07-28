@@ -1,4 +1,5 @@
-from django_hosts import host, patterns
+from django_hosts import host
+from django_hosts import patterns
 
 host_patterns = patterns(
     "",
