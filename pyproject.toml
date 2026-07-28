@@ -23,7 +23,7 @@ dependencies = [
   "django-environ==0.12.0",       # https://github.com/joke2k/django-environ
 
   # Django Extensions (needed for runscript command)
-  "django-extensions==3.2.3",     # https://github.com/django-extensions/django-extensions
+  "django-extensions==4.1",     # https://github.com/django-extensions/django-extensions
   "django-filter==25.1",          # https://github.com/carltongibson/django-filter
   "django-health-check==3.18.3",  # https://github.com/revsys/django-health-check
   "django-hosts==6.0",            # https://github.com/jazzband/django-hosts
