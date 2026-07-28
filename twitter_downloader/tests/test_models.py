@@ -32,10 +32,14 @@ class TestTelegramUserModel(TestCase):
     def test_send_chat_action(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_chat_action("typing")
         self.assertEqual(result, True, "Test send chat action")  # noqa: PT009
+        self.assertEqual(mock_base_request.call_args.kwargs.get("timeout"), 10)  # noqa: PT009
 
     def test_send_message(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_message("Test Telegram user model")
         self.assertEqual(result, True)  # noqa: PT009
+        self.assertTrue(  # noqa: PT009
+            all(call.kwargs.get("timeout") == 10 for call in mock_base_request.call_args_list)
+        )
 
     def test_send_document(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_document(
@@ -43,6 +47,9 @@ class TestTelegramUserModel(TestCase):
             caption="Test document caption",
         )
         self.assertEqual(result, True)  # noqa: PT009
+        self.assertTrue(  # noqa: PT009
+            all(call.kwargs.get("timeout") == 10 for call in mock_base_request.call_args_list)
+        )
 
     def test_send_maintenance_message(self, mock_tw_request, mock_base_request):
         result = self.telegram_user.send_maintenance_message()

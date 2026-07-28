@@ -39,7 +39,9 @@ def refresh_expired_urls(urls: list[str]) -> dict:
     }
     payload = json.dumps({"attachment_urls": urls})
 
-    response = requests.request("POST", api_url, headers=headers, data=payload)  # noqa: S113
+    response = requests.request(
+        "POST", api_url, headers=headers, data=payload, timeout=10
+    )  # noqa: S113
     if not response.ok:
         raise Exception(  # noqa: TRY002, TRY003
             "Oh no! Failed to refresh URLs. Discord API isn’t playing nice right now."  # noqa: EM101, RUF001

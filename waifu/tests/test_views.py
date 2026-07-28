@@ -76,3 +76,8 @@ class TestRandomWaifuView(TestCase):
 
         data = response.json()
         self.assertIn("original_image", data)  # noqa: PT009
+
+    def test_get_random_waifu_when_empty(self, mock_refresh):
+        Image.objects.all().delete()
+        response = self.client.get(reverse("waifu:random"))
+        self.assertEqual(response.status_code, 404, "Should return 404 NOT FOUND")  # noqa: PT009

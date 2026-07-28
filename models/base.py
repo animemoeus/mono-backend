@@ -34,7 +34,9 @@ class BaseTelegramUserModel(models.Model):
         payload = json.dumps({"chat_id": self.user_id, "action": action})
         headers = {"Content-Type": "application/json"}
 
-        response = requests.request("POST", url, headers=headers, data=payload)  # noqa: S113
+        response = requests.request(
+            "POST", url, headers=headers, data=payload, timeout=10
+        )  # noqa: S113
         return response.ok
 
     @tenacity.retry(stop=(stop_after_delay(10) | stop_after_attempt(5)))
@@ -47,7 +49,9 @@ class BaseTelegramUserModel(models.Model):
         )
         headers = {"Content-Type": "application/json"}
 
-        response = requests.request("POST", url, headers=headers, data=payload)  # noqa: S113
+        response = requests.request(
+            "POST", url, headers=headers, data=payload, timeout=10
+        )  # noqa: S113
         return response.ok
 
     def send_document(self, document, caption="") -> bool:
@@ -64,5 +68,7 @@ class BaseTelegramUserModel(models.Model):
         )
         headers = {"Content-Type": "application/json"}
 
-        response = requests.request("POST", url, headers=headers, data=payload)  # noqa: S113
+        response = requests.request(
+            "POST", url, headers=headers, data=payload, timeout=10
+        )  # noqa: S113
         return response.ok

@@ -83,6 +83,8 @@ class RandomWaifuView(GenericAPIView):
     def get_queryset(self):
         # get random waifu from database
         total_records = Image.objects.count()
+        if total_records == 0:
+            return None
 
         # Generate a random index within the range of total_records
         random_index = random.randint(0, total_records - 1)  # noqa: S311
@@ -92,6 +94,8 @@ class RandomWaifuView(GenericAPIView):
 
     def get(self, request):
         queryset = self.get_queryset()
+        if queryset is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
         serializer = self.get_serializer(queryset)
         serializer_data = refresh_serializer_data_urls([serializer.data])[0]
         return Response(serializer_data)

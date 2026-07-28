@@ -6,4 +6,5 @@ set -o nounset
 
 
 python manage.py migrate
+export DJANGO_SETTINGS_MODULE=config.settings.local
 exec uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload

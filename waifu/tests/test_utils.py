@@ -67,6 +67,7 @@ class TestRefreshExpiredURLS(TestCase):
 
         refreshed_urls = refresh_expired_urls(self.expired_urls_1)
         self.assertEqual(len(refreshed_urls), 41, "Should return 41 refreshed URLs")  # noqa: PT009
+        self.assertEqual(mock_request.call_args.kwargs.get("timeout"), 10)  # noqa: PT009
 
 
 class TestRefreshSerializerDataURLS(TestCase):
@@ -119,3 +120,4 @@ class TestRefreshSerializerDataURLS(TestCase):
 
         # Verify URLs were refreshed (have ?refreshed=true appended)
         self.assertIn("?refreshed=true", refreshed_serializer_data[0]["original_image"])  # noqa: PT009
+        self.assertEqual(mock_request.call_args.kwargs.get("timeout"), 10)  # noqa: PT009
