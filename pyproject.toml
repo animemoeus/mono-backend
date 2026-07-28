@@ -59,7 +59,7 @@ dependencies = [
 
   # PostgreSQL Vector Extension
   "pgvector==0.4.1",              # https://pypi.org/project/pgvector/
-  "pillow==11.2.1",               # https://github.com/python-pillow/Pillow
+  "pillow==12.3.0",               # https://github.com/python-pillow/Pillow
 
   # arter tendean
   "pixivpy3==3.7.5",              # https://github.com/upbit/pixivpy
