@@ -1,7 +1,8 @@
 from django.contrib import admin
+from solo.admin import SingletonModelAdmin
 from unfold.admin import ModelAdmin
 
-from .models import DiscordWebhook, Image, TelegramUser
+from .models import DiscordWebhook, Image, Setting, TelegramUser
 
 # from import_export.admin import ImportExportModelAdmin
 
@@ -21,3 +22,8 @@ class TelegramUserAdmin(ModelAdmin):
 @admin.register(DiscordWebhook)
 class DiscordWebhookAdmin(ModelAdmin):
     pass
+
+
+@admin.register(Setting)
+class SettingAdmin(SingletonModelAdmin, ModelAdmin):
+    readonly_fields = ("created_at", "updated_at")

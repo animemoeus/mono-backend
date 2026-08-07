@@ -5,7 +5,9 @@ from io import BytesIO
 import requests
 from django.conf import settings
 from django.db import models
+from pgvector.django import VectorField
 from PIL import Image as PILImage
+from solo.models import SingletonModel
 
 from models.base import BaseTelegramUserModel
 
@@ -25,6 +27,8 @@ class Image(models.Model):
     creator_username = models.CharField(max_length=255, blank=True, default="")
     caption = models.TextField(blank=True, default="")
     source = models.CharField(max_length=255, blank=True, default="")
+
+    embedding = VectorField(dimensions=1536, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -135,3 +139,15 @@ class DiscordWebhook(models.Model):
             data=payload,
             files=files,
         )
+
+
+class Setting(SingletonModel):
+    openrouter_base_url = models.URLField(default="https://openrouter.ai", max_length=5000)
+    embedding_model = models.CharField(max_length=255, default="google/gemini-embedding-2")
+    embedding_api_key = models.CharField(max_length=255, blank=True, default="")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "Waifu Setting"
