@@ -1,15 +1,19 @@
 import base64
+import logging
 import random
 from io import BytesIO
 
 import requests
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from pgvector.django import VectorField
 from PIL import Image as PILImage
 from solo.models import SingletonModel
 
 from models.base import BaseTelegramUserModel
+
+logger = logging.getLogger(__name__)
 
 
 class Image(models.Model):
@@ -96,6 +100,36 @@ class Image(models.Model):
 
         waifu_generate_blur_data_url.delay(self.image_id)
 
+    def generate_embedding(self, force: bool = False) -> list[float] | None:
+        """
+        Generates and saves the embedding vector for this image using OpenRouter.
+        Skips the API call if an embedding already exists, unless force=True.
+        """
+
+        if self.embedding is not None and not force:
+            return self.embedding
+
+        from waifu.utils import refresh_expired_urls
+
+        image_url = self.original_image
+        refreshed_url = refresh_expired_urls([self.original_image]).get(self.original_image)
+        if refreshed_url:
+            image_url = refreshed_url
+
+        embedding, _token_usage = generate_image_embedding(image_url)
+        self.embedding = embedding
+        self.save(update_fields=["embedding"])
+        return self.embedding
+
+    def generate_embedding_task(self, force: bool = False) -> None:
+        """
+        Generates the embedding for this image using a Celery task.
+        """
+
+        from waifu.tasks import waifu_generate_image_embedding
+
+        waifu_generate_image_embedding.delay(self.image_id, force)
+
 
 class TelegramUser(BaseTelegramUserModel):
     BOT_TOKEN = settings.WAIFU_TELEGRAM_BOT_TOKEN
@@ -151,3 +185,79 @@ class Setting(SingletonModel):
 
     def __str__(self):
         return "Waifu Setting"
+
+
+def get_waifu_embedding_api_key() -> str:
+    setting = Setting.get_solo()
+    if not setting.embedding_api_key:
+        msg = "OpenRouter API key is not configured in Waifu settings"
+        raise ImproperlyConfigured(msg)
+    return setting.embedding_api_key
+
+
+def generate_image_embedding(image_url: str) -> tuple[list[float], int]:
+    """Generate embedding vector for an image using OpenRouter's embeddings API.
+
+    Args:
+        image_url: URL of the image to embed
+
+    Returns:
+        Tuple of (embedding vector, token_usage)
+
+    Raises:
+        ImproperlyConfigured: If the OpenRouter API key is not configured
+        ValueError: If image_url is empty
+        Exception: If the API request fails
+    """
+    if not image_url or not image_url.strip():
+        msg = "Image URL cannot be empty for image embedding generation"
+        raise ValueError(msg)
+
+    setting = Setting.get_solo()
+    api_key = get_waifu_embedding_api_key()
+    base_url = f"{setting.openrouter_base_url.rstrip('/')}/api/v1/embeddings"
+    model = setting.embedding_model
+
+    try:
+        response = requests.post(
+            base_url,
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://animemoeus.com",
+                "X-Title": "AnimeMoeUs Waifu",
+            },
+            json={
+                "model": model,
+                "input": [
+                    {
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": image_url},
+                            },
+                        ],
+                    },
+                ],
+                "encoding_format": "float",
+                "dimensions": 1536,
+            },
+            timeout=60,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        embedding = data["data"][0]["embedding"]
+        token_usage = data.get("usage", {}).get("total_tokens", 0)
+
+        logger.info(
+            "Generated waifu image embedding with %d dimensions (tokens: %d)",
+            len(embedding),
+            token_usage,
+        )
+
+        return embedding, token_usage
+
+    except Exception:
+        logger.exception("Failed to generate waifu image embedding for URL %s", image_url)
+        raise
