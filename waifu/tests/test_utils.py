@@ -1,8 +1,9 @@
 from unittest.mock import Mock, patch
 
+from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 
-from waifu.utils import refresh_expired_urls, refresh_serializer_data_urls
+from waifu.utils import generate_image_embedding, refresh_expired_urls, refresh_serializer_data_urls
 
 
 class TestRefreshExpiredURLS(TestCase):
@@ -114,3 +115,47 @@ class TestRefreshSerializerDataURLS(TestCase):
 
         # Verify URLs were refreshed (have ?refreshed=true appended)
         self.assertIn("?refreshed=true", refreshed_serializer_data[0]["original_image"])
+
+
+class TestGenerateImageEmbedding(TestCase):
+    def _make_setting(self, api_key="test-api-key"):
+        setting = Mock()
+        setting.embedding_api_key = api_key
+        setting.openrouter_base_url = "https://openrouter.ai"
+        setting.embedding_model = "google/gemini-embedding-2"
+        return setting
+
+    @patch("waifu.utils.Setting")
+    def test_empty_url_raises_value_error(self, mock_setting_cls):
+        with self.assertRaises(ValueError):
+            generate_image_embedding("")
+
+    @patch("waifu.utils.Setting")
+    def test_whitespace_url_raises_value_error(self, mock_setting_cls):
+        with self.assertRaises(ValueError):
+            generate_image_embedding("   ")
+
+    @patch("waifu.utils.Setting")
+    def test_missing_api_key_raises_improperly_configured(self, mock_setting_cls):
+        mock_setting_cls.get_solo.return_value = self._make_setting(api_key="")
+        with self.assertRaises(ImproperlyConfigured):
+            generate_image_embedding("https://example.com/image.jpg")
+
+    @patch("waifu.utils.requests.post")
+    @patch("waifu.utils.Setting")
+    def test_successful_response_returns_embedding_and_token_usage(self, mock_setting_cls, mock_post):
+        mock_setting_cls.get_solo.return_value = self._make_setting()
+
+        embedding_vector = [0.1, 0.2, 0.3]
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "data": [{"embedding": embedding_vector}],
+            "usage": {"total_tokens": 42},
+        }
+        mock_response.raise_for_status = Mock()
+        mock_post.return_value = mock_response
+
+        embedding, token_usage = generate_image_embedding("https://example.com/image.jpg")
+
+        self.assertEqual(embedding, embedding_vector)
+        self.assertEqual(token_usage, 42)
