@@ -1,9 +1,13 @@
+import logging
 import random
 
 import pyscord_storage
+import requests
 from celery import shared_task
 
 from .models import DiscordWebhook, Image
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task()
@@ -17,13 +21,18 @@ def waifu_generate_blur_data_url(image_id: str) -> None:
     image.generate_blur_data_url()
 
 
-@shared_task(autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+@shared_task(autoretry_for=(requests.exceptions.RequestException,), max_retries=3, retry_backoff=True)
 def waifu_generate_image_embedding(image_id: str, force: bool = False) -> None:
     """
     Generate and save the embedding for a single Image, identified by image_id.
     """
 
-    image = Image.objects.get(image_id=image_id)
+    try:
+        image = Image.objects.get(image_id=image_id)
+    except Image.DoesNotExist:
+        logger.error("Image with id %s does not exist; skipping embedding generation.", image_id)
+        return
+
     image.generate_embedding(force=force)
 
 
