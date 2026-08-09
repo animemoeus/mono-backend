@@ -108,10 +108,14 @@ class Image(models.Model):
         from waifu.utils import generate_image_embedding, refresh_expired_urls
 
         image_url = self.original_image
-        refreshed_url = refresh_expired_urls([self.original_image]).get(self.original_image)
-        if refreshed_url:
-            image_url = refreshed_url
-
+        try:
+            if "cdn.discordapp.com" in image_url or "media.discordapp.net" in image_url:
+                refreshed_url = refresh_expired_urls([image_url]).get(image_url)
+                if refreshed_url:
+                    image_url = refreshed_url
+        except Exception:
+            # If Discord refresh fails, fall back to the stored URL.
+            pass
         embedding, _token_usage = generate_image_embedding(image_url)
         self.embedding = embedding
         self.save(update_fields=["embedding"])
