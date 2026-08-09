@@ -128,7 +128,7 @@ def generate_image_embedding(image_url: str) -> tuple[list[float], int]:
         return embedding, token_usage
 
     except Exception:
-        logger.exception("Failed to generate waifu image embedding for URL %s", image_url)
+        logger.exception("Failed to generate waifu image embedding")
         raise
 
 
