@@ -17,6 +17,29 @@ def waifu_generate_blur_data_url(image_id: str) -> None:
     image.generate_blur_data_url()
 
 
+@shared_task(autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+def waifu_generate_image_embedding(image_id: str, force: bool = False) -> None:
+    """
+    Generate and save the embedding for a single Image, identified by image_id.
+    """
+
+    image = Image.objects.get(image_id=image_id)
+    image.generate_embedding(force=force)
+
+
+@shared_task()
+def waifu_generate_missing_image_embeddings(batch_size: int = 100) -> str:
+    """
+    Backfill task: find Images without an embedding and enqueue per-image
+    embedding generation for them.
+    """
+
+    image_ids = list(Image.objects.filter(embedding__isnull=True).values_list("image_id", flat=True)[:batch_size])
+    for image_id in image_ids:
+        waifu_generate_image_embedding.delay(image_id, False)
+    return f"Queued {len(image_ids)} images for embedding generation."
+
+
 @shared_task()
 def send_waifu():
     from waifu.utils import refresh_expired_urls
@@ -60,6 +83,7 @@ def save_pixiv_illust(illust_data: dict, pyscord_data: dict) -> None:
         source=illust_data.get("source"),
     )
     image.generate_blur_data_url_task()
+    image.generate_embedding_task()
 
 
 @shared_task(autoretry_for=(Exception,), max_retries=10, retry_backoff=True)

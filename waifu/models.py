@@ -5,7 +5,9 @@ from io import BytesIO
 import requests
 from django.conf import settings
 from django.db import models
+from pgvector.django import VectorField
 from PIL import Image as PILImage
+from solo.models import SingletonModel
 
 from models.base import BaseTelegramUserModel
 
@@ -25,6 +27,8 @@ class Image(models.Model):
     creator_username = models.CharField(max_length=255, blank=True, default="")
     caption = models.TextField(blank=True, default="")
     source = models.CharField(max_length=255, blank=True, default="")
+
+    embedding = VectorField(dimensions=1536, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -92,6 +96,40 @@ class Image(models.Model):
 
         waifu_generate_blur_data_url.delay(self.image_id)
 
+    def generate_embedding(self, force: bool = False) -> list[float] | None:
+        """
+        Generates and saves the embedding vector for this image using OpenRouter.
+        Skips the API call if an embedding already exists, unless force=True.
+        """
+
+        if self.embedding is not None and not force:
+            return self.embedding
+
+        from waifu.utils import generate_image_embedding, refresh_expired_urls
+
+        image_url = self.original_image
+        try:
+            if "cdn.discordapp.com" in image_url or "media.discordapp.net" in image_url:
+                refreshed_url = refresh_expired_urls([image_url]).get(image_url)
+                if refreshed_url:
+                    image_url = refreshed_url
+        except Exception:
+            # If Discord refresh fails, fall back to the stored URL.
+            pass
+        embedding, _token_usage = generate_image_embedding(image_url)
+        self.embedding = embedding
+        self.save(update_fields=["embedding"])
+        return self.embedding
+
+    def generate_embedding_task(self, force: bool = False) -> None:
+        """
+        Generates the embedding for this image using a Celery task.
+        """
+
+        from waifu.tasks import waifu_generate_image_embedding
+
+        waifu_generate_image_embedding.delay(self.image_id, force)
+
 
 class TelegramUser(BaseTelegramUserModel):
     BOT_TOKEN = settings.WAIFU_TELEGRAM_BOT_TOKEN
@@ -135,3 +173,15 @@ class DiscordWebhook(models.Model):
             data=payload,
             files=files,
         )
+
+
+class Setting(SingletonModel):
+    openrouter_base_url = models.URLField(default="https://openrouter.ai", max_length=5000)
+    embedding_model = models.CharField(max_length=255, default="google/gemini-embedding-2")
+    embedding_api_key = models.CharField(max_length=255, blank=True, default="")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "Waifu Setting"

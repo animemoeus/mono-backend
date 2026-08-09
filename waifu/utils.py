@@ -1,11 +1,16 @@
 import json
+import logging
 from typing import Any
 
 import requests
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from pixivpy3 import AppPixivAPI
 
+from .models import Setting
 from .tasks import update_pixiv_image_url_and_save_to_db
+
+logger = logging.getLogger(__name__)
 
 
 def refresh_expired_urls(urls: list[str]) -> dict:
@@ -49,6 +54,82 @@ def refresh_expired_urls(urls: list[str]) -> dict:
         if data.get("refreshed")
     }
     return result
+
+
+def get_waifu_embedding_api_key() -> str:
+    setting = Setting.get_solo()
+    if not setting.embedding_api_key:
+        msg = "OpenRouter API key is not configured in Waifu settings"
+        raise ImproperlyConfigured(msg)
+    return setting.embedding_api_key
+
+
+def generate_image_embedding(image_url: str) -> tuple[list[float], int]:
+    """Generate embedding vector for an image using OpenRouter's embeddings API.
+
+    Args:
+        image_url: URL of the image to embed
+
+    Returns:
+        Tuple of (embedding vector, token_usage)
+
+    Raises:
+        ImproperlyConfigured: If the OpenRouter API key is not configured
+        ValueError: If image_url is empty
+        Exception: If the API request fails
+    """
+    if not image_url or not image_url.strip():
+        msg = "Image URL cannot be empty for image embedding generation"
+        raise ValueError(msg)
+
+    setting = Setting.get_solo()
+    api_key = get_waifu_embedding_api_key()
+    base_url = f"{setting.openrouter_base_url.rstrip('/')}/api/v1/embeddings"
+    model = setting.embedding_model
+
+    try:
+        response = requests.post(
+            base_url,
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://waifu.animemoe.us",
+                "X-Title": "Waifu AnimeMoeUs",
+            },
+            json={
+                "model": model,
+                "input": [
+                    {
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": image_url},
+                            },
+                        ],
+                    },
+                ],
+                "encoding_format": "float",
+                "dimensions": 1536,
+            },
+            timeout=60,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        embedding = data["data"][0]["embedding"]
+        token_usage = data.get("usage", {}).get("total_tokens", 0)
+
+        logger.info(
+            "Generated waifu image embedding with %d dimensions (tokens: %d)",
+            len(embedding),
+            token_usage,
+        )
+
+        return embedding, token_usage
+
+    except Exception:
+        logger.exception("Failed to generate waifu image embedding")
+        raise
 
 
 def refresh_serializer_data_urls(data: list[dict]) -> list[dict]:
