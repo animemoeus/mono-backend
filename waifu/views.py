@@ -1,8 +1,11 @@
 import random
 import re
 
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from pgvector.django import CosineDistance
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
@@ -11,7 +14,7 @@ from rest_framework.views import APIView
 from backend.utils.telegram import TelegramWebhookParser
 
 from .models import Image, TelegramUser
-from .pagination import WaifuListPagination
+from .pagination import WaifuListPagination, WaifuSimilarPagination
 from .serializers import WaifuDetailSerializer, WaifuListSerialzer
 from .utils import PixivIllust, refresh_serializer_data_urls
 
@@ -38,6 +41,34 @@ class WaifuListView(ListAPIView):
         queryset = Image.objects.all().order_by("-id") if nsfw else Image.objects.filter(is_nsfw=False).order_by("-id")
 
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        serializer_data = refresh_serializer_data_urls(serializer.data)
+
+        return self.get_paginated_response(serializer_data)
+
+
+class WaifuSimilarImagesView(ListAPIView):
+    serializer_class = WaifuListSerialzer
+    pagination_class = WaifuSimilarPagination
+
+    def get_queryset(self):
+        target = get_object_or_404(Image, image_id=self.kwargs["image_id"])
+        if target.embedding is None:
+            raise ValidationError("Image does not have an embedding yet.")
+
+        nsfw = self.request.query_params.get("nsfw")
+        queryset = Image.objects.exclude(pk=target.pk).filter(embedding__isnull=False)
+        if not nsfw:
+            queryset = queryset.filter(is_nsfw=False)
+
+        return queryset.annotate(similarity_score=1 - CosineDistance("embedding", target.embedding)).order_by(
+            "-similarity_score"
+        )
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
