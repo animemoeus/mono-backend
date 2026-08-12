@@ -128,7 +128,9 @@ class TestWaifuSimilarImagesView(TestCase):
         self.assertEqual(response.status_code, 400, "Should return 400 Bad Request")
 
     def test_similar_images_page_size_is_not_capped(self, mock_refresh):
-        response = self.client.get(reverse("waifu:similar", kwargs={"image_id": self.target.image_id}), {"count": 100})
+        response = self.client.get(
+            reverse("waifu:similar", kwargs={"image_id": self.target.image_id}), {"count": 100, "nsfw": "1"}
+        )
         self.assertEqual(response.status_code, 200, "Should return 200 OK")
         self.assertEqual(len(response.json().get("results")), 3)
 
