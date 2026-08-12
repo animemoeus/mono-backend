@@ -9,5 +9,6 @@ class WaifuListPagination(PageNumberPagination):
 
 class WaifuSimilarPagination(CursorPagination):
     page_size = 20
+    max_page_size = 50
     page_size_query_param = "count"
-    ordering = "-similarity_score"
+    ordering = ("-similarity_score", "-id")
