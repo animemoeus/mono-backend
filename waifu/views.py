@@ -74,10 +74,14 @@ class WaifuSimilarImagesView(ListAPIView):
         queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
-        serializer_data = refresh_serializer_data_urls(serializer.data)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            serializer_data = refresh_serializer_data_urls(serializer.data)
+            return self.get_paginated_response(serializer_data)
 
-        return self.get_paginated_response(serializer_data)
+        serializer = self.get_serializer(queryset, many=True)
+        serializer_data = refresh_serializer_data_urls(serializer.data)
+        return Response(serializer_data)
 
 
 class WaifuDetailView(RetrieveAPIView):
