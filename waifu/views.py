@@ -62,8 +62,9 @@ class WaifuSimilarImagesView(ListAPIView):
             raise ValidationError("Image does not have an embedding yet.")
 
         nsfw = self.request.query_params.get("nsfw")
+        include_nsfw = str(nsfw).lower() in {"1", "true", "t", "yes", "y"}
         queryset = Image.objects.exclude(pk=target.pk).filter(embedding__isnull=False)
-        if not nsfw:
+        if not include_nsfw:
             queryset = queryset.filter(is_nsfw=False)
 
         return queryset.annotate(similarity_score=1 - CosineDistance("embedding", target.embedding)).order_by(
