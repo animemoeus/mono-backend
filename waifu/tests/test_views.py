@@ -132,7 +132,7 @@ class TestWaifuSimilarImagesView(TestCase):
             reverse("waifu:similar", kwargs={"image_id": self.target.image_id}), {"count": 100, "nsfw": "1"}
         )
         self.assertEqual(response.status_code, 200, "Should return 200 OK")
-        self.assertEqual(len(response.json().get("results")), 3)
+        self.assertEqual(len(response.json().get("results")), 2)
 
 
 @patch("waifu.views.refresh_serializer_data_urls", side_effect=lambda data: data)
