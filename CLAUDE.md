@@ -15,6 +15,17 @@ This is a Django-based backend mono-repository for AnimeMoeUs services, includin
 - **Twitter Downloader**: Twitter video download bot and web interface
 - **Waifu**: Image generation and Discord/Telegram bot services
 
+## Working conventions
+
+### Language
+- Write plans in Bahasa Indonesia. This covers plan mode output, task breakdowns, and implementation proposals.
+- Write the implementation in English: code, identifiers, comments, docstrings, commit messages, and PR descriptions.
+
+### Writing
+- Use the `humanizer:humanizer` skill whenever you write or edit prose. That includes docstrings, code comments, documentation (README, CLAUDE.md, `docs/`), commit messages, and PR descriptions.
+- Write the text first, then run it through the humanizer before saving.
+- If the skill is missing, install it with `/plugin marketplace add blader/humanizer` and then `/plugin install humanizer@humanizer`.
+
 ## Development Commands
 
 ### Local Development with Docker
