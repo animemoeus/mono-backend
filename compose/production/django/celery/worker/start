@@ -5,4 +5,8 @@ set -o pipefail
 set -o nounset
 
 
-exec celery -A config.celery_app worker -l INFO
+# Default concurrency is the host's CPU count, which can blow past the 500m mem_limit.
+# Prefork stays because the threads pool ignores task time limits.
+exec celery -A config.celery_app worker -l INFO \
+  --concurrency "${CELERY_WORKER_CONCURRENCY:-4}" \
+  --max-tasks-per-child 200
