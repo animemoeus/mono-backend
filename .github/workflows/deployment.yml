@@ -4,6 +4,8 @@ on:
   release:
     types: [published]
 
+run-name: "Deploy ${{ github.event.release.tag_name }} to Production"
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}

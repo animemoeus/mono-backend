@@ -17,7 +17,7 @@ Links you will bookmark, never revisit, and forget existed:
 - [🧑‍⚕️ Health Check](https://api.animemoe.us/health-check/) - it says healthy. we choose to believe it
 - [👀 Admin Panel](https://api.animemoe.us/admin/) - where you go to fix things you broke from here
 - [🌸 Django Flower](https://flower.animemoe.us/) - a flower that monitors your task queue. very zen. very broken sometimes
-- [📊 Docker Logs](https://dozzle.unklab.id/) - a beautiful UI for reading errors you will not fix today
+- [📊 Docker Logs](https://dozzle.animemoe.us/) - a beautiful UI for reading errors you will not fix today
 
 ---
 
