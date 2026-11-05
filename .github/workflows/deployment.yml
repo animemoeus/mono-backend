@@ -78,7 +78,7 @@ jobs:
           script: |
             cd ${{ secrets.REPOSITORY_LOCATION }}
             git pull origin master --force
-            docker compose -f production.yml pull
-            docker compose -f production.yml up -d
-            docker compose -f production.yml run --rm django python manage.py migrate
+            docker compose -f production.ghcr.yml pull
+            docker compose -f production.ghcr.yml up -d
+            docker compose -f production.ghcr.yml run --rm django python manage.py migrate
             docker image prune -f

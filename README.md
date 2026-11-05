@@ -128,3 +128,20 @@ Set the DSN URL in production. You will only forget once.
 ### Docker
 
 It is Docker. You know what to do. If you do not, maybe start there.
+
+Publishing a GitHub release builds the images in GitHub Actions, pushes them to GHCR, and then the VPS pulls them through `production.ghcr.yml`:
+
+```bash
+docker compose -f production.ghcr.yml pull
+docker compose -f production.ghcr.yml up -d
+docker compose -f production.ghcr.yml run --rm django python manage.py migrate
+```
+
+If GitHub Actions or GHCR is down, build on the server with `production.yml` instead. Both files share the same service and volume names, so either one takes over the running containers and keeps the data:
+
+```bash
+git pull origin master
+docker compose -f production.yml build
+docker compose -f production.yml up -d
+docker compose -f production.yml run --rm django python manage.py migrate
+```
