@@ -60,6 +60,7 @@ services:
     <<: *django
     image: backend_production_flower
     command: /start-flower
+    mem_limit: 100m
 
   awscli:
     build:
