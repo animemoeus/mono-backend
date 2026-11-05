@@ -21,7 +21,19 @@ This is a Django-based backend mono-repository for AnimeMoeUs services, includin
 - Write plans in Bahasa Indonesia. This covers plan mode output, task breakdowns, and implementation proposals.
 - Write the implementation in English: code, identifiers, comments, docstrings, commit messages, and PR descriptions.
 
-### Writing
+### Required tools
+Use all three of these in every session.
+
+#### Context7
+- Fetch current docs through the Context7 MCP whenever a task touches a library, framework, SDK, API, CLI tool, or cloud service (Django, DRF, Celery, pgvector, django-ninja, and so on). Do this even when you think you already know the answer.
+- Call `resolve-library-id` first, then `query-docs` with one concept per call. Skip the lookup only if the user gives an exact `/org/project` ID.
+- Prefer Context7 over web search for library docs. You don't need it for refactoring or debugging code that doesn't depend on a library API.
+
+#### Ponytail
+- Keep ponytail mode (`ponytail:ponytail`, level `full`) on for the whole session. If the "PONYTAIL MODE ACTIVE" notice is missing at session start, invoke the skill before writing any code.
+- Turn it off only when the user says "stop ponytail" or "normal mode".
+
+#### Humanizer
 - Use the `humanizer:humanizer` skill whenever you write or edit prose. That includes docstrings, code comments, documentation (README, CLAUDE.md, `docs/`), commit messages, and PR descriptions.
 - Write the text first, then run it through the humanizer before saving.
 - If the skill is missing, install it with `/plugin marketplace add blader/humanizer` and then `/plugin install humanizer@humanizer`.
