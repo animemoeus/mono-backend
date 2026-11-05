@@ -91,4 +91,15 @@ RUN DATABASE_URL="" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
   python manage.py compilemessages
 
+# Dummy env only satisfies production settings; collectstatic doesn't touch DB/Redis/Sentry.
+RUN DJANGO_SETTINGS_MODULE="config.settings.production" \
+  DJANGO_SECRET_KEY="build" \
+  DJANGO_ADMIN_URL="build/" \
+  DJANGO_ALLOWED_HOSTS="build" \
+  DATABASE_URL="sqlite://:memory:" \
+  CELERY_BROKER_URL="" \
+  REDIS_URL="redis://localhost:6379/0" \
+  SENTRY_DSN="" \
+  python manage.py collectstatic --noinput
+
 ENTRYPOINT ["/entrypoint"]

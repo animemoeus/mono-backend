@@ -5,6 +5,14 @@ set -o pipefail
 set -o nounset
 
 
-python /app/manage.py collectstatic --noinput
-
-exec /usr/local/bin/gunicorn config.wsgi --bind 0.0.0.0:5000 --timeout 120 --workers 5 --chdir=/app
+# collectstatic runs at image build time (see Dockerfile).
+# Workload is I/O-bound, so threads beat extra processes under the 1g mem_limit.
+exec /usr/local/bin/gunicorn config.wsgi \
+  --bind 0.0.0.0:5000 \
+  --worker-class gthread \
+  --workers "${GUNICORN_WORKERS:-2}" \
+  --threads "${GUNICORN_THREADS:-8}" \
+  --timeout 120 \
+  --worker-tmp-dir /dev/shm \
+  --max-requests 1000 \
+  --max-requests-jitter 100
