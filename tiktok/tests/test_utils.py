@@ -1,8 +1,9 @@
 from unittest.mock import Mock, patch
 
+import requests
 from django.test import TestCase
 
-from tiktok.utils import TikHubAPI
+from tiktok.utils import TikHubAPI, TiktokVideoNoWatermark, send_to_private_telegram_channel
 
 
 class TestTikHubAPI(TestCase):
@@ -67,3 +68,103 @@ class TestTikHubAPI(TestCase):
 
         user_info = self.tikhub.get_user_info("aangiehsl")
         self.assertEqual(user_info["username"], "aangiehsl", "Should return the correct username")
+
+
+class TestTiktokRetryBehavior(TestCase):
+    def setUp(self):
+        self.client = TiktokVideoNoWatermark("aangiehsl")
+
+    @patch("tiktok.utils.requests.request")
+    def test_get_post_data_once_retries_and_succeeds(self, mock_request):
+        ok_response = Mock()
+        ok_response.json.return_value = {"data": {"videos": [{"video_id": "1"}]}}
+        mock_request.side_effect = [
+            requests.exceptions.RequestException("temporary error"),
+            ok_response,
+        ]
+
+        with patch.object(TiktokVideoNoWatermark.get_post_data_once.retry, "sleep") as mock_sleep:
+            data = self.client.get_post_data_once()
+
+        self.assertEqual(data, {"videos": [{"video_id": "1"}]})
+        self.assertEqual(mock_request.call_count, 2)
+        mock_sleep.assert_called_once_with(10)
+
+    @patch("tiktok.utils.requests.request")
+    def test_get_post_data_once_reraises_after_max_attempts(self, mock_request):
+        mock_request.side_effect = ValueError("upstream error")
+
+        with patch.object(TiktokVideoNoWatermark.get_post_data_once.retry, "sleep") as mock_sleep:
+            with self.assertRaises(ValueError):
+                self.client.get_post_data_once()
+
+        self.assertEqual(mock_request.call_count, 10)
+        self.assertEqual(mock_sleep.call_count, 9)
+        mock_sleep.assert_called_with(10)
+
+    @patch("tiktok.utils.requests.request")
+    def test_get_post_data_with_cursor_retries_and_reraises(self, mock_request):
+        ok_response = Mock()
+        ok_response.json.return_value = {"data": {"cursor": 50, "hasMore": False, "videos": []}}
+        mock_request.side_effect = [
+            requests.exceptions.Timeout("timeout"),
+            ok_response,
+        ]
+
+        with patch.object(TiktokVideoNoWatermark.get_post_data_with_cursor.retry, "sleep") as mock_sleep:
+            data = self.client.get_post_data_with_cursor(cursor=50)
+
+        self.assertEqual(data["cursor"], 50)
+        mock_sleep.assert_called_once_with(10)
+
+        mock_request.side_effect = RuntimeError("fatal error")
+        with patch.object(TiktokVideoNoWatermark.get_post_data_with_cursor.retry, "sleep") as mock_sleep:
+            with self.assertRaises(RuntimeError):
+                self.client.get_post_data_with_cursor(cursor=50)
+
+        self.assertEqual(mock_sleep.call_count, 9)
+
+    def test_get_all_post_retries_and_succeeds(self):
+        with (
+            patch.object(
+                TiktokVideoNoWatermark,
+                "get_post_data_once",
+                side_effect=[
+                    RuntimeError("transient error"),
+                    {"cursor": 1, "hasMore": False, "videos": [{"video_id": "1"}]},
+                ],
+            ),
+            patch.object(TiktokVideoNoWatermark.get_all_post.retry, "sleep") as mock_sleep,
+        ):
+            videos = self.client.get_all_post()
+
+        self.assertEqual(videos, [{"video_id": "1"}])
+        mock_sleep.assert_called_once_with(10)
+
+    @patch("tiktok.utils.requests.request")
+    def test_send_to_private_telegram_channel_retries_and_reraises(self, mock_request):
+        ok_response = Mock(status_code=200)
+        mock_request.side_effect = [
+            requests.exceptions.ConnectionError("connection reset"),
+            requests.exceptions.ConnectionError("connection reset"),
+            ok_response,
+        ]
+
+        with patch.object(send_to_private_telegram_channel.retry, "sleep") as mock_sleep:
+            status_code = send_to_private_telegram_channel("https://example.com/video.mp4", "caption")
+
+        self.assertEqual(status_code, 200)
+        self.assertEqual(mock_request.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
+        mock_sleep.assert_called_with(1)
+
+        mock_request.reset_mock()
+        mock_request.side_effect = requests.exceptions.ConnectionError("still down")
+
+        with patch.object(send_to_private_telegram_channel.retry, "sleep") as mock_sleep:
+            with self.assertRaises(requests.exceptions.ConnectionError):
+                send_to_private_telegram_channel("https://example.com/video.mp4", "caption")
+
+        self.assertEqual(mock_request.call_count, 10)
+        self.assertEqual(mock_sleep.call_count, 9)
+        mock_sleep.assert_called_with(1)
