@@ -36,16 +36,11 @@
                     "editor.codeActionsOnSave": {
                         "source.organizeImports": true
                     },
-                    "editor.defaultFormatter": "ms-python.black-formatter",
-                    "formatting.blackPath": "/opt/venv/bin/black",
-                    "formatting.provider": "black",
+                    "editor.defaultFormatter": "charliermarsh.ruff",
                     "languageServer": "Pylance",
                     "linting.enabled": true,
-                    "linting.flake8Enabled": true,
-                    "linting.flake8Path": "/opt/venv/bin/flake8",
                     "linting.mypyEnabled": true,
                     "linting.mypyPath": "/opt/venv/bin/mypy",
-                    "linting.pycodestylePath": "/opt/venv/bin/pycodestyle",
                     "linting.pylintEnabled": true,
                     "linting.pylintPath": "/opt/venv/bin/pylint"
                 }
@@ -57,8 +52,7 @@
                 "visualstudioexptteam.intellicode-api-usage-examples",
                 "ms-python.python",
                 "ms-python.vscode-pylance",
-                "ms-python.isort",
-                "ms-python.black-formatter",
+                "charliermarsh.ruff",
                 "batisteo.vscode-django"
             ]
         }

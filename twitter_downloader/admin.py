@@ -4,9 +4,8 @@ from solo.admin import SingletonModelAdmin
 from unfold.admin import ModelAdmin
 from unfold.decorators import action
 
-from .models import BroadcastLog, BroadcastMessage, DownloadedTweet, ExternalLink
+from .models import BroadcastLog, BroadcastMessage, DownloadedTweet, ExternalLink, TelegramUser
 from .models import Settings as TwitterDownloaderSettings
-from .models import TelegramUser
 
 
 @admin.register(TelegramUser)
