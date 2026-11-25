@@ -4,9 +4,9 @@ argon2-cffi==25.1.0  # https://github.com/hynek/argon2_cffi
 whitenoise==6.11.0  # https://github.com/evansd/whitenoise
 redis==6.2.0  # https://github.com/redis/redis-py
 hiredis==3.4.0  # https://github.com/redis/hiredis-py
-celery==5.4.0  # pyup: < 6.0  # https://github.com/celery/celery
+celery==5.7.0  # pyup: < 6.0  # https://github.com/celery/celery
 django-celery-beat==2.9.0  # https://github.com/celery/django-celery-beat
-flower==2.0.1  # https://github.com/mher/flower
+flower==2.2.0  # https://github.com/mher/flower
 tenacity==9.0.0 # https://pypi.org/project/tenacity/
 pytest-cov==6.0.0  # https://pypi.org/project/pytest-cov/
 
@@ -39,11 +39,11 @@ boto3==1.43.67 # https://github.com/boto/boto3
 
 
 # Monitoring
-django-prometheus==2.3.1 #  https://pypi.org/project/django-prometheus/
+django-prometheus==2.5.0 #  https://pypi.org/project/django-prometheus/
 
 
 # discord
-django-ninja==1.3.0 # https://github.com/vitalik/django-ninja
+django-ninja==1.8.0 # https://github.com/vitalik/django-ninja
 
 
 # arter tendean
@@ -59,4 +59,4 @@ django-unfold==0.74.1  # https://pypi.org/project/django-unfold/
 pgvector==0.5.0  # https://pypi.org/project/pgvector/
 
 # Django Extensions (needed for runscript command)
-django-extensions==3.2.3  # https://github.com/django-extensions/django-extensions
+django-extensions==4.1  # https://github.com/django-extensions/django-extensions

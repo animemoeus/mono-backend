@@ -32,22 +32,22 @@
                 "[python]": {
                     "analysis.autoImportCompletions": true,
                     "analysis.typeCheckingMode": "basic",
-                    "defaultInterpreterPath": "/usr/local/bin/python",
+                    "defaultInterpreterPath": "/opt/venv/bin/python",
                     "editor.codeActionsOnSave": {
                         "source.organizeImports": true
                     },
                     "editor.defaultFormatter": "ms-python.black-formatter",
-                    "formatting.blackPath": "/usr/local/bin/black",
+                    "formatting.blackPath": "/opt/venv/bin/black",
                     "formatting.provider": "black",
                     "languageServer": "Pylance",
                     "linting.enabled": true,
                     "linting.flake8Enabled": true,
-                    "linting.flake8Path": "/usr/local/bin/flake8",
+                    "linting.flake8Path": "/opt/venv/bin/flake8",
                     "linting.mypyEnabled": true,
-                    "linting.mypyPath": "/usr/local/bin/mypy",
-                    "linting.pycodestylePath": "/usr/local/bin/pycodestyle",
+                    "linting.mypyPath": "/opt/venv/bin/mypy",
+                    "linting.pycodestylePath": "/opt/venv/bin/pycodestyle",
                     "linting.pylintEnabled": true,
-                    "linting.pylintPath": "/usr/local/bin/pylint"
+                    "linting.pylintPath": "/opt/venv/bin/pylint"
                 }
             },
             "extensions": [

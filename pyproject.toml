@@ -17,7 +17,7 @@ plugins = ["django_coverage_plugin"]
 # ==== black ====
 [tool.black]
 line-length = 119
-target-version = ['py311']
+target-version = ['py314']
 
 
 # ==== isort ====
@@ -34,7 +34,7 @@ skip_glob = ["**/migrations/*.py"]
 
 # ==== mypy ====
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 check_untyped_defs = true
 ignore_missing_imports = true
 warn_unused_ignores = true
