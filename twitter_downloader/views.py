@@ -8,7 +8,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from backend.utils.telegram import TelegramWebhookParser
+from app.utils.telegram import TelegramWebhookParser
 
 from .models import DownloadedTweet, TelegramUser
 from .models import Settings as TwitterDownloaderSettings

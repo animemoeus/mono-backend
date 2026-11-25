@@ -9,7 +9,7 @@ python_files = [
 
 # ==== Coverage ====
 [tool.coverage.run]
-include = ["backend/**", "*/tests/*", "*/tests.py"]
+include = ["app/**", "*/tests/*", "*/tests.py"]
 omit = ["*/migrations/*"]
 plugins = ["django_coverage_plugin"]
 
@@ -37,7 +37,7 @@ ignore = [
 
 [tool.ruff.lint.isort]
 known-first-party = [
-    "backend",
+    "app",
     "config",
 ]
 

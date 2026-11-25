@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Django-based backend mono-repository for AnimeMoeUs services, including multiple microservices and APIs:
 
-- **Backend**: Core Django application with user management, authentication
+- **App**: Core Django application with user management, authentication
 - **CineMatch**: Movie recommendation system with vector search using pgvector
 - **Discord**: Discord bot integration and URL refresh services
 - **Instagram**: Instagram user/story monitoring and API integration
@@ -69,7 +69,7 @@ coverage run -m pytest
 coverage html
 
 # Run specific test file
-pytest backend/users/tests/test_models.py
+pytest app/users/tests/test_models.py
 
 # Run tests for specific app
 pytest instagram/tests/
@@ -85,7 +85,7 @@ ruff check .
 ruff check --fix .
 
 # Type checking with mypy
-mypy backend
+mypy app
 
 # Run all pre-commit hooks
 pre-commit run --all-files
@@ -112,8 +112,8 @@ python manage.py runscript scripts.arter
 
 ### Celery Operations
 ```bash
-# Start celery worker (from backend/ directory)
-cd backend
+# Start celery worker (from app/ directory)
+cd app
 celery -A config.celery_app worker -l info
 
 # Start celery beat scheduler
@@ -129,7 +129,7 @@ celery -A config.celery_app worker -B -l info
 ## Architecture Overview
 
 ### Project Structure
-- `backend/`: Core Django app with users, authentication, utilities
+- `app/`: Core Django app with users, authentication, utilities
 - `config/`: Django settings, URL routing, Celery configuration
 - `requirements/`: Separated requirements files (base, local, production)
 - `compose/`: Docker configurations for local and production

@@ -9,7 +9,7 @@ services:
     mem_limit: 1g
     image: ghcr.io/animemoeus/mono-backend/django:latest
     volumes:
-      - production_django_media:/app/backend/media
+      - production_django_media:/app/app/media
     depends_on:
       - postgres
       - redis

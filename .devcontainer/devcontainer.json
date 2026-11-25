@@ -1,5 +1,5 @@
 {
-    "name": "backend_dev",
+    "name": "app_dev",
     "dockerComposeFile": [
         "../local.yml"
     ],

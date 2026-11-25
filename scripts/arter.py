@@ -1,4 +1,4 @@
-from backend.utils import openai
+from app.utils import openai
 from cinematch.models import Movie
 
 

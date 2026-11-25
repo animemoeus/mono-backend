@@ -2,7 +2,7 @@ import json
 
 from django.test import TestCase
 
-from backend.utils.telegram import TelegramWebhookParser
+from app.utils.telegram import TelegramWebhookParser
 
 
 class TestTelegramWebhookParser(TestCase):
