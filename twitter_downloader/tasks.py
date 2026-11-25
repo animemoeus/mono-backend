@@ -138,9 +138,11 @@ def forward_tweet_to_channel(downloaded_tweet_id: str):
     # Build inline keyboard with video quality links
     external_links = ExternalLink.objects.filter(is_active=True).order_by("-updated_at")
     external_link_buttons = [
-        [{"text": link.title, "web_app": {"url": link.url}}]
-        if link.is_web_app
-        else [{"text": link.title, "url": link.url}]
+        (
+            [{"text": link.title, "web_app": {"url": link.url}}]
+            if link.is_web_app
+            else [{"text": link.title, "url": link.url}]
+        )
         for link in external_links
     ]
 

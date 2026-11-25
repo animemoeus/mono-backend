@@ -92,7 +92,7 @@ def process_movie_row(row, stats):
             # Ensure rating is within reasonable bounds
             if rating < 0 or rating > 10:
                 rating = None
-        except (InvalidOperation, ValueError):
+        except InvalidOperation, ValueError:
             rating = None
     else:
         rating = None

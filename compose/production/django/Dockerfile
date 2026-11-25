@@ -1,25 +1,34 @@
 
+FROM ghcr.io/astral-sh/uv:0.13.10 AS uv
+
 # define an alias for the specific python version used in this file.
-FROM docker.io/python:3.12.16-slim-bookworm AS python
+FROM docker.io/python:3.14.10-slim-trixie AS python
 
 # Python build stage
 FROM python AS python-build-stage
 
 ARG BUILD_ENVIRONMENT=production
 
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+
 # Install apt packages
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
-  # psycopg2 dependencies
-  libpq-dev
+  # psycopg dependencies
+  libpq-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY --from=uv /uv /bin/uv
 
 # Requirements are installed here to ensure they will be cached.
-COPY ./requirements .
+COPY ./requirements /requirements
 
-# Create Python Dependency and Sub-Dependency Wheels.
-RUN pip wheel --wheel-dir /usr/src/app/wheels  \
-  -r ${BUILD_ENVIRONMENT}.txt
+# Install Python dependencies into an isolated virtual environment.
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv venv /opt/venv \
+  && uv pip install --python /opt/venv/bin/python -r /requirements/${BUILD_ENVIRONMENT}.txt
 
 
 # Python 'run' stage
@@ -28,9 +37,11 @@ FROM python AS python-run-stage
 ARG BUILD_ENVIRONMENT=production
 ARG APP_HOME=/app
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV BUILD_ENV ${BUILD_ENVIRONMENT}
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV BUILD_ENV=${BUILD_ENVIRONMENT}
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 WORKDIR ${APP_HOME}
 
@@ -39,7 +50,7 @@ RUN addgroup --system django \
 
 # Install required system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
-  # psycopg2 dependencies
+  # psycopg dependencies
   libpq-dev \
   # Translations dependencies
   gettext \
@@ -48,12 +59,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   && rm -rf /var/lib/apt/lists/*
 
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
-# copy python dependency wheels from python-build-stage
-COPY --from=python-build-stage /usr/src/app/wheels  /wheels/
-
-# use wheels to install python dependencies
-RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
-  && rm -rf /wheels/
+# copy virtualenv from python-build-stage
+COPY --from=python-build-stage /opt/venv /opt/venv
 
 
 COPY --chown=django:django ./compose/production/django/entrypoint /entrypoint

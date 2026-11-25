@@ -14,27 +14,41 @@ omit = ["*/migrations/*"]
 plugins = ["django_coverage_plugin"]
 
 
-# ==== black ====
-[tool.black]
+# ==== ruff ====
+[tool.ruff]
 line-length = 119
-target-version = ['py311']
+target-version = "py314"
+extend-exclude = [
+    "*/migrations/*",
+    "docs",
+]
 
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "UP",
+]
+ignore = [
+    "E501",
+]
 
-# ==== isort ====
-[tool.isort]
-profile = "black"
-line_length = 119
-known_first_party = [
+[tool.ruff.lint.isort]
+known-first-party = [
     "backend",
     "config",
 ]
-skip = ["venv/"]
-skip_glob = ["**/migrations/*.py"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 
 # ==== mypy ====
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 check_untyped_defs = true
 ignore_missing_imports = true
 warn_unused_ignores = true

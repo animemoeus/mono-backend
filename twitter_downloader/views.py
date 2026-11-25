@@ -10,9 +10,8 @@ from rest_framework.views import APIView
 
 from backend.utils.telegram import TelegramWebhookParser
 
-from .models import DownloadedTweet
+from .models import DownloadedTweet, TelegramUser
 from .models import Settings as TwitterDownloaderSettings
-from .models import TelegramUser
 from .serializers import ValidateTelegramMiniAppDataSerializer
 from .tasks import forward_tweet_to_channel
 from .utils import TwitterDownloaderAPIV4

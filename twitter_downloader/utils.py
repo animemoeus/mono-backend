@@ -147,7 +147,9 @@ class TwitterDownloaderAPIV2:
 
         # Handle rate-limiting error
         if response.status_code == 429:
-            raise TooManyRequestException("Woah, too many requests! Maybe take a little break? I'll keep trying... 🔄😜")
+            raise TooManyRequestException(
+                "Woah, too many requests! Maybe take a little break? I'll keep trying... 🔄😜"
+            )
 
         # Attempt to parse JSON response
         try:
@@ -259,9 +261,11 @@ class TwitterDownloaderAPIV3:
                                     "url": variant.get("url"),
                                     "thumbnail": media.get("media_url_https"),
                                     "bitrate": variant.get("bitrate"),
-                                    "size": re.findall(r"[0-9]+x[0-9]+", variant.get("url"))[0]
-                                    if re.findall(r"[0-9]+x[0-9]+", variant.get("url"))
-                                    else "0x0",  # Default to "0x0" if no size found (e.g., gif variant does not have size)
+                                    "size": (
+                                        re.findall(r"[0-9]+x[0-9]+", variant.get("url"))[0]
+                                        if re.findall(r"[0-9]+x[0-9]+", variant.get("url"))
+                                        else "0x0"
+                                    ),  # Default to "0x0" if no size found (e.g., gif variant does not have size)
                                 }
                             )
 
