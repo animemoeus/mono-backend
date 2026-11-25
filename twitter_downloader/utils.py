@@ -5,8 +5,7 @@ import re
 import requests
 import tenacity
 from django.conf import settings
-from saiyaku import retry
-from tenacity import stop_after_attempt
+from tenacity import before_sleep_log, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +27,13 @@ class TwitterDownloader:
         self.HEADERS = headers
 
     @classmethod
-    @retry(exceptions=TooManyRequestException, delay=1, tries=5)
+    @tenacity.retry(
+        retry=retry_if_exception_type(TooManyRequestException),
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(1),
+        reraise=True,
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+    )
     def get_video_data(cls, tweet_url: str):
         querystring = {
             "url": tweet_url,
@@ -125,7 +130,13 @@ class TwitterDownloaderAPIV2:
         self.description = self.tweet_data.get("description")
         self.data = self.tweet_data.get("data")
 
-    @retry(exceptions=TooManyRequestException, delay=1, tries=7)
+    @tenacity.retry(
+        retry=retry_if_exception_type(TooManyRequestException),
+        stop=stop_after_attempt(7),
+        wait=wait_fixed(1),
+        reraise=True,
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+    )
     def _get_tweet_data(self) -> dict:
         """
         Fetch tweet data from the Twitter downloader API.

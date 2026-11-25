@@ -1,10 +1,15 @@
+import logging
+
 import requests
+import tenacity
 from django.conf import settings
 from django.core.cache import cache
 from requests import Response
-from saiyaku import retry
+from tenacity import before_sleep_log, stop_after_attempt, wait_fixed
 
 from .models import SavedTiktokVideo
+
+logger = logging.getLogger(__name__)
 
 
 class TikHubAPI:
@@ -91,7 +96,12 @@ class TiktokVideoNoWatermark:
         tiktok_videos = response.json().get("data").get("videos")
         return tiktok_videos
 
-    @retry(tries=10, delay=10)
+    @tenacity.retry(
+        stop=stop_after_attempt(10),
+        wait=wait_fixed(10),
+        reraise=True,
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+    )
     def get_post_data_once(self):
         url = f"https://www.tikwm.com/api/user/posts?unique_id={self.username}&count=50"
         response = requests.request("GET", url)
@@ -99,7 +109,12 @@ class TiktokVideoNoWatermark:
         data = response.json().get("data")
         return data
 
-    @retry(tries=10, delay=10)
+    @tenacity.retry(
+        stop=stop_after_attempt(10),
+        wait=wait_fixed(10),
+        reraise=True,
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+    )
     def get_post_data_with_cursor(self, cursor=0):
         url = f"https://www.tikwm.com/api/user/posts?unique_id={self.username}&count=50&cursor={cursor}"
         response = requests.request("GET", url)
@@ -107,7 +122,12 @@ class TiktokVideoNoWatermark:
         data = response.json().get("data")
         return data
 
-    @retry(tries=10, delay=10)
+    @tenacity.retry(
+        stop=stop_after_attempt(10),
+        wait=wait_fixed(10),
+        reraise=True,
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+    )
     def get_all_post(self):
         data = self.get_post_data_once()
         cursor = data.get("cursor")
@@ -133,7 +153,12 @@ class TiktokVideoNoWatermark:
                 send_to_private_telegram_channel(video.get("play"), video.get("title"))
 
 
-@retry(tries=10, delay=1)
+@tenacity.retry(
+    stop=stop_after_attempt(10),
+    wait=wait_fixed(1),
+    reraise=True,
+    before_sleep=before_sleep_log(logger, logging.WARNING),
+)
 def send_to_private_telegram_channel(video_url: str, caption: str = "") -> None:
     """Sent to private Telegram channel by via Telegram Bot"""
 

@@ -182,3 +182,102 @@
 #             validate_telegram_mini_app_data(init_data, telegram_bot_token)
 
 #         self.assertIn("The given data hash is not valid!", str(cm.exception))
+
+
+from unittest.mock import Mock, patch
+
+from django.test import TestCase
+
+from twitter_downloader.utils import TooManyRequestException, TwitterDownloader, TwitterDownloaderAPIV2
+
+
+class TestTwitterDownloaderRetry(TestCase):
+    def setUp(self):
+        self.tweet_url = "https://x.com/example/status/1234567890"
+
+    @patch("twitter_downloader.utils.requests.get")
+    def test_get_video_data_retries_on_rate_limit_and_succeeds(self, mock_get):
+        rate_limited = Mock(status_code=429)
+        success = Mock(status_code=200)
+        success.json.return_value = {
+            "id": "1234567890",
+            "description": "Sample tweet",
+            "data": [
+                {
+                    "type": "video",
+                    "media": "https://example.com/thumb.jpg",
+                    "video_info": [
+                        {
+                            "bitrate": 832000,
+                            "url": "https://video.twimg.com/ext_tw_video/1/pu/vid/720x1280/video.mp4",
+                        }
+                    ],
+                }
+            ],
+        }
+        mock_get.side_effect = [rate_limited, rate_limited, success]
+
+        with patch.object(TwitterDownloader.get_video_data.retry, "sleep") as mock_sleep:
+            result = TwitterDownloader.get_video_data(self.tweet_url)
+
+        self.assertEqual(result["id"], "1234567890")
+        self.assertEqual(len(result["videos"]), 1)
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
+        mock_sleep.assert_called_with(1)
+
+    @patch("twitter_downloader.utils.requests.get")
+    def test_get_video_data_reraises_after_max_attempts(self, mock_get):
+        mock_get.return_value = Mock(status_code=429)
+
+        with patch.object(TwitterDownloader.get_video_data.retry, "sleep") as mock_sleep:
+            with self.assertRaises(TooManyRequestException):
+                TwitterDownloader.get_video_data(self.tweet_url)
+
+        self.assertEqual(mock_get.call_count, 5)
+        self.assertEqual(mock_sleep.call_count, 4)
+        mock_sleep.assert_called_with(1)
+
+    @patch("twitter_downloader.utils.requests.get")
+    def test_apiv2_get_tweet_data_retries_on_rate_limit_and_succeeds(self, mock_get):
+        rate_limited = Mock(status_code=429)
+        success = Mock(status_code=200)
+        success.json.return_value = {
+            "id": "1234567890",
+            "created_at": "2026-01-01",
+            "description": "Sample tweet",
+            "data": [{"type": "video"}],
+        }
+        mock_get.side_effect = [rate_limited, success]
+
+        with patch.object(TwitterDownloaderAPIV2._get_tweet_data.retry, "sleep") as mock_sleep:
+            client = TwitterDownloaderAPIV2(self.tweet_url)
+
+        self.assertEqual(client.id, "1234567890")
+        self.assertEqual(mock_get.call_count, 2)
+        mock_sleep.assert_called_once_with(1)
+
+    @patch("twitter_downloader.utils.requests.get")
+    def test_apiv2_get_tweet_data_reraises_after_max_attempts(self, mock_get):
+        mock_get.return_value = Mock(status_code=429)
+
+        with patch.object(TwitterDownloaderAPIV2._get_tweet_data.retry, "sleep") as mock_sleep:
+            with self.assertRaises(TooManyRequestException):
+                TwitterDownloaderAPIV2(self.tweet_url)
+
+        self.assertEqual(mock_get.call_count, 7)
+        self.assertEqual(mock_sleep.call_count, 6)
+        mock_sleep.assert_called_with(1)
+
+    @patch("twitter_downloader.utils.requests.get")
+    def test_apiv2_get_tweet_data_does_not_retry_other_exceptions(self, mock_get):
+        bad_response = Mock(status_code=200)
+        bad_response.json.side_effect = ValueError("Invalid JSON")
+        mock_get.return_value = bad_response
+
+        with patch.object(TwitterDownloaderAPIV2._get_tweet_data.retry, "sleep") as mock_sleep:
+            with self.assertRaises(Exception):
+                TwitterDownloaderAPIV2(self.tweet_url)
+
+        self.assertEqual(mock_get.call_count, 1)
+        mock_sleep.assert_not_called()
