@@ -7,8 +7,8 @@ from pathlib import Path
 import environ
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
-# backend/
-APPS_DIR = BASE_DIR / "backend"
+# app/
+APPS_DIR = BASE_DIR / "app"
 env = environ.Env()
 
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
@@ -106,7 +106,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "backend.users",
+    "app.users",
     # Your stuff: custom apps go here
     "cinematch",
     "discord",
@@ -121,7 +121,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIGRATIONS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
-MIGRATION_MODULES = {"sites": "backend.contrib.sites.migrations"}
+MIGRATION_MODULES = {"sites": "app.contrib.sites.migrations"}
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
@@ -224,7 +224,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "backend.users.context_processors.allauth_settings",
+                "app.users.context_processors.allauth_settings",
             ],
         },
     }
@@ -346,13 +346,13 @@ ACCOUNT_EMAIL_REQUIRED = True
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_ADAPTER = "backend.users.adapters.AccountAdapter"
+ACCOUNT_ADAPTER = "app.users.adapters.AccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
-ACCOUNT_FORMS = {"signup": "backend.users.forms.UserSignupForm"}
+ACCOUNT_FORMS = {"signup": "app.users.forms.UserSignupForm"}
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-SOCIALACCOUNT_ADAPTER = "backend.users.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "app.users.adapters.SocialAccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
-SOCIALACCOUNT_FORMS = {"signup": "backend.users.forms.UserSocialSignupForm"}
+SOCIALACCOUNT_FORMS = {"signup": "app.users.forms.UserSocialSignupForm"}
 
 # django-rest-framework
 # -------------------------------------------------------------------------------
@@ -375,8 +375,8 @@ CORS_ALLOW_ALL_ORIGINS = True  # Update this to specific domains later
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
 # See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
 SPECTACULAR_SETTINGS = {
-    "TITLE": "backend API",
-    "DESCRIPTION": "Documentation of API endpoints of backend",
+    "TITLE": "app API",
+    "DESCRIPTION": "Documentation of API endpoints of app",
     "VERSION": "1.0.0",
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
 }

@@ -46,7 +46,7 @@ services:
   #   volumes:
   #     - ./docs:/docs:z
   #     - ./config:/app/config:z
-  #     - ./backend:/app/backend:z
+  #     - ./app:/app/app:z
   #   ports:
   #     - '9000:9000'
   #   command: /start-docs

@@ -1,8 +1,8 @@
 import pytest
 from rest_framework.test import APIRequestFactory
 
-from backend.users.api.views import UserViewSet
-from backend.users.models import User
+from app.users.api.views import UserViewSet
+from app.users.models import User
 
 
 class TestUserViewSet:

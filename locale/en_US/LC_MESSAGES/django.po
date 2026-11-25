@@ -1,4 +1,4 @@
-# Translations for the backend project
+# Translations for the app project
 # Copyright (C) 2023 Arter Tendean
 # Arter Tendean <arter@animemoe.us>, 2023.
 #
